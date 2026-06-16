@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react'
+import type { CSSProperties, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react'
 
 interface BaseProps {
   label: string
@@ -6,11 +6,12 @@ interface BaseProps {
   hint?: string
   required?: boolean
   children?: ReactNode
+  style?: CSSProperties
 }
 
-export function FormGroup({ label, error, hint, required, children }: BaseProps) {
+export function FormGroup({ label, error, hint, required, children, style }: BaseProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, ...style }}>
       <label style={{ fontSize: 13, fontWeight: 500, color: error ? '#DC2626' : '#4A5568' }}>
         {label}
         {required && <span style={{ color: '#DC2626', marginLeft: 3 }}>*</span>}

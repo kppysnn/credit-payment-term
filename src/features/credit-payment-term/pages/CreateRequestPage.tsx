@@ -20,7 +20,8 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
   if (customerType === 'new') {
     customerInfo = { type: 'new', data: data.newCustomer as never }
   } else if (customerType === 'existing') {
-    customerInfo = { type: 'existing', data: { ...(data.existingCustomer as never), customerId: String(data.existingCustomerId ?? '') } }
+    const base = (data.existingCustomer ?? {}) as Record<string, unknown>
+    customerInfo = { type: 'existing', data: { ...base, customerId: String(data.existingCustomerId ?? '') } as never }
   } else {
     customerInfo = { type: 'reseller', data: data.reseller as never }
   }

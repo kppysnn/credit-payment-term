@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card } from '../../../components/ui/Card'
 import { Button } from '../../../components/ui/Button'
 import { FormGroup, Input, Select, Textarea } from '../../../components/ui/FormField'
 import { Alert } from '../../../components/ui/Alert'
 import { CUSTOMER_TYPE_LABELS, type CustomerType } from '../types/customer'
-import { searchCustomers, getCustomerById } from '../services/customerService'
+import { searchCustomers } from '../services/customerService'
 import type { Customer } from '../types/customer'
 import { ArrowRight, ArrowLeft, Search } from 'lucide-react'
 

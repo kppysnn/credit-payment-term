@@ -16,7 +16,7 @@ import { RejectModal } from '../../../components/modals/RejectModal'
 import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest } from '../utils/permissions'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate, formatDateTime, formatCreditTerm } from '../utils/formatters'
-import { ArrowLeft, Edit, RefreshCw, Printer, FileDown, Send, Ban, CheckCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, Edit, RefreshCw, Printer, Send, Ban, CheckCircle, XCircle } from 'lucide-react'
 
 export function RequestDetailPage() {
   const { id } = useParams<{ id: string }>()

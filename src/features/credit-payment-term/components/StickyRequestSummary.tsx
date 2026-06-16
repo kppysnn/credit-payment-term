@@ -55,11 +55,11 @@ export function StickyRequestSummary({ data, currentStep }: Props) {
         <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           สรุปคำขอ
         </div>
-        {data.projectName && (
+        {data.projectName != null && data.projectName !== '' ? (
           <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginTop: 4, lineHeight: 1.3 }}>
             {String(data.projectName)}
           </div>
-        )}
+        ) : null}
       </div>
 
       <div style={{ padding: '12px 16px' }}>

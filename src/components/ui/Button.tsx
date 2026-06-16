@@ -11,13 +11,6 @@ const VARIANT_STYLES: Record<Variant, string> = {
   success: 'background:#16A34A;color:#fff;border-color:#16A34A',
 }
 
-const HOVER_STYLES: Record<Variant, string> = {
-  primary: '#142840',
-  secondary: '#F7FAFC',
-  danger: '#B91C1C',
-  ghost: '#F7FAFC',
-  success: '#15803D',
-}
 
 const SIZE_STYLES: Record<Size, { padding: string; fontSize: string; height: string }> = {
   sm: { padding: '0 12px', fontSize: '12px', height: '30px' },

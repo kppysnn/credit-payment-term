@@ -12,7 +12,7 @@ import { Alert } from '../../../components/ui/Alert'
 
 function numVal(v: unknown): number { return Number(v) || 0 }
 
-function buildPatch(data: Record<string, unknown>, user: { id: string; name: string; email: string }): Partial<Request> {
+function buildPatch(data: Record<string, unknown>, _user: { id: string; name: string; email: string }): Partial<Request> {
   const saleType = String(data.saleType || '') as SaleType
   const showHw = saleType === 'hardware' || saleType === 'mixed'
   const showSw = saleType === 'software_installation' || saleType === 'mixed'
@@ -20,7 +20,7 @@ function buildPatch(data: Record<string, unknown>, user: { id: string; name: str
   const customerType = String(data.customerType || '') as 'new' | 'existing' | 'reseller'
   let customerInfo: RequestCustomerInfo
   if (customerType === 'new') customerInfo = { type: 'new', data: data.newCustomer as never }
-  else if (customerType === 'existing') customerInfo = { type: 'existing', data: { ...(data.existingCustomer as never), customerId: String(data.existingCustomerId ?? '') } }
+  else if (customerType === 'existing') { const base = (data.existingCustomer ?? {}) as Record<string, unknown>; customerInfo = { type: 'existing', data: { ...base, customerId: String(data.existingCustomerId ?? '') } as never } }
   else customerInfo = { type: 'reseller', data: data.reseller as never }
 
   const items: QuotationItem[] = []
