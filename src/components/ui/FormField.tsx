@@ -1,7 +1,7 @@
 import type { CSSProperties, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react'
 
 interface BaseProps {
-  label: string
+  label?: string
   error?: string
   hint?: string
   required?: boolean
@@ -12,10 +12,12 @@ interface BaseProps {
 export function FormGroup({ label, error, hint, required, children, style }: BaseProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, ...style }}>
-      <label style={{ fontSize: 13, fontWeight: 500, color: error ? '#DC2626' : '#4A5568' }}>
-        {label}
-        {required && <span style={{ color: '#DC2626', marginLeft: 3 }}>*</span>}
-      </label>
+      {label && (
+        <label style={{ fontSize: 13, fontWeight: 500, color: error ? '#DC2626' : '#4A5568' }}>
+          {label}
+          {required && <span style={{ color: '#DC2626', marginLeft: 3 }}>*</span>}
+        </label>
+      )}
       {children}
       {hint && !error && <span style={{ fontSize: 11, color: '#A0AEC0' }}>{hint}</span>}
       {error && <span style={{ fontSize: 11, color: '#DC2626' }}>{error}</span>}

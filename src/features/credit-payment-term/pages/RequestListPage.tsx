@@ -94,22 +94,22 @@ export function RequestListPage() {
               <tbody>
                 {filtered.map((req) => (
                   <tr key={req.id} className="data-row" style={{ borderBottom: '1px solid #D0D6DF', background: '#fff', transition: 'background 0.1s' }}>
-                    <td style={{ padding: '11px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#004081', fontWeight: 600, whiteSpace: 'nowrap' }}>{req.requestNo}</td>
-                    <td style={{ padding: '11px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#505050' }}>{req.proposalNo}</td>
-                    <td style={{ padding: '11px 14px', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#001122' }}>{req.projectName}</td>
-                    <td style={{ padding: '11px 14px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#505050' }}>{req.customerName}</td>
-                    <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', fontSize: 12, color: '#586782' }}>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#004081', fontWeight: 600, whiteSpace: 'nowrap' }}>{req.requestNo}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#505050' }}>{req.proposalNo}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#001122' }}>{req.projectName}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#505050' }}>{req.customerName}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap', fontSize: 12, color: '#586782' }}>
                       {SALE_TYPE_LABELS[req.saleType]}
                     </td>
-                    <td style={{ padding: '11px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#001122' }}>{formatCurrency(req.totalSelling)}</td>
-                    <td style={{ padding: '11px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: req.grossProfit < 0 ? '#F3554F' : '#001122' }}>{formatCurrency(req.grossProfit)}</td>
-                    <td style={{ padding: '11px 14px', fontSize: 12, color: req.marginPercent < 0 ? '#F3554F' : '#001122' }}>{req.marginPercent.toFixed(1)}%</td>
-                    <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', color: '#505050' }}>{req.maxCreditTerm === 0 ? 'COD' : `Net ${req.maxCreditTerm}`}</td>
-                    <td style={{ padding: '11px 14px', textAlign: 'center', color: '#505050' }}>{req.installmentCount}</td>
-                    <td style={{ padding: '11px 14px', whiteSpace: 'nowrap' }}><StatusBadge status={req.status} size="sm" /></td>
-                    <td style={{ padding: '11px 14px', fontSize: 12, color: '#586782', whiteSpace: 'nowrap' }}>{req.salesName}</td>
-                    <td style={{ padding: '11px 14px', color: '#929EB4', fontSize: 12, whiteSpace: 'nowrap' }}>{formatDate(req.updatedAt)}</td>
-                    <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#001122' }}>{formatCurrency(req.totalSelling)}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: req.grossProfit < 0 ? '#F3554F' : '#001122' }}>{formatCurrency(req.grossProfit)}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontSize: 12, color: req.marginPercent < 0 ? '#F3554F' : '#001122' }}>{req.marginPercent.toFixed(1)}%</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap', color: '#505050' }}>{req.maxCreditTerm === 0 ? 'COD' : `Net ${req.maxCreditTerm}`}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', textAlign: 'center', color: '#505050' }}>{req.installmentCount}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}><StatusBadge status={req.status} size="sm" /></td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontSize: 12, color: '#586782', whiteSpace: 'nowrap' }}>{req.salesName}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', color: '#929EB4', fontSize: 12, whiteSpace: 'nowrap' }}>{formatDate(req.updatedAt)}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <Link to={`/requests/${req.id}`}>
                           <Button variant="ghost" size="sm" icon={<Eye size={13} />}>ดู</Button>

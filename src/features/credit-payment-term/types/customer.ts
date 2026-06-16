@@ -1,5 +1,4 @@
 export type CustomerType = 'new' | 'existing' | 'reseller'
-export type BillingTarget = 'reseller' | 'end_customer'
 
 export const CUSTOMER_TYPE_LABELS: Record<CustomerType, string> = {
   new: 'ลูกค้าใหม่',
@@ -22,10 +21,8 @@ export interface NewCustomerInfo {
   companyName: string
   taxId?: string
   contactPerson?: string
-  contactEmail?: string
   contactPhone?: string
-  remark?: string
-  creditTermReason?: string
+  contactEmail?: string
 }
 
 export interface ExistingCustomerInfo {
@@ -34,21 +31,18 @@ export interface ExistingCustomerInfo {
   taxId?: string
   defaultCreditTerm?: number
   contactPerson?: string
-  contactEmail?: string
   contactPhone?: string
+  contactEmail?: string
 }
 
 export interface ResellerInfo {
+  resellerId: string
   resellerCompanyName: string
-  resellerContactPerson?: string
-  resellerEmail?: string
-  resellerPhone?: string
   endCustomerCompanyName: string
   endCustomerContactPerson?: string
-  endCustomerEmail?: string
   endCustomerPhone?: string
-  billingTo: BillingTarget
-  creditTermAppliesTo: BillingTarget
+  billingTo?: 'reseller' | 'endCustomer'
+  creditTermAppliesTo?: 'reseller' | 'endCustomer'
 }
 
 export type RequestCustomerInfo =

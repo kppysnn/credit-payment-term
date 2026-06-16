@@ -18,12 +18,11 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
   cancelled: 'ยกเลิก',
 }
 
-export type SaleType = 'hardware' | 'software_installation' | 'mixed'
+export type SaleType = 'hardware' | 'hardware_software_installation'
 
 export const SALE_TYPE_LABELS: Record<SaleType, string> = {
   hardware: 'Hardware',
-  software_installation: 'Software & Installation',
-  mixed: 'Hardware + Software & Installation',
+  hardware_software_installation: 'Hardware + Software & Installation',
 }
 
 export type PaymentCondition =
@@ -63,7 +62,7 @@ export interface PaymentInstallment {
   installmentAmount: number
   creditTermDays: number
   paymentCondition: PaymentCondition
-  creditTermReason: string
+  creditTermReason?: string
   remark?: string
 }
 
@@ -90,7 +89,7 @@ export interface Request {
   quotationNo?: string
   projectName: string
   saleType: SaleType
-  requestPurpose: string
+  requestPurpose?: string
   remark?: string
 
   customerInfo: RequestCustomerInfo
@@ -98,7 +97,7 @@ export interface Request {
   quotationItems: QuotationItem[]
 
   installmentCount: number
-  paymentTermReason: string
+  paymentTermReason?: string
   creditTermReason?: string
   installments: PaymentInstallment[]
 
@@ -128,73 +127,4 @@ export interface RequestListItem {
   approverName?: string
   updatedAt: string
   version: number
-}
-
-export type RequestFormData = {
-  proposalNo: string
-  quotationNo: string
-  projectName: string
-  saleType: SaleType | ''
-  requestPurpose: string
-  remark: string
-
-  customerType: '' | 'new' | 'existing' | 'reseller'
-  newCustomer: {
-    companyName: string
-    taxId: string
-    contactPerson: string
-    contactEmail: string
-    contactPhone: string
-    remark: string
-    creditTermReason: string
-  }
-  existingCustomerId: string
-  existingCustomer: {
-    companyName: string
-    taxId: string
-    defaultCreditTerm: number | ''
-    contactPerson: string
-    contactEmail: string
-    contactPhone: string
-  }
-  reseller: {
-    resellerCompanyName: string
-    resellerContactPerson: string
-    resellerEmail: string
-    resellerPhone: string
-    endCustomerCompanyName: string
-    endCustomerContactPerson: string
-    endCustomerEmail: string
-    endCustomerPhone: string
-    billingTo: 'reseller' | 'end_customer' | ''
-    creditTermAppliesTo: 'reseller' | 'end_customer' | ''
-  }
-
-  hardwareItems: Array<{
-    name: string
-    description: string
-    sellingPrice: number | ''
-    cost: number | ''
-    remark: string
-  }>
-  softwareSellingPrice: number | ''
-  softwareCost: number | ''
-  softwareName: string
-  softwareDescription: string
-  softwareRemark: string
-  installationSellingPrice: number | ''
-  installationCost: number | ''
-  installationDescription: string
-  installationRemark: string
-
-  installmentCount: number
-  paymentTermReason: string
-  overallCreditTermReason: string
-  installments: Array<{
-    installmentPercent: number | ''
-    creditTermDays: number | ''
-    paymentCondition: PaymentCondition | ''
-    creditTermReason: string
-    remark: string
-  }>
 }
