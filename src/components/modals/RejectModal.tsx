@@ -87,12 +87,12 @@ export function RejectModal({ open, request, onClose, onReject }: Props) {
             type="checkbox"
             checked={confirmed}
             onChange={e => { setConfirmed(e.target.checked); setError('') }}
-            style={{ marginTop: 2, accentColor: '#DC2626' }}
+            style={{ marginTop: 2, accentColor: '#F3554F' }}
           />
           <span>ข้าพเจ้ายืนยันว่าตัดสินใจไม่อนุมัติคำขอนี้แล้ว</span>
         </label>
 
-        {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
+        {error && <div style={{ fontSize: 12, color: '#F3554F' }}>{error}</div>}
       </div>
     </Modal>
   )

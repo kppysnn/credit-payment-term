@@ -106,7 +106,7 @@ export function SummarySubmitStep({ data, currentUser, onBack, onSaveDraft, onSu
             ['วัตถุประสงค์', String(data.requestPurpose || '—'), false],
           ].map(([k, v, mono]) => (
             <div key={k as string}>
-              <div style={{ fontSize: 11, color: '#718096', fontWeight: 600, marginBottom: 2 }}>{k as string}</div>
+              <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 2 }}>{k as string}</div>
               <div style={{ fontFamily: mono ? 'JetBrains Mono, monospace' : undefined }}>{v as string}</div>
             </div>
           ))}
@@ -116,8 +116,8 @@ export function SummarySubmitStep({ data, currentUser, onBack, onSaveDraft, onSu
       {/* 2. Customer */}
       <Card title="2. ข้อมูลลูกค้า">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 24px', fontSize: 14 }}>
-          <div><div style={{ fontSize: 11, color: '#718096', fontWeight: 600, marginBottom: 2 }}>ประเภทลูกค้า</div><div>{CUSTOMER_TYPE_LABELS[customerType] ?? '—'}</div></div>
-          <div><div style={{ fontSize: 11, color: '#718096', fontWeight: 600, marginBottom: 2 }}>ชื่อบริษัท</div><div>{customerName || '—'}</div></div>
+          <div><div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 2 }}>ประเภทลูกค้า</div><div>{CUSTOMER_TYPE_LABELS[customerType] ?? '—'}</div></div>
+          <div><div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 2 }}>ชื่อบริษัท</div><div>{customerName || '—'}</div></div>
         </div>
       </Card>
 
@@ -131,8 +131,8 @@ export function SummarySubmitStep({ data, currentUser, onBack, onSaveDraft, onSu
             { label: 'Margin %', value: `${margin.toFixed(2)}%`, danger: margin < 0 },
           ].map(f => (
             <div key={f.label}>
-              <div style={{ fontSize: 11, color: '#718096', marginBottom: 4 }}>{f.label}</div>
-              <div style={{ fontSize: f.big ? 20 : 16, fontWeight: 700, color: f.danger ? '#DC2626' : '#1A202C', fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
+              <div style={{ fontSize: 11, color: '#586782', marginBottom: 4 }}>{f.label}</div>
+              <div style={{ fontSize: f.big ? 20 : 16, fontWeight: 700, color: f.danger ? '#F3554F' : '#001122', fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
             </div>
           ))}
         </div>
@@ -142,28 +142,28 @@ export function SummarySubmitStep({ data, currentUser, onBack, onSaveDraft, onSu
       <Card title="4. Payment Schedule">
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ background: '#F7FAFC' }}>
+            <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
               {['งวด', '% งวด', 'จำนวนเงิน', 'Credit Term', 'เงื่อนไข', 'เหตุผล'].map(h => (
-                <th key={h} style={{ padding: '8px 10px', fontWeight: 600, textAlign: 'left', border: '1px solid #E2E8F0', color: '#4A5568', fontSize: 12 }}>{h}</th>
+                <th key={h} style={{ padding: '10px 12px', fontWeight: 700, textAlign: 'left', color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {installments.slice(0, installmentCount).map((row, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #F7FAFC' }}>
-                <td style={{ padding: '8px 10px', border: '1px solid #E2E8F0', fontWeight: 700 }}>{i + 1}</td>
-                <td style={{ padding: '8px 10px', border: '1px solid #E2E8F0' }}>{numVal(row.installmentPercent)}%</td>
-                <td style={{ padding: '8px 10px', border: '1px solid #E2E8F0', fontFamily: 'monospace' }}>{formatCurrency(calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)))}</td>
-                <td style={{ padding: '8px 10px', border: '1px solid #E2E8F0' }}>{formatCreditTerm(numVal(row.creditTermDays))}</td>
-                <td style={{ padding: '8px 10px', border: '1px solid #E2E8F0', fontSize: 12 }}>{PAYMENT_CONDITION_LABELS[row.paymentCondition as PaymentCondition] || '—'}</td>
-                <td style={{ padding: '8px 10px', border: '1px solid #E2E8F0', fontSize: 12, color: '#4A5568' }}>{row.creditTermReason || '—'}</td>
+              <tr key={i} className="data-row" style={{ borderBottom: '1px solid #D0D6DF', transition: 'background 0.1s' }}>
+                <td style={{ padding: '10px 12px', fontWeight: 700, color: '#001122' }}>{i + 1}</td>
+                <td style={{ padding: '10px 12px' }}>{numVal(row.installmentPercent)}%</td>
+                <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)))}</td>
+                <td style={{ padding: '10px 12px' }}>{formatCreditTerm(numVal(row.creditTermDays))}</td>
+                <td style={{ padding: '10px 12px', fontSize: 12 }}>{PAYMENT_CONDITION_LABELS[row.paymentCondition as PaymentCondition] || '—'}</td>
+                <td style={{ padding: '10px 12px', fontSize: 12, color: '#586782' }}>{row.creditTermReason || '—'}</td>
               </tr>
             ))}
-            <tr style={{ background: '#EBF0F6', fontWeight: 700 }}>
-              <td colSpan={2} style={{ padding: '8px 10px', border: '1px solid #E2E8F0' }}>รวม</td>
-              <td style={{ padding: '8px 10px', border: '1px solid #E2E8F0', fontFamily: 'monospace' }}>{formatCurrency(totalSelling)}</td>
-              <td style={{ padding: '8px 10px', border: '1px solid #E2E8F0' }}>Max: {formatCreditTerm(maxCreditTerm)}</td>
-              <td colSpan={2} style={{ padding: '8px 10px', border: '1px solid #E2E8F0', color: pctNotComplete ? '#DC2626' : '#16A34A' }}>
+            <tr style={{ background: 'rgba(0,64,129,0.04)', fontWeight: 700, borderTop: '2px solid #D0D6DF' }}>
+              <td colSpan={2} style={{ padding: '10px 12px', color: '#001122' }}>รวม</td>
+              <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(totalSelling)}</td>
+              <td style={{ padding: '10px 12px' }}>Max: {formatCreditTerm(maxCreditTerm)}</td>
+              <td colSpan={2} style={{ padding: '10px 12px', color: pctNotComplete ? '#F3554F' : '#66C5C5' }}>
                 {totalPct.toFixed(1)}% {pctNotComplete ? '⚠ ≠ 100%' : '✓'}
               </td>
             </tr>
@@ -178,13 +178,13 @@ export function SummarySubmitStep({ data, currentUser, onBack, onSaveDraft, onSu
             type="checkbox"
             checked={confirmed}
             onChange={e => { setConfirmed(e.target.checked); setError('') }}
-            style={{ marginTop: 2, accentColor: '#1E3A5F', width: 16, height: 16 }}
+            style={{ marginTop: 2, accentColor: '#004081', width: 16, height: 16 }}
           />
-          <span style={{ fontSize: 14, lineHeight: 1.5, color: '#1A202C' }}>
+          <span style={{ fontSize: 14, lineHeight: 1.5, color: '#001122' }}>
             ข้าพเจ้ายืนยันว่าข้อมูลที่กรอกถูกต้อง และพร้อมสำหรับการพิจารณาอนุมัติ
           </span>
         </label>
-        {error && <div style={{ marginTop: 8, fontSize: 12, color: '#DC2626' }}>{error}</div>}
+        {error && <div style={{ marginTop: 8, fontSize: 12, color: '#F3554F' }}>{error}</div>}
       </Card>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>

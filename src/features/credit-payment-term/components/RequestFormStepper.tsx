@@ -58,7 +58,7 @@ export function RequestFormStepper({
       {/* Main form area */}
       <div style={{ flex: 1, minWidth: 0 }}>
         {/* Stepper */}
-        <div style={{ display: 'flex', marginBottom: 24, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 12, padding: '16px 20px', gap: 4 }}>
+        <div style={{ display: 'flex', marginBottom: 24, background: '#fff', border: '1px solid #D0D6DF', borderRadius: 14, padding: '16px 20px', gap: 4 }}>
           {STEPS.map((label, idx) => {
             const done = idx < currentStep
             const active = idx === currentStep
@@ -75,22 +75,23 @@ export function RequestFormStepper({
                       justifyContent: 'center',
                       fontSize: 12,
                       fontWeight: 700,
-                      background: done ? '#16A34A' : active ? '#1E3A5F' : '#F7FAFC',
-                      border: `2px solid ${done ? '#16A34A' : active ? '#1E3A5F' : '#CBD5E0'}`,
-                      color: done || active ? '#fff' : '#A0AEC0',
+                      background: done ? '#66C5C5' : active ? '#004081' : '#F2F6F8',
+                      border: `2px solid ${done ? '#66C5C5' : active ? '#004081' : '#D0D6DF'}`,
+                      color: done || active ? '#fff' : '#929EB4',
                       cursor: done ? 'pointer' : 'default',
                       flexShrink: 0,
+                      transition: 'all 0.15s',
                     }}
                     onClick={() => done && setCurrentStep(idx)}
                   >
                     {done ? <Check size={12} /> : idx + 1}
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: active ? 600 : 400, color: active ? '#1E3A5F' : done ? '#16A34A' : '#A0AEC0', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 11, fontWeight: active ? 700 : 400, color: active ? '#004081' : done ? '#66C5C5' : '#929EB4', whiteSpace: 'nowrap' }}>
                     {label}
                   </span>
                 </div>
                 {idx < STEPS.length - 1 && (
-                  <div style={{ flex: 1, height: 2, background: done ? '#16A34A' : '#E2E8F0', margin: '0 8px', marginBottom: 18 }} />
+                  <div style={{ flex: 1, height: 2, background: done ? '#66C5C5' : '#D0D6DF', margin: '0 8px', marginBottom: 18, transition: 'background 0.2s' }} />
                 )}
               </div>
             )

@@ -1,21 +1,48 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode, CSSProperties } from 'react'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success'
 type Size = 'sm' | 'md' | 'lg'
 
-const VARIANT_STYLES: Record<Variant, string> = {
-  primary: 'background:#1E3A5F;color:#fff;border-color:#1E3A5F',
-  secondary: 'background:#fff;color:#4A5568;border-color:#E2E8F0',
-  danger: 'background:#DC2626;color:#fff;border-color:#DC2626',
-  ghost: 'background:transparent;color:#4A5568;border-color:transparent',
-  success: 'background:#16A34A;color:#fff;border-color:#16A34A',
+const VARIANT_BASE: Record<Variant, CSSProperties> = {
+  primary: {
+    background: 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)',
+    color: '#F8F9FA',
+    border: '1px solid transparent',
+  },
+  secondary: {
+    background: '#FFFFFF',
+    color: '#001122',
+    border: '1px solid rgba(0,64,129,0.22)',
+  },
+  danger: {
+    background: '#F3554F',
+    color: '#FFFFFF',
+    border: '1px solid #F3554F',
+  },
+  ghost: {
+    background: 'transparent',
+    color: '#586782',
+    border: '1px solid transparent',
+  },
+  success: {
+    background: '#82C566',
+    color: '#FFFFFF',
+    border: '1px solid #82C566',
+  },
 }
 
+const VARIANT_HOVER: Record<Variant, CSSProperties> = {
+  primary:   { filter: 'brightness(1.08)', boxShadow: '0 6px 20px rgba(0,64,129,0.18)', transform: 'translateY(-1px)' },
+  secondary: { background: 'rgba(102,197,197,0.08)', borderColor: '#66C5C5', color: '#004081' },
+  danger:    { filter: 'brightness(0.92)' },
+  ghost:     { background: 'rgba(102,197,197,0.10)', color: '#004081' },
+  success:   { filter: 'brightness(0.92)' },
+}
 
-const SIZE_STYLES: Record<Size, { padding: string; fontSize: string; height: string }> = {
-  sm: { padding: '0 12px', fontSize: '12px', height: '30px' },
-  md: { padding: '0 16px', fontSize: '14px', height: '36px' },
-  lg: { padding: '0 20px', fontSize: '14px', height: '42px' },
+const SIZE_STYLES: Record<Size, CSSProperties> = {
+  sm: { padding: '0 12px', fontSize: '12px', height: '30px', gap: 5 },
+  md: { padding: '0 18px', fontSize: '13.5px', height: '38px', gap: 6 },
+  lg: { padding: '0 24px', fontSize: '14px', height: '44px', gap: 8 },
 }
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -35,15 +62,13 @@ export function Button({
   children,
   style,
   disabled,
+  onMouseEnter,
+  onMouseLeave,
   ...rest
 }: Props) {
   const sz = SIZE_STYLES[size]
-  const variantStyle = Object.fromEntries(
-    VARIANT_STYLES[variant].split(';').map(s => {
-      const [k, v] = s.split(':')
-      return [k.trim().replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), v?.trim()]
-    }),
-  )
+  const base = VARIANT_BASE[variant]
+  const hov = VARIANT_HOVER[variant]
 
   return (
     <button
@@ -53,24 +78,54 @@ export function Button({
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
+        gap: sz.gap as number,
         height: sz.height,
-        padding: sz.padding,
+        padding: sz.padding as string,
         fontSize: sz.fontSize,
-        fontWeight: 500,
-        borderRadius: 8,
-        border: '1px solid',
+        fontWeight: 600,
+        borderRadius: 9999,
         cursor: disabled || loading ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.55 : 1,
-        transition: 'background 0.15s, opacity 0.15s',
+        opacity: disabled ? 0.45 : 1,
+        transition: 'background 0.15s, box-shadow 0.15s, transform 0.12s, filter 0.15s, border-color 0.15s, color 0.15s',
         width: fullWidth ? '100%' : undefined,
         fontFamily: 'inherit',
-        ...variantStyle,
+        textDecoration: 'none',
+        letterSpacing: '0.01em',
+        whiteSpace: 'nowrap',
+        ...base,
         ...style,
-      } as React.CSSProperties}
+      } as CSSProperties}
+      onMouseEnter={e => {
+        if (!disabled && !loading) {
+          Object.assign(e.currentTarget.style, hov)
+        }
+        onMouseEnter?.(e)
+      }}
+      onMouseLeave={e => {
+        if (!disabled && !loading) {
+          Object.assign(e.currentTarget.style, {
+            filter: '',
+            boxShadow: '',
+            transform: '',
+            background: (base.background as string) ?? '',
+            borderColor: '',
+            color: (base.color as string) ?? '',
+          })
+        }
+        onMouseLeave?.(e)
+      }}
     >
       {loading ? (
-        <span style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+        <span style={{
+          width: 13,
+          height: 13,
+          border: '2px solid currentColor',
+          borderTopColor: 'transparent',
+          borderRadius: '50%',
+          animation: 'spin 0.7s linear infinite',
+          display: 'inline-block',
+          flexShrink: 0,
+        }} />
       ) : icon}
       {children}
     </button>

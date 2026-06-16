@@ -38,8 +38,8 @@ export function RequestDetailPage() {
 
   useEffect(() => { loadReq() }, [id, currentUser])
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 48, color: '#A0AEC0' }}>กำลังโหลด...</div>
-  if (!req) return <div style={{ textAlign: 'center', padding: 48, color: '#A0AEC0' }}>ไม่พบคำขอ</div>
+  if (loading) return <div style={{ textAlign: 'center', padding: 48, color: '#929EB4' }}>กำลังโหลด...</div>
+  if (!req) return <div style={{ textAlign: 'center', padding: 48, color: '#929EB4' }}>ไม่พบคำขอ</div>
 
   const customerName =
     req.customerInfo.type === 'existing' ? req.customerInfo.data.companyName :
@@ -81,17 +81,17 @@ export function RequestDetailPage() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#718096', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4, padding: '0 0 8px', fontFamily: 'inherit' }}>
+            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#586782', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4, padding: '0 0 8px', fontFamily: 'inherit' }}>
               <ArrowLeft size={14} /> ย้อนกลับ
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>{req.requestNo}</h1>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', color: '#001122' }}>{req.requestNo}</h1>
               <StatusBadge status={req.status} />
               {req.version > 1 && (
-                <span style={{ fontSize: 12, padding: '2px 8px', background: '#EFF6FF', color: '#2563EB', borderRadius: 6, fontWeight: 600 }}>v{req.version}</span>
+                <span style={{ fontSize: 12, padding: '2px 8px', background: 'rgba(0,64,129,0.08)', color: '#004081', borderRadius: 6, fontWeight: 600 }}>v{req.version}</span>
               )}
             </div>
-            <p style={{ margin: '6px 0 0', color: '#718096', fontSize: 14 }}>
+            <p style={{ margin: '6px 0 0', color: '#586782', fontSize: 14 }}>
               {req.projectName} · {customerName} · {SALE_TYPE_LABELS[req.saleType]}
             </p>
           </div>
@@ -142,8 +142,8 @@ export function RequestDetailPage() {
                   { label: 'Margin %', value: `${req.financial.marginPercent.toFixed(2)}%`, danger: req.financial.marginPercent < 0 },
                 ].map(f => (
                   <div key={f.label}>
-                    <div style={{ fontSize: 11, color: '#718096', marginBottom: 4 }}>{f.label}</div>
-                    <div style={{ fontSize: f.big ? 20 : 16, fontWeight: 700, color: f.danger ? '#DC2626' : '#1A202C', fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
+                    <div style={{ fontSize: 11, color: '#586782', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</div>
+                    <div style={{ fontSize: f.big ? 20 : 16, fontWeight: 700, color: f.danger ? '#F3554F' : '#001122', fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
                   </div>
                 ))}
               </div>
@@ -163,13 +163,13 @@ export function RequestDetailPage() {
                 <FieldDisplay label="เวอร์ชัน" value={`v${req.version}`} />
               </FieldGrid>
               <div style={{ marginTop: 16 }}>
-                <div style={{ fontSize: 11, color: '#718096', fontWeight: 600, marginBottom: 4 }}>วัตถุประสงค์</div>
-                <p style={{ margin: 0, fontSize: 14, color: '#1A202C', lineHeight: 1.6 }}>{req.requestPurpose}</p>
+                <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 4 }}>วัตถุประสงค์</div>
+                <p style={{ margin: 0, fontSize: 14, color: '#001122', lineHeight: 1.6 }}>{req.requestPurpose}</p>
               </div>
               {req.remark && (
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 11, color: '#718096', fontWeight: 600, marginBottom: 4 }}>หมายเหตุ</div>
-                  <p style={{ margin: 0, fontSize: 14, color: '#4A5568' }}>{req.remark}</p>
+                  <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 4 }}>หมายเหตุ</div>
+                  <p style={{ margin: 0, fontSize: 14, color: '#505060' }}>{req.remark}</p>
                 </div>
               )}
             </Card>
@@ -211,24 +211,24 @@ export function RequestDetailPage() {
             <Card title="รายการสินค้า / ใบเสนอราคา">
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
-                  <tr style={{ background: '#F7FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                  <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
                     {['ประเภท', 'ชื่อสินค้า/บริการ', 'รายละเอียด', 'ราคาขาย', 'ต้นทุน', 'Gross Profit', 'Margin%'].map(h => (
-                      <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#718096', fontSize: 12 }}>{h}</th>
+                      <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em', whiteSpace: 'nowrap' as const }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {req.quotationItems.map(item => (
-                    <tr key={item.itemId} style={{ borderBottom: '1px solid #F7FAFC' }}>
-                      <td style={{ padding: '8px 10px' }}>
-                        <span style={{ padding: '2px 6px', background: '#EBF0F6', borderRadius: 4, fontSize: 11, fontWeight: 600, color: '#1E3A5F' }}>{item.type}</span>
+                    <tr key={item.itemId} style={{ borderBottom: '1px solid #D0D6DF' }}>
+                      <td style={{ padding: '10px 12px' }}>
+                        <span style={{ padding: '2px 8px', background: 'rgba(0,64,129,0.08)', borderRadius: 6, fontSize: 11, fontWeight: 600, color: '#004081' }}>{item.type}</span>
                       </td>
-                      <td style={{ padding: '8px 10px', fontWeight: 500 }}>{item.name}</td>
-                      <td style={{ padding: '8px 10px', color: '#718096', fontSize: 12 }}>{item.description || '—'}</td>
-                      <td style={{ padding: '8px 10px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(item.sellingPrice)}</td>
-                      <td style={{ padding: '8px 10px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(item.cost)}</td>
-                      <td style={{ padding: '8px 10px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: item.grossProfit < 0 ? '#DC2626' : '#1A202C' }}>{formatCurrency(item.grossProfit)}</td>
-                      <td style={{ padding: '8px 10px', fontSize: 12 }}>{item.marginPercent.toFixed(2)}%</td>
+                      <td style={{ padding: '10px 12px', fontWeight: 500 }}>{item.name}</td>
+                      <td style={{ padding: '10px 12px', color: '#586782', fontSize: 12 }}>{item.description || '—'}</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(item.sellingPrice)}</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(item.cost)}</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: item.grossProfit < 0 ? '#F3554F' : '#001122' }}>{formatCurrency(item.grossProfit)}</td>
+                      <td style={{ padding: '10px 12px', fontSize: 12 }}>{item.marginPercent.toFixed(2)}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -238,33 +238,33 @@ export function RequestDetailPage() {
             {/* Payment Schedule */}
             <Card title="Payment Schedule">
               <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 13, color: '#4A5568', marginBottom: 4 }}>
+                <div style={{ fontSize: 13, color: '#505060', marginBottom: 4 }}>
                   <strong>เหตุผล:</strong> {req.paymentTermReason}
                 </div>
                 {req.creditTermReason && (
-                  <div style={{ fontSize: 13, color: '#4A5568' }}>
+                  <div style={{ fontSize: 13, color: '#505060' }}>
                     <strong>Credit Term Reason:</strong> {req.creditTermReason}
                   </div>
                 )}
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
-                  <tr style={{ background: '#F7FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                  <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
                     {['งวด', '%', 'จำนวนเงิน', 'Credit Term', 'เงื่อนไข', 'เหตุผล', 'หมายเหตุ'].map(h => (
-                      <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#718096', fontSize: 12 }}>{h}</th>
+                      <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em', whiteSpace: 'nowrap' as const }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {req.installments.map(inst => (
-                    <tr key={inst.installmentNo} style={{ borderBottom: '1px solid #F7FAFC' }}>
-                      <td style={{ padding: '8px 10px', fontWeight: 700 }}>{inst.installmentNo}</td>
-                      <td style={{ padding: '8px 10px' }}>{inst.installmentPercent}%</td>
-                      <td style={{ padding: '8px 10px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(inst.installmentAmount)}</td>
-                      <td style={{ padding: '8px 10px' }}>{formatCreditTerm(inst.creditTermDays)}</td>
-                      <td style={{ padding: '8px 10px', fontSize: 12 }}>{PAYMENT_CONDITION_LABELS[inst.paymentCondition as PaymentCondition]}</td>
-                      <td style={{ padding: '8px 10px', fontSize: 12, color: '#4A5568' }}>{inst.creditTermReason}</td>
-                      <td style={{ padding: '8px 10px', fontSize: 12, color: '#A0AEC0' }}>{inst.remark || '—'}</td>
+                    <tr key={inst.installmentNo} style={{ borderBottom: '1px solid #D0D6DF' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 700 }}>{inst.installmentNo}</td>
+                      <td style={{ padding: '10px 12px' }}>{inst.installmentPercent}%</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(inst.installmentAmount)}</td>
+                      <td style={{ padding: '10px 12px' }}>{formatCreditTerm(inst.creditTermDays)}</td>
+                      <td style={{ padding: '10px 12px', fontSize: 12 }}>{PAYMENT_CONDITION_LABELS[inst.paymentCondition as PaymentCondition]}</td>
+                      <td style={{ padding: '10px 12px', fontSize: 12, color: '#505060' }}>{inst.creditTermReason}</td>
+                      <td style={{ padding: '10px 12px', fontSize: 12, color: '#929EB4' }}>{inst.remark || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -280,7 +280,7 @@ export function RequestDetailPage() {
                   <FieldDisplay label="วันที่" value={formatDate(req.approvalResult.approvedAt ?? req.approvalResult.rejectedAt ?? '')} />
                 </FieldGrid>
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 11, color: '#718096', fontWeight: 600, marginBottom: 4 }}>
+                  <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 4 }}>
                     {req.approvalResult.approvedAt ? 'Approval Comment' : 'Reject Reason'}
                   </div>
                   <p style={{ margin: 0, fontSize: 14, padding: '10px 12px', background: req.approvalResult.approvedAt ? '#F0FDF4' : '#FEF2F2', borderRadius: 8, border: `1px solid ${req.approvalResult.approvedAt ? '#86EFAC' : '#FCA5A5'}` }}>
@@ -289,7 +289,7 @@ export function RequestDetailPage() {
                 </div>
                 {req.approvalResult.suggestion && (
                   <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 11, color: '#718096', fontWeight: 600, marginBottom: 4 }}>ข้อเสนอแนะสำหรับ Sales</div>
+                    <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 4 }}>ข้อเสนอแนะสำหรับ Sales</div>
                     <p style={{ margin: 0, fontSize: 14, padding: '10px 12px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FCD34D' }}>
                       {req.approvalResult.suggestion}
                     </p>

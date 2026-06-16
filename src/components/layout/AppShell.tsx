@@ -1,54 +1,65 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { RoleSwitcher } from './RoleSwitcher'
-import { useCurrentUser } from '../../app/UserContext'
-import { ROLE_LABELS } from '../../features/credit-payment-term/types/user'
+
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard': 'Dashboard',
+  '/requests': 'รายการคำขอ',
+  '/requests/new': 'สร้างคำขออนุมัติใหม่',
+}
+
+function getPageTitle(pathname: string): string {
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
+  if (pathname.endsWith('/edit')) return 'แก้ไขคำขอ'
+  if (/^\/requests\/[^/]+$/.test(pathname)) return 'รายละเอียดคำขอ'
+  return 'Credit & Payment Term'
+}
 
 export function AppShell() {
-  const { currentUser } = useCurrentUser()
+  const location = useLocation()
+  const pageTitle = getPageTitle(location.pathname)
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F5F7FA' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F9FA' }}>
       <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         {/* Topbar */}
         <header
-          className="topbar no-print"
+          className="no-print"
           style={{
-            height: 56,
-            background: '#fff',
-            borderBottom: '1px solid #E2E8F0',
+            height: 60,
+            background: '#FFFFFF',
+            borderBottom: '1px solid #D0D6DF',
+            boxShadow: '0 1px 2px rgba(0,64,129,0.04)',
             display: 'flex',
             alignItems: 'center',
-            padding: '0 24px',
-            gap: 12,
+            padding: '0 28px',
+            gap: 16,
             flexShrink: 0,
+            zIndex: 10,
+            position: 'sticky',
+            top: 0,
           }}
         >
-          <span style={{ flex: 1, fontWeight: 600, fontSize: 15, color: '#1A202C' }}>
-            Credit &amp; Payment Term Approval
-          </span>
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 500,
-              padding: '4px 10px',
-              borderRadius: 6,
-              background: '#EFF6FF',
-              color: '#2563EB',
-              border: '1px solid #BFDBFE',
-            }}
-          >
-            {ROLE_LABELS[currentUser.role]}
-          </span>
-          <span style={{ fontSize: 13, color: '#4A5568' }}>{currentUser.name}</span>
+          <h1 style={{
+            flex: 1,
+            margin: 0,
+            fontWeight: 600,
+            fontSize: 18,
+            color: '#001122',
+            letterSpacing: '-0.01em',
+          }}>
+            {pageTitle}
+          </h1>
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
           <Outlet />
         </main>
       </div>
+
       <RoleSwitcher />
     </div>
   )

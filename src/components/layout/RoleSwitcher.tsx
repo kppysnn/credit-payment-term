@@ -12,36 +12,37 @@ export function RoleSwitcher() {
       className="no-print"
       style={{
         position: 'fixed',
-        bottom: 16,
-        right: 16,
+        bottom: 20,
+        right: 20,
         zIndex: 50,
-        background: '#fff',
-        border: '1px solid #E2E8F0',
+        background: '#FFFFFF',
+        border: '1px solid #D0D6DF',
         borderRadius: 12,
         padding: '10px 14px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.10)',
+        boxShadow: '0 4px 14px rgba(0,64,129,0.10)',
         fontSize: 12,
       }}
     >
-      <div style={{ fontWeight: 600, color: '#4A5568', marginBottom: 6, fontSize: 11 }}>
-        DEV — เปลี่ยนบทบาท
+      <div style={{ fontWeight: 700, color: '#929EB4', marginBottom: 8, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        DEV — Role
       </div>
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 5 }}>
         {ROLES.map(role => (
           <button
             key={role}
             onClick={() => setRole(role)}
             style={{
               padding: '4px 10px',
-              borderRadius: 6,
+              borderRadius: 9999,
               border: '1px solid',
-              fontSize: 12,
-              fontWeight: 500,
+              fontSize: 11,
+              fontWeight: 600,
               cursor: 'pointer',
-              borderColor: currentUser.role === role ? '#2563EB' : '#E2E8F0',
-              background: currentUser.role === role ? '#EFF6FF' : '#fff',
-              color: currentUser.role === role ? '#2563EB' : '#4A5568',
+              fontFamily: 'inherit',
               transition: 'all 0.15s',
+              borderColor: currentUser.role === role ? '#66C5C5' : '#D0D6DF',
+              background: currentUser.role === role ? 'rgba(102,197,197,0.12)' : '#FFFFFF',
+              color: currentUser.role === role ? '#004081' : '#586782',
             }}
           >
             {ROLE_LABELS[role]}

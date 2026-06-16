@@ -50,9 +50,9 @@ export function ApproveModal({ open, request, onClose, onApprove }: Props) {
       }
     >
       {request && (
-        <div style={{ marginBottom: 16, padding: '12px 14px', background: '#F7FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-          <div style={{ fontWeight: 600, fontSize: 14 }}>{request.requestNo}</div>
-          <div style={{ fontSize: 13, color: '#4A5568', marginTop: 3 }}>{request.projectName}</div>
+        <div style={{ marginBottom: 16, padding: '12px 14px', background: '#FAFBFC', borderRadius: 10, border: '1px solid #D0D6DF' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, fontFamily: 'JetBrains Mono, monospace', color: '#004081' }}>{request.requestNo}</div>
+          <div style={{ fontSize: 13, color: '#586782', marginTop: 3 }}>{request.projectName}</div>
         </div>
       )}
 
@@ -71,15 +71,15 @@ export function ApproveModal({ open, request, onClose, onApprove }: Props) {
             type="checkbox"
             checked={confirmed}
             onChange={e => { setConfirmed(e.target.checked); setError('') }}
-            style={{ marginTop: 2, accentColor: '#16A34A' }}
+            style={{ marginTop: 2, accentColor: '#66C5C5' }}
           />
           <span>ข้าพเจ้ายืนยันว่าได้ตรวจสอบข้อมูลครบถ้วนและอนุมัติคำขอนี้แล้ว</span>
         </label>
 
         {error && !comment.trim() === false && (
-          <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>
+          <div style={{ fontSize: 12, color: '#F3554F' }}>{error}</div>
         )}
-        {error && <div style={{ fontSize: 12, color: '#DC2626' }}>{error}</div>}
+        {error && <div style={{ fontSize: 12, color: '#F3554F' }}>{error}</div>}
       </div>
     </Modal>
   )

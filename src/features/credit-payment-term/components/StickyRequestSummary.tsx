@@ -45,14 +45,14 @@ export function StickyRequestSummary({ data, currentStep }: Props) {
     <div
       style={{
         background: '#fff',
-        border: '1px solid #E2E8F0',
-        borderRadius: 12,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        border: '1px solid #D0D6DF',
+        borderRadius: 14,
+        boxShadow: '0 2px 8px rgba(0,64,129,0.06)',
         overflow: 'hidden',
       }}
     >
-      <div style={{ padding: '14px 16px', background: '#1E3A5F', borderBottom: '1px solid #142840' }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+      <div style={{ padding: '14px 16px', background: '#004081', borderBottom: '1px solid rgba(0,0,0,0.12)' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           สรุปคำขอ
         </div>
         {data.projectName != null && data.projectName !== '' ? (
@@ -64,12 +64,12 @@ export function StickyRequestSummary({ data, currentStep }: Props) {
 
       <div style={{ padding: '12px 16px' }}>
         {rows.filter(r => r.show).map(row => (
-          <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #F7FAFC' }}>
-            <span style={{ fontSize: 12, color: '#718096' }}>{row.label}</span>
+          <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #F2F6F8' }}>
+            <span style={{ fontSize: 12, color: '#586782' }}>{row.label}</span>
             <span style={{
               fontSize: 13,
               fontWeight: row.bold ? 700 : 500,
-              color: row.danger ? '#DC2626' : '#1A202C',
+              color: row.danger ? '#F3554F' : '#001122',
               fontFamily: row.bold ? 'JetBrains Mono, monospace' : undefined,
             }}>
               {row.value}
@@ -78,8 +78,8 @@ export function StickyRequestSummary({ data, currentStep }: Props) {
         ))}
       </div>
 
-      <div style={{ padding: '10px 16px', background: '#F7FAFC', borderTop: '1px solid #E2E8F0' }}>
-        <div style={{ fontSize: 11, color: '#A0AEC0' }}>Step {currentStep + 1} / 5</div>
+      <div style={{ padding: '10px 16px', background: '#FAFBFC', borderTop: '1px solid #D0D6DF' }}>
+        <div style={{ fontSize: 11, color: '#929EB4' }}>Step {currentStep + 1} / 5</div>
       </div>
     </div>
   )
