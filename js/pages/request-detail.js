@@ -19,16 +19,41 @@ PCT.Pages.RequestDetail = {
     /* Category labels */
     const catLabels = { hardware:'Hardware', software:'Software', installation:'Installation', maintenance:'Maintenance' };
 
+    const installmentRows = (req.installmentPlan || []).map(row => `
+      <tr>
+        <td class="td-bold">งวด ${row.installmentNo}</td>
+        <td>${row.percent}%</td>
+        <td>${row.creditDays || 0} วัน</td>
+        <td>${PCT.Utils.escapeHtml(row.creditReason || '—')}</td>
+      </tr>`).join('');
+
     const simpleSaleTerms = isSimpleSale ? `
-      <div class="section-label">${req.type === 'hardware' ? 'Hardware-1' : 'Software & Installation'}</div>
-      <div class="info-grid">
+      <div class="section-label">${req.type === 'hardware' ? 'Quotation-1 (Hardware)' : 'Quotation-2 (Software & Installation)'}</div>
+      <div class="info-grid mb-4">
+        <div><div class="info-item-label">เลข Proposal</div><div class="info-item-value td-mono">${PCT.Utils.escapeHtml(req.proposalNo || '—')}</div></div>
         <div><div class="info-item-label">เลข Quotation</div><div class="info-item-value td-mono" style="color:var(--navy);font-weight:700">${PCT.Utils.escapeHtml(req.quotationRef || '—')}</div></div>
-        <div><div class="info-item-label">ประเภทขาย</div><div class="info-item-value">${PCT.REQUEST_TYPE_LABELS[req.type] || req.type}</div></div>
-        <div><div class="info-item-label">ราคาต้นทุน</div><div class="info-item-value">${PCT.Utils.formatCurrency(req.costPrice)}</div></div>
-        <div><div class="info-item-label">ราคาขาย</div><div class="info-item-value" style="font-size:1.1rem;color:var(--navy);font-weight:700">${PCT.Utils.formatCurrency(req.salePrice || req.dealValue)}</div></div>
-        <div><div class="info-item-label">จำนวนงวด</div><div class="info-item-value">${req.installmentCount || 1} งวด</div></div>
-        ${req.type === 'software_installation' ? `<div><div class="info-item-label">เครดิตภายในงวด</div><div class="info-item-value">${req.creditDays || 0} วัน</div></div>` : ''}
-      </div>` : '';
+        <div><div class="info-item-label">ขายรวม</div><div class="info-item-value" style="font-size:1.1rem;color:var(--navy);font-weight:700">${PCT.Utils.formatCurrency(req.salePrice || req.dealValue)}</div></div>
+        <div><div class="info-item-label">ต้นทุนรวม</div><div class="info-item-value">${PCT.Utils.formatCurrency(req.costPrice)}</div></div>
+      </div>
+      ${req.type === 'hardware' ? `
+        <div class="info-grid mb-4">
+          <div><div class="info-item-label">ราคาขาย HW</div><div class="info-item-value">${PCT.Utils.formatCurrency(req.hardwareSalePrice || req.salePrice)}</div></div>
+          <div><div class="info-item-label">ราคาต้นทุน HW</div><div class="info-item-value">${PCT.Utils.formatCurrency(req.hardwareCostPrice || req.costPrice)}</div></div>
+        </div>` : `
+        <div class="info-grid mb-4">
+          <div><div class="info-item-label">ราคาขาย SW</div><div class="info-item-value">${PCT.Utils.formatCurrency(req.softwareSalePrice)}</div></div>
+          <div><div class="info-item-label">ราคาต้นทุน SW</div><div class="info-item-value">${PCT.Utils.formatCurrency(req.softwareCostPrice)}</div></div>
+          <div><div class="info-item-label">ราคาขาย Install.</div><div class="info-item-value">${PCT.Utils.formatCurrency(req.installationSalePrice)}</div></div>
+          <div><div class="info-item-label">ราคาต้นทุน Install.</div><div class="info-item-value">${PCT.Utils.formatCurrency(req.installationCostPrice)}</div></div>
+        </div>`}
+      <div class="section-label">งวดชำระ</div>
+      ${installmentRows ? `
+        <div class="table-container" style="border-radius:var(--radius);overflow:hidden">
+          <table class="data-table">
+            <thead><tr><th>งวด</th><th>%</th><th>Credit</th><th>เพราะอะไร</th></tr></thead>
+            <tbody>${installmentRows}</tbody>
+          </table>
+        </div>` : `<div class="info-item-value">${req.installmentCount || 1} งวด</div>`}` : '';
 
     /* ── Credit comparison ── */
     const compareCredit = (req.type === 'credit_term' || req.type === 'both') ? (() => {
@@ -148,6 +173,7 @@ PCT.Pages.RequestDetail = {
               <div style="font-size:1.125rem;font-weight:700;color:var(--ink);margin-bottom:14px">${PCT.Utils.escapeHtml(req.dealTitle)}</div>
               <div class="info-grid">
                 <div><div class="info-item-label">มูลค่าดีล</div><div class="info-item-value" style="font-size:1.1rem;color:var(--navy);font-weight:700">${PCT.Utils.formatCurrency(req.dealValue)}</div></div>
+                ${req.proposalNo ? `<div><div class="info-item-label">เลข Proposal</div><div class="info-item-value td-mono">${PCT.Utils.escapeHtml(req.proposalNo)}</div></div>` : ''}
                 ${req.dealCloseDate ? `<div><div class="info-item-label">วันที่คาดว่าจะปิดดีล</div><div class="info-item-value">${PCT.Utils.formatDate(req.dealCloseDate)}</div></div>` : ''}
                 ${req.dealCategories?.length ? `<div><div class="info-item-label">หมวดหมู่</div><div class="info-item-value">${req.dealCategories.map(v => catLabels[v]||v).join(', ')}</div></div>` : ''}
                 ${req.quotationRef ? `<div><div class="info-item-label">เลขที่ใบเสนอราคา</div><div class="info-item-value td-mono">${PCT.Utils.escapeHtml(req.quotationRef)}</div></div>` : ''}
@@ -190,7 +216,8 @@ PCT.Pages.RequestDetail = {
                 const c = PCT.Data.getCustomerById(req.customerId);
                 if (!c) return `
                   <div class="info-grid">
-                    <div><div class="info-item-label">ชื่อลูกค้า</div><div class="info-item-value">${PCT.Utils.escapeHtml(req.customerName || '—')}</div></div>
+                    <div><div class="info-item-label">${req.customerMode === 'reseller' ? 'ลูกค้า / Reseller' : 'ชื่อลูกค้า'}</div><div class="info-item-value">${PCT.Utils.escapeHtml(req.customerName || req.resellerName || '—')}</div></div>
+                    ${req.endCustomerName ? `<div><div class="info-item-label">ลูกค้าปลายทาง</div><div class="info-item-value">${PCT.Utils.escapeHtml(req.endCustomerName)}</div></div>` : ''}
                     ${req.customerContact ? `<div><div class="info-item-label">ผู้ติดต่อ</div><div class="info-item-value">${PCT.Utils.escapeHtml(req.customerContact)}</div></div>` : ''}
                   </div>`;
                 return `
