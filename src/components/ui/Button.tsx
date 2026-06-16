@@ -7,7 +7,7 @@ const VARIANT_BASE: Record<Variant, CSSProperties> = {
   primary: {
     background: 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)',
     color: '#F8F9FA',
-    border: '1px solid transparent',
+    border: 'none',
   },
   secondary: {
     background: '#FFFFFF',
