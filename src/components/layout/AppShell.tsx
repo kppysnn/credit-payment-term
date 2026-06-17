@@ -55,7 +55,7 @@ export function AppShell() {
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px 100px' }}>
           <Outlet />
         </main>
       </div>

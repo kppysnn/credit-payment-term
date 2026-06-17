@@ -8,15 +8,11 @@ import { Card } from '../../../components/ui/Card'
 import { Button } from '../../../components/ui/Button'
 import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { Alert } from '../../../components/ui/Alert'
-import {
-  formatCurrency, calcGrossProfit, calcInstallmentAmount,
-  calcTotalInstallmentPercent,
-} from '../utils/calculations'
+import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
 import { formatCreditTerm } from '../utils/formatters'
 import { searchCustomers } from '../services/customerService'
-import { Plus, Trash2, Save, Send, Search, X } from 'lucide-react'
+import { Save, Send, X } from 'lucide-react'
 
-interface HwItem { name: string; sellingPrice: number | ''; cost: number | '' }
 interface InstRow { installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: PaymentCondition | '' }
 
 interface Props {
@@ -29,7 +25,7 @@ interface Props {
 }
 
 const SALE_TYPES = [
-  { value: 'hardware', label: 'Hardware', sub: 'Q1 เท่านั้น' },
+  { value: 'hardware', label: 'Hardware Only', sub: 'Q1 เท่านั้น' },
   { value: 'hardware_software_installation', label: 'Hardware + SW & Installation', sub: 'Q1 + Q2' },
 ]
 const CUSTOMER_TYPES: CustomerType[] = ['new', 'existing', 'reseller']
@@ -43,9 +39,14 @@ export function RequestFormStepper({
     initialRequest ? flattenRequest(initialRequest) : getDefaults(currentUser),
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<Customer[]>([])
-  const [searching, setSearching] = useState(false)
+
+  // Customer combobox state
+  const [existingDropdownOpen, setExistingDropdownOpen] = useState(false)
+  const [existingResults, setExistingResults] = useState<Customer[]>([])
+  const [resellerDropdownOpen, setResellerDropdownOpen] = useState(false)
+  const [resellerResults, setResellerResults] = useState<Customer[]>([])
+
+  // Submit state
   const [confirmed, setConfirmed] = useState(false)
   const [draftLoading, setDraftLoading] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
@@ -58,8 +59,6 @@ export function RequestFormStepper({
   const nc = (fd.newCustomer as Record<string, string>) ?? {}
   const ec = (fd.existingCustomer as Record<string, unknown>) ?? {}
   const rs = (fd.reseller as Record<string, string>) ?? {}
-  const existingCustomerId = String(fd.existingCustomerId || '')
-  const hwItems = (fd.hardwareItems as HwItem[]) ?? [{ name: '', sellingPrice: '', cost: '' }]
   const installmentCount = numVal(fd.installmentCount) || 1
   const installments = (fd.installments as InstRow[]) ?? []
 
@@ -74,15 +73,15 @@ export function RequestFormStepper({
   }, [installmentCount])
 
   /* Totals */
-  const hwSelling = hwItems.reduce((s, i) => s + numVal(i.sellingPrice), 0)
-  const hwCost    = hwItems.reduce((s, i) => s + numVal(i.cost), 0)
-  const swSelling = numVal(fd.softwareSellingPrice)
-  const swCost    = numVal(fd.softwareCost)
+  const hwSelling  = numVal(fd.hardwareSellingPrice)
+  const hwCost     = numVal(fd.hardwareCost)
+  const swSelling  = numVal(fd.softwareSellingPrice)
+  const swCost     = numVal(fd.softwareCost)
   const instSelling = numVal(fd.installationSellingPrice)
   const instCost    = numVal(fd.installationCost)
-  const totalSelling = hwSelling + swSelling + instSelling
-  const totalCost    = hwCost + swCost + instCost
-  const totalGP      = totalSelling - totalCost
+  const totalSelling = hwSelling + (showSw ? swSelling + instSelling : 0)
+  const totalCost    = hwCost   + (showSw ? swCost   + instCost   : 0)
+
   const totalPct = calcTotalInstallmentPercent(installments.slice(0, installmentCount))
   const maxCreditTerm = installments.slice(0, installmentCount).reduce((m, i) => Math.max(m, numVal(i.creditTermDays)), 0)
   const pctOk = Math.abs(totalPct - 100) < 0.01
@@ -90,42 +89,45 @@ export function RequestFormStepper({
   function update(patch: Record<string, unknown>) {
     setFormData(prev => ({ ...prev, ...patch }))
   }
-  function clearSearch() { setSearchQuery(''); setSearchResults([]) }
 
-  async function handleSearch() {
-    if (!searchQuery.trim()) return
-    setSearching(true)
-    const results = await searchCustomers(searchQuery)
-    setSearchResults(results)
-    setSearching(false)
+  /* ── Existing-customer combobox ── */
+  async function onExistingType(q: string) {
+    update({ existingCustomer: { ...ec, companyName: q }, existingCustomerId: '' })
+    if (q.length > 0) {
+      const res = await searchCustomers(q)
+      setExistingResults(res)
+      setExistingDropdownOpen(res.length > 0)
+    } else {
+      setExistingResults([])
+      setExistingDropdownOpen(false)
+    }
   }
-
-  function selectExistingCustomer(c: Customer) {
+  function selectExisting(c: Customer) {
     update({
       existingCustomerId: c.id,
-      existingCustomer: {
-        companyName: c.companyName,
-        taxId: c.taxId ?? '',
-        defaultCreditTerm: c.defaultCreditTerm ?? 0,
-        contactPerson: c.contactPerson ?? '',
-        contactPhone: c.contactPhone ?? '',
-      },
+      existingCustomer: { companyName: c.companyName, taxId: c.taxId ?? '', defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: c.contactPerson ?? '', contactPhone: c.contactPhone ?? '' },
     })
-    clearSearch()
+    setExistingDropdownOpen(false)
+    setExistingResults([])
   }
 
+  /* ── Reseller combobox ── */
+  async function onResellerType(q: string) {
+    update({ reseller: { ...rs, resellerCompanyName: q, resellerId: '' } })
+    if (q.length > 0) {
+      const res = await searchCustomers(q)
+      setResellerResults(res)
+      setResellerDropdownOpen(res.length > 0)
+    } else {
+      setResellerResults([])
+      setResellerDropdownOpen(false)
+    }
+  }
   function selectReseller(c: Customer) {
     update({ reseller: { ...rs, resellerId: c.id, resellerCompanyName: c.companyName } })
-    clearSearch()
+    setResellerDropdownOpen(false)
+    setResellerResults([])
   }
-
-  function updateHw(i: number, field: keyof HwItem, value: unknown) {
-    const updated = [...hwItems]
-    updated[i] = { ...updated[i], [field]: value }
-    update({ hardwareItems: updated })
-  }
-  function addHw() { update({ hardwareItems: [...hwItems, { name: '', sellingPrice: '', cost: '' }] }) }
-  function removeHw(i: number) { if (hwItems.length > 1) update({ hardwareItems: hwItems.filter((_, idx) => idx !== i) }) }
 
   function updateInst(i: number, field: keyof InstRow, value: unknown) {
     const updated = [...installments]
@@ -140,16 +142,13 @@ export function RequestFormStepper({
     if (!String(fd.projectName || '').trim()) e.projectName = 'กรุณาระบุ'
     if (!saleType) e.saleType = 'กรุณาเลือก'
     if (!customerType) e.customerType = 'กรุณาเลือก'
-    if (customerType === 'new' && !nc?.companyName?.trim()) e['new.companyName'] = 'กรุณาระบุ'
-    if (customerType === 'existing' && !existingCustomerId) e.existingCustomerId = 'กรุณาเลือกลูกค้า'
+    if (customerType === 'new' && !nc?.companyName?.trim()) e['new.companyName'] = 'กรุณาระบุชื่อบริษัท'
+    if (customerType === 'existing' && !String(ec.companyName || '').trim()) e.existingCompanyName = 'กรุณาระบุหรือค้นหาบริษัท'
     if (customerType === 'reseller') {
-      if (!rs?.resellerId) e['res.resellerId'] = 'กรุณาเลือก Reseller'
+      if (!rs?.resellerCompanyName?.trim()) e['res.resellerCompanyName'] = 'กรุณาระบุหรือค้นหา Reseller'
       if (!rs?.endCustomerCompanyName?.trim()) e['res.endCustomerCompanyName'] = 'กรุณาระบุลูกค้าปลายทาง'
     }
-    hwItems.forEach((item, i) => {
-      if (!item.name.trim()) e[`hw${i}.name`] = 'ระบุชื่อ'
-      if (numVal(item.sellingPrice) <= 0) e[`hw${i}.sell`] = 'ระบุราคา'
-    })
+    if (numVal(fd.hardwareSellingPrice) <= 0) e.hwSell = 'กรุณาระบุราคาขาย Hardware'
     installments.slice(0, installmentCount).forEach((row, i) => {
       if (!row.installmentPercent) e[`inst${i}.pct`] = 'ระบุ%'
       if (!row.paymentCondition) e[`inst${i}.cond`] = 'เลือก'
@@ -176,6 +175,7 @@ export function RequestFormStepper({
     finally { setSubmitLoading(false) }
   }
 
+  /* ── Shared styles ── */
   const radioCard = (active: boolean, color = '#004081') => ({
     display: 'flex', alignItems: 'center', gap: 10,
     padding: '10px 14px',
@@ -185,43 +185,52 @@ export function RequestFormStepper({
     transition: 'all 0.15s',
   } as React.CSSProperties)
 
-  const searchDropdown = (items: Customer[], onSelect: (c: Customer) => void) => items.length > 0 && (
-    <div style={{ border: '1px solid #D0D6DF', borderRadius: 8, marginTop: 4, background: '#fff', boxShadow: '0 4px 14px rgba(0,64,129,0.10)', overflow: 'hidden', position: 'absolute', zIndex: 20, width: '100%' }}>
-      {items.map(c => (
-        <button key={c.id} onClick={() => onSelect(c)}
+  const comboDropdown = (
+    results: Customer[],
+    visible: boolean,
+    onSelect: (c: Customer) => void,
+  ) => visible && results.length > 0 && (
+    <div style={{ position: 'absolute', zIndex: 30, width: '100%', top: '100%', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 4px 14px rgba(0,64,129,0.12)', overflow: 'hidden', marginTop: 2 }}>
+      {results.map(c => (
+        <button key={c.id}
+          onMouseDown={e => { e.preventDefault(); onSelect(c) }}
           style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '1px solid #F2F6F8', fontSize: 13 }}
           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F2F6F8' }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
         >
           <div style={{ fontWeight: 600, color: '#001122' }}>{c.companyName}</div>
-          <div style={{ color: '#929EB4', fontSize: 12 }}>Net {c.defaultCreditTerm ?? 0} · {c.contactPerson}</div>
+          <div style={{ color: '#929EB4', fontSize: 12, marginTop: 2 }}>Net {c.defaultCreditTerm ?? 0} วัน · {c.contactPerson}</div>
         </button>
       ))}
     </div>
   )
 
-  const proposalNo = String(fd.proposalNo || '')
-  const q1No = proposalNo ? `${proposalNo}-1` : 'Q1'
-  const q2No = proposalNo ? `${proposalNo}-2` : 'Q2'
-
-  const TH = (children: React.ReactNode, style?: React.CSSProperties) => (
-    <th style={{ padding: '9px 12px', textAlign: 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', background: '#F2F6F8', whiteSpace: 'nowrap', ...style }}>{children}</th>
-  )
-  const TD = (children: React.ReactNode, style?: React.CSSProperties) => (
-    <td style={{ padding: '8px 10px', verticalAlign: 'middle', ...style }}>{children}</td>
-  )
-
-  const qBadge = (no: string) => (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0,64,129,0.07)', borderRadius: 6, border: '1px solid rgba(0,64,129,0.14)', marginBottom: 10 }}>
-      <span style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Quotation No.</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: '#004081', fontFamily: 'JetBrains Mono, monospace' }}>{no}</span>
+  const priceRow = (label: string, spKey: string, costKey: string) => (
+    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #F2F6F8' }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#001122' }}>{label}</div>
+      <FormGroup label="ราคาขาย (THB)" error={spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined}>
+        <Input
+          type="number" min="0" step="1000"
+          value={String(fd[spKey] ?? '')}
+          onChange={e => update({ [spKey]: e.target.value ? Number(e.target.value) : '' })}
+          style={{ textAlign: 'right' }}
+          error={spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined}
+        />
+      </FormGroup>
+      <FormGroup label="ราคาทุน (THB)">
+        <Input
+          type="number" min="0" step="1000"
+          value={String(fd[costKey] ?? '')}
+          onChange={e => update({ [costKey]: e.target.value ? Number(e.target.value) : '' })}
+          style={{ textAlign: 'right' }}
+        />
+      </FormGroup>
     </div>
   )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* Reject reason */}
       {isResubmit && initialRequest?.approvalResult && (
         <Alert type="error" title="เหตุผลที่ถูก Reject ครั้งก่อน">
           <div style={{ marginTop: 4 }}>{initialRequest.approvalResult.decisionComment}</div>
@@ -236,27 +245,15 @@ export function RequestFormStepper({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 20px' }}>
             <FormGroup label="Proposal No." required error={errors.proposalNo}>
-              <Input
-                value={String(fd.proposalNo || '')}
-                onChange={e => update({ proposalNo: e.target.value })}
-                placeholder="PRO-2026-001"
-                error={errors.proposalNo}
-              />
+              <Input value={String(fd.proposalNo || '')} onChange={e => update({ proposalNo: e.target.value })} placeholder="PRO-2026-001" error={errors.proposalNo} />
             </FormGroup>
             <FormGroup label="ชื่อโปรเจกต์" required error={errors.projectName}>
-              <Input
-                value={String(fd.projectName || '')}
-                onChange={e => update({ projectName: e.target.value })}
-                placeholder="ชื่อโปรเจกต์หรืองานที่ขาย"
-                error={errors.projectName}
-              />
+              <Input value={String(fd.projectName || '')} onChange={e => update({ projectName: e.target.value })} placeholder="ชื่อโปรเจกต์หรืองานที่ขาย" error={errors.projectName} />
             </FormGroup>
           </div>
 
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#586782', marginBottom: 8 }}>
-              ประเภทการขาย <span style={{ color: '#F3554F' }}>*</span>
-            </div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#586782', marginBottom: 8 }}>ประเภทการขาย <span style={{ color: '#F3554F' }}>*</span></div>
             <div style={{ display: 'flex', gap: 10 }}>
               {SALE_TYPES.map(t => (
                 <label key={t.value} style={{ flex: 1, ...radioCard(saleType === t.value) }}>
@@ -284,15 +281,14 @@ export function RequestFormStepper({
       {/* ─── Section 2: ข้อมูลลูกค้า ─── */}
       <Card title="ข้อมูลลูกค้า">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* Customer type selector */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#586782', marginBottom: 8 }}>
-              ประเภทลูกค้า <span style={{ color: '#F3554F' }}>*</span>
-            </div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#586782', marginBottom: 8 }}>ประเภทลูกค้า <span style={{ color: '#F3554F' }}>*</span></div>
             <div style={{ display: 'flex', gap: 10 }}>
               {CUSTOMER_TYPES.map(type => (
                 <label key={type} style={{ flex: 1, ...radioCard(customerType === type, '#66C5C5') }}>
                   <input type="radio" name="customerType" value={type} checked={customerType === type}
-                    onChange={() => { update({ customerType: type }); clearSearch() }}
+                    onChange={() => { update({ customerType: type }); setExistingDropdownOpen(false); setResellerDropdownOpen(false) }}
                     style={{ accentColor: '#66C5C5', flexShrink: 0 }} />
                   <span style={{ fontWeight: 600, fontSize: 13, color: customerType === type ? '#004081' : '#001122' }}>
                     {CUSTOMER_TYPE_LABELS[type]}
@@ -309,8 +305,7 @@ export function RequestFormStepper({
               <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>ข้อมูลลูกค้าใหม่</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
                 <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
-                  <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })}
-                    placeholder="บริษัท..." error={errors['new.companyName']} />
+                  <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
                 </FormGroup>
                 <FormGroup label="ผู้ติดต่อ">
                   <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} />
@@ -322,77 +317,87 @@ export function RequestFormStepper({
             </div>
           )}
 
-          {/* ลูกค้าเก่า */}
+          {/* ลูกค้าเก่า — combobox */}
           {customerType === 'existing' && (
             <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>เลือกลูกค้าเก่า</div>
-              {existingCustomerId ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(0,64,129,0.05)', borderRadius: 8, border: '1px solid rgba(0,64,129,0.14)' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, color: '#004081', fontSize: 14 }}>{String(ec.companyName ?? '')}</div>
-                    <div style={{ fontSize: 12, color: '#586782', marginTop: 3 }}>Net {numVal(ec.defaultCreditTerm)} · {String(ec.contactPerson ?? '')}</div>
-                  </div>
-                  <button onClick={() => update({ existingCustomerId: '', existingCustomer: {} })}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 4 }}>
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <FormGroup error={errors.existingCustomerId}>
+              <FormGroup label="ชื่อบริษัท" required error={errors.existingCompanyName}>
+                <div style={{ position: 'relative' }}>
                   <div style={{ position: 'relative' }}>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <Input
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        placeholder="ค้นหาด้วยชื่อบริษัท..."
-                        style={{ flex: 1 }}
-                        error={errors.existingCustomerId}
-                      />
-                      <Button variant="secondary" size="sm" icon={<Search size={14} />} onClick={handleSearch} loading={searching}>ค้นหา</Button>
-                    </div>
-                    {searchDropdown(searchResults, selectExistingCustomer)}
+                    <Input
+                      value={String(ec.companyName ?? '')}
+                      onChange={e => onExistingType(e.target.value)}
+                      onFocus={async () => {
+                        const q = String(ec.companyName ?? '')
+                        if (q) { const r = await searchCustomers(q); setExistingResults(r); setExistingDropdownOpen(r.length > 0) }
+                      }}
+                      onBlur={() => setTimeout(() => setExistingDropdownOpen(false), 150)}
+                      placeholder="พิมพ์เพื่อค้นหา หรือกรอกชื่อบริษัทโดยตรง"
+                      error={errors.existingCompanyName}
+                      style={{ paddingRight: ec.companyName ? 32 : undefined }}
+                    />
+                    {ec.companyName && (
+                      <button
+                        onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
+                        style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
-                </FormGroup>
+                  {comboDropdown(existingResults, existingDropdownOpen, selectExisting)}
+                </div>
+              </FormGroup>
+              {fd.existingCustomerId && (
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
+                  <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 700 }}>✓ เชื่อมกับฐานข้อมูล</span>
+                  <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</span>
+                </div>
               )}
             </div>
           )}
 
-          {/* Reseller */}
+          {/* Reseller — combobox */}
           {customerType === 'reseller' && (
             <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Reseller selection */}
+              {/* Reseller combobox */}
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
-                {rs.resellerId ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(0,64,129,0.05)', borderRadius: 8, border: '1px solid rgba(0,64,129,0.14)' }}>
-                    <span style={{ fontWeight: 700, color: '#004081', fontSize: 14 }}>{rs.resellerCompanyName}</span>
-                    <button onClick={() => { update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '' } }); clearSearch() }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 4 }}>
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <FormGroup error={errors['res.resellerId']}>
+                <FormGroup error={errors['res.resellerCompanyName']}>
+                  <div style={{ position: 'relative' }}>
                     <div style={{ position: 'relative' }}>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <Input
-                          value={searchQuery}
-                          onChange={e => setSearchQuery(e.target.value)}
-                          onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                          placeholder="ค้นหา Reseller จากฐานข้อมูล..."
-                          style={{ flex: 1 }}
-                          error={errors['res.resellerId']}
-                        />
-                        <Button variant="secondary" size="sm" icon={<Search size={14} />} onClick={handleSearch} loading={searching}>ค้นหา</Button>
-                      </div>
-                      {searchDropdown(searchResults, selectReseller)}
+                      <Input
+                        value={rs.resellerCompanyName ?? ''}
+                        onChange={e => onResellerType(e.target.value)}
+                        onFocus={async () => {
+                          const q = rs.resellerCompanyName ?? ''
+                          if (q) { const r = await searchCustomers(q); setResellerResults(r); setResellerDropdownOpen(r.length > 0) }
+                        }}
+                        onBlur={() => setTimeout(() => setResellerDropdownOpen(false), 150)}
+                        placeholder="พิมพ์เพื่อค้นหา หรือกรอกชื่อ Reseller โดยตรง"
+                        error={errors['res.resellerCompanyName']}
+                        style={{ paddingRight: rs.resellerCompanyName ? 32 : undefined }}
+                      />
+                      {rs.resellerCompanyName && (
+                        <button
+                          onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '' } })}
+                          style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
                     </div>
-                  </FormGroup>
+                    {comboDropdown(resellerResults, resellerDropdownOpen, selectReseller)}
+                  </div>
+                </FormGroup>
+                {rs.resellerId && (
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 700 }}>✓ เชื่อมกับฐานข้อมูล</span>
+                  </div>
                 )}
               </div>
 
-              {/* End Customer — always visible when reseller type is selected */}
+              {/* End Customer */}
               <div style={{ borderTop: '1px solid #D0D6DF', paddingTop: 16 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
@@ -417,181 +422,40 @@ export function RequestFormStepper({
         </div>
       </Card>
 
-      {/* ─── Section 3: ใบเสนอราคา ─── */}
-      <Card title="ใบเสนอราคา">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-          {/* Q1 Hardware */}
-          <div>
-            {qBadge(q1No)}
-            <div style={{ border: '1px solid #D0D6DF', borderRadius: 10, overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
-                    {TH('ชื่อสินค้า / Hardware', { width: '45%' })}
-                    {TH('ราคาขาย (THB)', { textAlign: 'right' as const, width: '20%' })}
-                    {TH('ราคาทุน (THB)', { textAlign: 'right' as const, width: '20%' })}
-                    {TH('GP', { textAlign: 'right' as const, width: '10%' })}
-                    <th style={{ width: 36, background: '#F2F6F8' }} />
-                  </tr>
-                </thead>
-                <tbody>
-                  {hwItems.map((item, i) => {
-                    const gp = calcGrossProfit(numVal(item.sellingPrice), numVal(item.cost))
-                    return (
-                      <tr key={i} style={{ borderBottom: '1px solid #F2F6F8' }}>
-                        {TD(
-                          <Input value={item.name} onChange={e => updateHw(i, 'name', e.target.value)}
-                            placeholder="ชื่อสินค้า รุ่น ยี่ห้อ" error={errors[`hw${i}.name`]}
-                            style={{ border: errors[`hw${i}.name`] ? '1.5px solid #F3554F' : undefined }} />,
-                        )}
-                        {TD(
-                          <Input type="number" value={item.sellingPrice} min="0" step="1000"
-                            onChange={e => updateHw(i, 'sellingPrice', e.target.value ? Number(e.target.value) : '')}
-                            error={errors[`hw${i}.sell`]}
-                            style={{ textAlign: 'right', border: errors[`hw${i}.sell`] ? '1.5px solid #F3554F' : undefined }} />,
-                          { textAlign: 'right' as const },
-                        )}
-                        {TD(
-                          <Input type="number" value={item.cost} min="0" step="1000"
-                            onChange={e => updateHw(i, 'cost', e.target.value ? Number(e.target.value) : '')}
-                            style={{ textAlign: 'right' }} />,
-                          { textAlign: 'right' as const },
-                        )}
-                        {TD(
-                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: gp < 0 ? '#F3554F' : '#001122', fontWeight: 600 }}>
-                            {numVal(item.sellingPrice) > 0 ? formatCurrency(gp) : '—'}
-                          </span>,
-                          { textAlign: 'right' as const },
-                        )}
-                        <td style={{ padding: '8px 6px', textAlign: 'center' as const, verticalAlign: 'middle' }}>
-                          <button onClick={() => removeHw(i)} disabled={hwItems.length <= 1}
-                            style={{ background: 'none', border: 'none', cursor: hwItems.length > 1 ? 'pointer' : 'default', color: hwItems.length > 1 ? '#F3554F' : '#D0D6DF', padding: 3 }}>
-                            <Trash2 size={14} />
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr style={{ background: '#FAFBFC', borderTop: '2px solid #D0D6DF' }}>
-                    <td style={{ padding: '8px 10px' }}>
-                      <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addHw}>เพิ่มรายการ</Button>
-                    </td>
-                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#001122' }}>
-                      {hwSelling > 0 ? formatCurrency(hwSelling) : '—'}
-                    </td>
-                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#586782' }}>
-                      {hwCost > 0 ? formatCurrency(hwCost) : '—'}
-                    </td>
-                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: (hwSelling - hwCost) < 0 ? '#F3554F' : '#001122' }}>
-                      {hwSelling > 0 ? formatCurrency(hwSelling - hwCost) : '—'}
-                    </td>
-                    <td />
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+      {/* ─── Section 3: ราคา ─── */}
+      <Card title="ราคาขายและต้นทุน">
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {/* Hardware */}
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Hardware</div>
           </div>
+          {priceRow('Hardware', 'hardwareSellingPrice', 'hardwareCost')}
 
-          {/* Q2 Software & Installation */}
+          {/* Software & Installation */}
           {showSw && (
-            <div>
-              {qBadge(q2No)}
-              <div style={{ border: '1px solid #D0D6DF', borderRadius: 10, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
-                      {TH('รายการ', { width: '35%' })}
-                      {TH('ราคาขาย (THB)', { textAlign: 'right' as const })}
-                      {TH('ราคาทุน (THB)', { textAlign: 'right' as const })}
-                      {TH('GP', { textAlign: 'right' as const })}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style={{ borderBottom: '1px solid #F2F6F8' }}>
-                      {TD(<span style={{ fontWeight: 600, color: '#001122' }}>Software</span>)}
-                      {TD(
-                        <Input type="number" value={String(fd.softwareSellingPrice ?? '')} min="0" step="1000"
-                          onChange={e => update({ softwareSellingPrice: e.target.value ? Number(e.target.value) : '' })}
-                          style={{ textAlign: 'right' }} />,
-                        { textAlign: 'right' as const },
-                      )}
-                      {TD(
-                        <Input type="number" value={String(fd.softwareCost ?? '')} min="0" step="1000"
-                          onChange={e => update({ softwareCost: e.target.value ? Number(e.target.value) : '' })}
-                          style={{ textAlign: 'right' }} />,
-                        { textAlign: 'right' as const },
-                      )}
-                      {TD(
-                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 600, color: (swSelling - swCost) < 0 ? '#F3554F' : '#001122' }}>
-                          {swSelling > 0 ? formatCurrency(swSelling - swCost) : '—'}
-                        </span>,
-                        { textAlign: 'right' as const },
-                      )}
-                    </tr>
-                    <tr>
-                      {TD(<span style={{ fontWeight: 600, color: '#001122' }}>Installation</span>)}
-                      {TD(
-                        <Input type="number" value={String(fd.installationSellingPrice ?? '')} min="0" step="1000"
-                          onChange={e => update({ installationSellingPrice: e.target.value ? Number(e.target.value) : '' })}
-                          style={{ textAlign: 'right' }} />,
-                        { textAlign: 'right' as const },
-                      )}
-                      {TD(
-                        <Input type="number" value={String(fd.installationCost ?? '')} min="0" step="1000"
-                          onChange={e => update({ installationCost: e.target.value ? Number(e.target.value) : '' })}
-                          style={{ textAlign: 'right' }} />,
-                        { textAlign: 'right' as const },
-                      )}
-                      {TD(
-                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 600, color: (instSelling - instCost) < 0 ? '#F3554F' : '#001122' }}>
-                          {instSelling > 0 ? formatCurrency(instSelling - instCost) : '—'}
-                        </span>,
-                        { textAlign: 'right' as const },
-                      )}
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr style={{ background: '#FAFBFC', borderTop: '2px solid #D0D6DF' }}>
-                      <td style={{ padding: '8px 10px', fontSize: 12, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.05em' }}>รวม Q2</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#001122' }}>
-                        {(swSelling + instSelling) > 0 ? formatCurrency(swSelling + instSelling) : '—'}
-                      </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#586782' }}>
-                        {(swCost + instCost) > 0 ? formatCurrency(swCost + instCost) : '—'}
-                      </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: ((swSelling + instSelling) - (swCost + instCost)) < 0 ? '#F3554F' : '#001122' }}>
-                        {(swSelling + instSelling) > 0 ? formatCurrency((swSelling + instSelling) - (swCost + instCost)) : '—'}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+            <>
+              <div style={{ marginTop: 20, marginBottom: 4 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Software & Installation</div>
               </div>
-            </div>
+              {priceRow('Software', 'softwareSellingPrice', 'softwareCost')}
+              {priceRow('Installation', 'installationSellingPrice', 'installationCost')}
+            </>
           )}
 
-          {/* Grand Total */}
+          {/* Total */}
           {totalSelling > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1, background: '#D0D6DF', borderRadius: 10, overflow: 'hidden', border: '1px solid #D0D6DF' }}>
-              {[
-                { label: 'ราคาขายรวม', value: formatCurrency(totalSelling), color: '#001122' },
-                { label: 'ต้นทุนรวม', value: formatCurrency(totalCost), color: '#586782' },
-                { label: 'Gross Profit', value: formatCurrency(totalGP), color: totalGP < 0 ? '#F3554F' : '#004081' },
-              ].map(f => (
-                <div key={f.label} style={{ background: '#FAFBFC', padding: '14px 20px', textAlign: 'center' as const }}>
-                  <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{f.label}</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: f.color, fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
-                </div>
-              ))}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 24, marginTop: 16, paddingTop: 12, borderTop: '2px solid #D0D6DF' }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>ราคาขายรวม</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#004081', fontFamily: 'JetBrains Mono, monospace' }}>{formatCurrency(totalSelling)}</div>
+              </div>
             </div>
           )}
         </div>
       </Card>
 
       {/* ─── Section 4: งวดชำระ ─── */}
-      <Card title="งวดชำระ">
+      <Card title="งวดชำระและ Credit Term">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#001122', whiteSpace: 'nowrap' }}>จำนวนงวด</div>
@@ -697,9 +561,10 @@ function getDefaults(user: CurrentUser): Record<string, unknown> {
     customerType: '',
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
-    existingCustomer: {},
+    existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
     reseller: { resellerId: '', resellerCompanyName: '', endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
-    hardwareItems: [{ name: '', sellingPrice: '', cost: '' }],
+    hardwareSellingPrice: '',
+    hardwareCost: '',
     softwareSellingPrice: '',
     softwareCost: '',
     installationSellingPrice: '',
@@ -710,6 +575,10 @@ function getDefaults(user: CurrentUser): Record<string, unknown> {
 }
 
 function flattenRequest(req: Request): Record<string, unknown> {
+  const hw = req.quotationItems.filter(i => i.type === 'hardware')
+  const sw = req.quotationItems.find(i => i.type === 'software')
+  const inst = req.quotationItems.find(i => i.type === 'installation')
+
   const d: Record<string, unknown> = {
     salesName: req.salesName,
     salesEmail: req.salesEmail,
@@ -726,12 +595,14 @@ function flattenRequest(req: Request): Record<string, unknown> {
     })),
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
-    existingCustomer: {},
+    existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
     reseller: { resellerId: '', resellerCompanyName: '', endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
-    softwareSellingPrice: '',
-    softwareCost: '',
-    installationSellingPrice: '',
-    installationCost: '',
+    hardwareSellingPrice: hw.reduce((s, i) => s + i.sellingPrice, 0),
+    hardwareCost: hw.reduce((s, i) => s + i.cost, 0),
+    softwareSellingPrice: sw?.sellingPrice ?? '',
+    softwareCost: sw?.cost ?? '',
+    installationSellingPrice: inst?.sellingPrice ?? '',
+    installationCost: inst?.cost ?? '',
   }
 
   const ci = req.customerInfo
@@ -743,15 +614,6 @@ function flattenRequest(req: Request): Record<string, unknown> {
   } else if (ci.type === 'reseller') {
     d.reseller = { resellerId: ci.data.resellerId, resellerCompanyName: ci.data.resellerCompanyName, endCustomerCompanyName: ci.data.endCustomerCompanyName, endCustomerContactPerson: ci.data.endCustomerContactPerson ?? '', endCustomerPhone: ci.data.endCustomerPhone ?? '' }
   }
-
-  const hw = req.quotationItems.filter(i => i.type === 'hardware')
-  const sw = req.quotationItems.find(i => i.type === 'software')
-  const inst = req.quotationItems.find(i => i.type === 'installation')
-  d.hardwareItems = hw.length > 0
-    ? hw.map(h => ({ name: h.name, sellingPrice: h.sellingPrice, cost: h.cost }))
-    : [{ name: '', sellingPrice: '', cost: '' }]
-  if (sw) { d.softwareSellingPrice = sw.sellingPrice; d.softwareCost = sw.cost }
-  if (inst) { d.installationSellingPrice = inst.sellingPrice; d.installationCost = inst.cost }
 
   return d
 }

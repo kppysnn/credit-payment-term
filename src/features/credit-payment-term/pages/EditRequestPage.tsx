@@ -23,11 +23,8 @@ function buildPatch(data: Record<string, unknown>, _user: { id: string; name: st
   else customerInfo = { type: 'reseller', data: data.reseller as never }
 
   const items: QuotationItem[] = []
-  const hwItems = (data.hardwareItems as Array<{ name: string; sellingPrice: number | ''; cost: number | '' }>) ?? []
-  hwItems.forEach(h => {
-    const sp = numVal(h.sellingPrice); const cost = numVal(h.cost); const gp = calcGrossProfit(sp, cost)
-    items.push({ itemId: generateId('item'), type: 'hardware', name: h.name, sellingPrice: sp, cost, grossProfit: gp, marginPercent: calcMarginPercent(sp, gp) })
-  })
+  const hwSp = numVal(data.hardwareSellingPrice); const hwCost = numVal(data.hardwareCost); const hwGp = calcGrossProfit(hwSp, hwCost)
+  if (hwSp > 0) items.push({ itemId: generateId('item'), type: 'hardware', name: 'Hardware', sellingPrice: hwSp, cost: hwCost, grossProfit: hwGp, marginPercent: calcMarginPercent(hwSp, hwGp) })
 
   if (showSw) {
     const swSp = numVal(data.softwareSellingPrice); const swCost = numVal(data.softwareCost); const swGp = calcGrossProfit(swSp, swCost)
