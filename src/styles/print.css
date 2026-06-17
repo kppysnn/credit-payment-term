@@ -1,0 +1,39 @@
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  body { background: #fff !important; font-size: 12px; line-height: 1.5; }
+
+  .no-print, .sidebar, .topbar, nav, header:not(.print-header), .role-switcher { display: none !important; }
+
+  .print-container {
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 16mm 16mm;
+    background: #fff;
+  }
+
+  .print-page-break { page-break-before: always; }
+
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #E2E8F0; padding: 6px 8px; font-size: 11px; }
+  th { background: #F5F7FA !important; font-weight: 600; }
+
+  .print-section { margin-bottom: 20px; }
+  .print-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1E3A5F;
+    border-bottom: 2px solid #1E3A5F;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+  }
+
+  .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .print-label { font-size: 10px; color: #4A5568; font-weight: 500; margin-bottom: 2px; }
+  .print-value { font-size: 12px; color: #1A202C; }
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}

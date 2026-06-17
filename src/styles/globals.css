@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@theme {
+  /* EXZY CI — Primary */
+  --color-navy:         #004081;
+  --color-navy-dark:    #002D5C;
+  --color-teal:         #66C5C5;
+  --color-teal-dark:    #4AADAD;
+
+  /* Gradient */
+  --gradient-primary: linear-gradient(135deg, #66C5C5 0%, #004081 100%);
+
+  /* Neutral surfaces */
+  --color-bg:             #F8F9FA;
+  --color-surface:        #FFFFFF;
+  --color-surface-2:      #F2F6F8;
+  --color-border:         #D0D6DF;
+
+  /* Text */
+  --color-ink:            #001122;
+  --color-body:           #505050;
+  --color-secondary:      #586782;
+  --color-muted:          #929EB4;
+
+  /* Semantic */
+  --color-success: #82C566;
+  --color-warning: #FFCC00;
+  --color-danger:  #F3554F;
+  --color-info:    #004081;
+
+  /* Shadows — navy-tinted, never black */
+  --shadow-sm:    0 1px 2px rgba(0,64,129,0.04);
+  --shadow-md:    0 4px 14px rgba(0,64,129,0.07);
+  --shadow-lg:    0 16px 34px rgba(0,64,129,0.10), 0 2px 6px rgba(0,64,129,0.06);
+  --shadow-hover: 0 4px 14px rgba(0,64,129,0.07);
+
+  /* Fonts */
+  --font-sans: 'Noto Sans Thai', 'Poppins', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Radius */
+  --radius-sm:   6px;
+  --radius-md:   14px;
+  --radius-lg:   22px;
+  --radius-pill: 9999px;
+
+  /* Spacing scale (4pt base) */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-body);
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* Thai text needs extra line-height for tone marks */
+:lang(th), .thai {
+  line-height: 1.75;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
+
+/* Mono utility */
+.font-mono { font-family: var(--font-mono); }
+
+/* Focus ring — teal */
+:focus-visible {
+  outline: 2px solid rgba(102, 197, 197, 0.7);
+  outline-offset: 2px;
+}
+
+/* Status badge base */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  border-width: 1px;
+  border-style: solid;
+  text-transform: uppercase;
+}
+
+.badge-draft      { background:#F7FAFC; color:#4A5568; border-color:#CBD5E0; }
+.badge-pending    { background:#FFFBEB; color:#92400E; border-color:#FCD34D; }
+.badge-approved   { background:#F0FDF4; color:#14532D; border-color:#86EFAC; }
+.badge-rejected   { background:#FEF2F2; color:#7F1D1D; border-color:#FCA5A5; }
+.badge-revised    { background:#EFF6FF; color:#1E40AF; border-color:#93C5FD; }
+.badge-cancelled  { background:#F9FAFB; color:#6B7280; border-color:#D1D5DB; }
+
+/* Table row hover */
+.data-row:hover { background: var(--color-bg) !important; }
+
+/* Page heading */
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* Section divider */
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  border: none;
+  margin: 0;
+}
+
+/* Spin animation for Button loading */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

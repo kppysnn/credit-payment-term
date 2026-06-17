@@ -1,7 +1,8 @@
 {
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": ".",
-  "cleanUrls": true,
-  "trailingSlash": false
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

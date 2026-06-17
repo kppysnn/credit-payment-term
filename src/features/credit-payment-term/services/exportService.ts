@@ -1,0 +1,149 @@
+/**
+ * Export Service
+ * Handles A4 print and PDF export.
+ * PDF uses browser print-to-PDF (window.print) as the primary method.
+ * html2pdf.js can be wired in here if added to dependencies.
+ */
+import type { Request } from '../types/request'
+
+export function printRequest(requestId: string): void {
+  window.open(`/print/${requestId}`, '_blank')
+}
+
+export function exportPDF(req: Request): void {
+  const printWindow = window.open('', '_blank')
+  if (!printWindow) {
+    alert('กรุณาอนุญาตให้เปิด popup ใหม่เพื่อ export PDF')
+    return
+  }
+  printWindow.document.write(buildPrintHTML(req))
+  printWindow.document.close()
+  printWindow.onload = () => {
+    printWindow.focus()
+    printWindow.print()
+  }
+}
+
+function buildPrintHTML(req: Request): string {
+  return `<!DOCTYPE html><html><head><title>${req.requestNo}</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1A202C; margin: 0; padding: 0; }
+  .container { max-width: 210mm; margin: 0 auto; padding: 16mm; }
+  h1 { font-size: 18px; color: #1E3A5F; margin: 0 0 4px; }
+  .sub { font-size: 11px; color: #4A5568; margin-bottom: 16px; }
+  .section { margin-bottom: 18px; }
+  .section-title { font-size: 13px; font-weight: 700; color: #1E3A5F; border-bottom: 1.5px solid #1E3A5F; padding-bottom: 3px; margin-bottom: 10px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+  .field-label { font-size: 10px; color: #4A5568; font-weight: 600; }
+  .field-val { font-size: 12px; color: #1A202C; margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { background: #EBF0F6; font-weight: 600; text-align: left; padding: 5px 8px; border: 1px solid #CBD5E0; }
+  td { padding: 5px 8px; border: 1px solid #CBD5E0; }
+  .mono { font-family: 'Courier New', monospace; }
+  .status { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; border: 1px solid; }
+  @media print { @page { size: A4; margin: 0; } }
+</style></head><body>
+<div class="container">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1E3A5F;padding-bottom:12px;margin-bottom:16px">
+    <div>
+      <h1>Credit &amp; Payment Term Approval Request</h1>
+      <div class="sub">${req.requestNo} · Version ${req.version} · Created ${new Date(req.createdAt).toLocaleDateString('th-TH')}</div>
+    </div>
+    <div class="status" style="background:#FFFBEB;color:#92400E;border-color:#FCD34D">${req.status.toUpperCase()}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">1. ข้อมูลคำขอ</div>
+    <div class="grid2">
+      <div><div class="field-label">Proposal No.</div><div class="field-val mono">${req.proposalNo}</div></div>
+      <div><div class="field-label">Quotation No.</div><div class="field-val mono">${req.quotationNo || '—'}</div></div>
+      <div><div class="field-label">ชื่อโปรเจกต์</div><div class="field-val">${req.projectName}</div></div>
+      <div><div class="field-label">ประเภทการขาย</div><div class="field-val">${req.saleType}</div></div>
+      <div style="grid-column:span 2"><div class="field-label">Sales</div><div class="field-val">${req.salesName} (${req.salesEmail})</div></div>
+      <div style="grid-column:span 2"><div class="field-label">วัตถุประสงค์</div><div class="field-val">${req.requestPurpose}</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">2. ข้อมูลลูกค้า</div>
+    ${buildCustomerSection(req)}
+  </div>
+
+  <div class="section">
+    <div class="section-title">3. สรุปใบเสนอราคา</div>
+    <table>
+      <tr><th>ประเภท</th><th>สินค้า/บริการ</th><th>ราคาขาย</th><th>ต้นทุน</th><th>Gross Profit</th><th>Margin %</th></tr>
+      ${req.quotationItems.map(i => `<tr>
+        <td>${i.type}</td>
+        <td>${i.name}</td>
+        <td class="mono">${i.sellingPrice.toLocaleString()}</td>
+        <td class="mono">${i.cost.toLocaleString()}</td>
+        <td class="mono">${i.grossProfit.toLocaleString()}</td>
+        <td>${i.marginPercent.toFixed(2)}%</td>
+      </tr>`).join('')}
+      <tr style="font-weight:700;background:#EBF0F6">
+        <td colspan="2">รวม</td>
+        <td class="mono">${req.financial.totalSelling.toLocaleString()}</td>
+        <td class="mono">${req.financial.totalCost.toLocaleString()}</td>
+        <td class="mono">${req.financial.grossProfit.toLocaleString()}</td>
+        <td>${req.financial.marginPercent.toFixed(2)}%</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">4. ตาราง Payment Schedule</div>
+    <table>
+      <tr><th>งวด</th><th>%</th><th>จำนวนเงิน</th><th>Credit Term</th><th>เงื่อนไข</th><th>เหตุผล</th></tr>
+      ${req.installments.map(i => `<tr>
+        <td>${i.installmentNo}</td>
+        <td>${i.installmentPercent}%</td>
+        <td class="mono">${i.installmentAmount.toLocaleString()}</td>
+        <td>${i.creditTermDays === 0 ? 'COD' : `Net ${i.creditTermDays}`}</td>
+        <td>${i.paymentCondition}</td>
+        <td>${i.creditTermReason}</td>
+      </tr>`).join('')}
+    </table>
+  </div>
+
+  ${req.approvalResult ? `<div class="section">
+    <div class="section-title">5. ผลการพิจารณา</div>
+    <div class="grid2">
+      <div><div class="field-label">ผลการพิจารณา</div><div class="field-val">${req.approvalResult.approvedAt ? 'อนุมัติ' : 'ไม่อนุมัติ'}</div></div>
+      <div><div class="field-label">Approver</div><div class="field-val">${req.approvalResult.approverName}</div></div>
+      <div style="grid-column:span 2"><div class="field-label">เหตุผล</div><div class="field-val">${req.approvalResult.decisionComment}</div></div>
+      ${req.approvalResult.suggestion ? `<div style="grid-column:span 2"><div class="field-label">ข้อเสนอแนะ</div><div class="field-val">${req.approvalResult.suggestion}</div></div>` : ''}
+    </div>
+  </div>` : ''}
+</div></body></html>`
+}
+
+function buildCustomerSection(req: Request): string {
+  const { customerInfo } = req
+  if (customerInfo.type === 'new') {
+    const d = customerInfo.data
+    return `<div class="grid2">
+      <div><div class="field-label">ประเภทลูกค้า</div><div class="field-val">ลูกค้าใหม่</div></div>
+      <div><div class="field-label">ชื่อบริษัท</div><div class="field-val">${d.companyName}</div></div>
+      ${d.taxId ? `<div><div class="field-label">Tax ID</div><div class="field-val mono">${d.taxId}</div></div>` : ''}
+      ${d.contactPerson ? `<div><div class="field-label">ผู้ติดต่อ</div><div class="field-val">${d.contactPerson}</div></div>` : ''}
+    </div>`
+  }
+  if (customerInfo.type === 'existing') {
+    const d = customerInfo.data
+    return `<div class="grid2">
+      <div><div class="field-label">ประเภทลูกค้า</div><div class="field-val">ลูกค้าเก่า</div></div>
+      <div><div class="field-label">ชื่อบริษัท</div><div class="field-val">${d.companyName}</div></div>
+      ${d.taxId ? `<div><div class="field-label">Tax ID</div><div class="field-val mono">${d.taxId}</div></div>` : ''}
+      <div><div class="field-label">Default Credit Term</div><div class="field-val">${d.defaultCreditTerm ?? '—'} วัน</div></div>
+    </div>`
+  }
+  const d = customerInfo.data
+  return `<div class="grid2">
+    <div><div class="field-label">ประเภทลูกค้า</div><div class="field-val">Reseller</div></div>
+    <div><div class="field-label">Reseller</div><div class="field-val">${d.resellerCompanyName}</div></div>
+    <div><div class="field-label">End Customer</div><div class="field-val">${d.endCustomerCompanyName}</div></div>
+    <div><div class="field-label">Billing To</div><div class="field-val">${d.billingTo === 'reseller' ? 'Reseller' : 'End Customer'}</div></div>
+    <div><div class="field-label">Credit Term Applies To</div><div class="field-val">${d.creditTermAppliesTo === 'reseller' ? 'Reseller' : 'End Customer'}</div></div>
+  </div>`
+}
