@@ -80,7 +80,7 @@ export function RequestFormStepper({
   const instSelling = numVal(fd.installationSellingPrice)
   const instCost    = numVal(fd.installationCost)
   const totalSelling = hwSelling + (showSw ? swSelling + instSelling : 0)
-  const totalCost    = hwCost   + (showSw ? swCost   + instCost   : 0)
+  const _totalCost   = hwCost   + (showSw ? swCost   + instCost   : 0)
 
   const totalPct = calcTotalInstallmentPercent(installments.slice(0, installmentCount))
   const maxCreditTerm = installments.slice(0, installmentCount).reduce((m, i) => Math.max(m, numVal(i.creditTermDays)), 0)
@@ -336,7 +336,7 @@ export function RequestFormStepper({
                       error={errors.existingCompanyName}
                       style={{ paddingRight: ec.companyName ? 32 : undefined }}
                     />
-                    {ec.companyName && (
+                    {!!ec.companyName && (
                       <button
                         onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
                         style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
@@ -348,7 +348,7 @@ export function RequestFormStepper({
                   {comboDropdown(existingResults, existingDropdownOpen, selectExisting)}
                 </div>
               </FormGroup>
-              {fd.existingCustomerId && (
+              {!!fd.existingCustomerId && (
                 <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
                   <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 700 }}>✓ เชื่อมกับฐานข้อมูล</span>
                   <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</span>
