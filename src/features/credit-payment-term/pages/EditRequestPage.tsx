@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
 import { getRequestById, saveDraft, resubmitRequest, submitRequest } from '../services/creditTermService'
-import type { Request, QuotationItem, PaymentInstallment, SaleType, PaymentCondition } from '../types/request'
+import type { Request, QuotationItem, PaymentInstallment, SaleType } from '../types/request'
 import type { RequestCustomerInfo } from '../types/customer'
 import { RequestFormStepper } from '../components/RequestFormStepper'
 import { calcGrossProfit, calcMarginPercent, calcInstallmentAmount } from '../utils/calculations'
@@ -14,6 +14,7 @@ function numVal(v: unknown): number { return Number(v) || 0 }
 
 function buildPatch(data: Record<string, unknown>, _user: { id: string; name: string; email: string }): Partial<Request> {
   const saleType = String(data.saleType || '') as SaleType
+  const separateQuotation = saleType === 'hardware_software_installation'
 
   const customerType = String(data.customerType || '') as 'new' | 'existing' | 'reseller'
   let customerInfo: RequestCustomerInfo
@@ -27,6 +28,7 @@ function buildPatch(data: Record<string, unknown>, _user: { id: string; name: st
 
   const swSp = numVal(data.softwareSellingPrice); const swCost = numVal(data.softwareCost); const swGp = calcGrossProfit(swSp, swCost)
   if (swSp > 0) items.push({ itemId: generateId('item'), type: 'software', name: 'Software', sellingPrice: swSp, cost: swCost, grossProfit: swGp, marginPercent: calcMarginPercent(swSp, swGp) })
+
   const instSp = numVal(data.installationSellingPrice); const instCost = numVal(data.installationCost); const instGp = calcGrossProfit(instSp, instCost)
   if (instSp > 0) items.push({ itemId: generateId('item'), type: 'installation', name: 'Installation', sellingPrice: instSp, cost: instCost, grossProfit: instGp, marginPercent: calcMarginPercent(instSp, instGp) })
 
@@ -34,23 +36,50 @@ function buildPatch(data: Record<string, unknown>, _user: { id: string; name: st
   const totalCost = items.reduce((s, i) => s + i.cost, 0)
   const grossProfit = totalSelling - totalCost
   const marginPercent = calcMarginPercent(totalSelling, grossProfit)
-  const installmentCount = numVal(data.installmentCount) || 1
-  const rawInst = (data.installments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
-  const creditTermDays = numVal(data.creditTermDays)
-  const paymentCondition = String(data.paymentCondition || 'on_delivery') as PaymentCondition
-  const installments: PaymentInstallment[] = rawInst.slice(0, installmentCount).map((row, i) => ({
-    installmentNo: i + 1, installmentPercent: numVal(row.installmentPercent),
-    installmentAmount: calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)),
-    creditTermDays, paymentCondition,
+
+  // HW installments
+  const hwCreditTermDays = numVal(data.hwCreditTermDays)
+  const hwInstallmentCount = numVal(data.hwInstallmentCount) || 1
+  const rawHwInst = (data.hwInstallments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
+  const installments: PaymentInstallment[] = rawHwInst.slice(0, hwInstallmentCount).map((row, i) => ({
+    installmentNo: i + 1,
+    installmentPercent: numVal(row.installmentPercent),
+    installmentAmount: calcInstallmentAmount(hwSp > 0 ? hwSp : totalSelling, numVal(row.installmentPercent)),
+    creditTermDays: hwCreditTermDays,
+    paymentCondition: (row.paymentCondition || 'on_delivery') as PaymentInstallment['paymentCondition'],
   }))
-  const maxCreditTerm = installments.reduce((m, i) => Math.max(m, i.creditTermDays), 0)
+
+  // SW installments (only if split mode)
+  let swInstallments: PaymentInstallment[] | undefined
+  let swInstallmentCount: number | undefined
+  if (separateQuotation) {
+    const swCreditTermDays = numVal(data.swCreditTermDays)
+    const swCount = numVal(data.swInstallmentCount) || 1
+    swInstallmentCount = swCount
+    const rawSwInst = (data.swInstallments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
+    const swTotal = numVal(data.softwareSellingPrice) + numVal(data.installationSellingPrice)
+    swInstallments = rawSwInst.slice(0, swCount).map((row, i) => ({
+      installmentNo: i + 1,
+      installmentPercent: numVal(row.installmentPercent),
+      installmentAmount: calcInstallmentAmount(swTotal, numVal(row.installmentPercent)),
+      creditTermDays: swCreditTermDays,
+      paymentCondition: (row.paymentCondition || 'on_delivery') as PaymentInstallment['paymentCondition'],
+    }))
+  }
+
+  const allInstallments = [...installments, ...(swInstallments ?? [])]
+  const maxCreditTerm = allInstallments.reduce((m, i) => Math.max(m, i.creditTermDays), 0)
 
   return {
     proposalNo: String(data.proposalNo || ''),
     projectName: String(data.projectName || data.proposalNo || ''),
     saleType,
-    customerInfo, quotationItems: items, installmentCount,
+    customerInfo,
+    quotationItems: items,
+    installmentCount: hwInstallmentCount,
     installments,
+    swInstallmentCount,
+    swInstallments,
     financial: { totalSelling, totalCost, grossProfit, marginPercent, maxCreditTerm },
   }
 }

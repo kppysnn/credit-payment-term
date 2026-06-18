@@ -60,10 +60,13 @@ function numVal(v: unknown): number { return Number(v) || 0 }
 export function RequestFormStepper({
   initialRequest, currentUser, onSaveDraft, onSubmit, onResubmit, isResubmit = false,
 }: Props) {
+  const req = initialRequest
+
   const [formData, setFormData] = useState<Record<string, unknown>>(
-    initialRequest ? flattenRequest(initialRequest) : getDefaults(currentUser),
+    req ? flattenRequest(req) : getDefaults(currentUser),
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [confirmed, setConfirmed] = useState(false)
 
   // Customer combobox state
   const [existingDropdownOpen, setExistingDropdownOpen] = useState(false)
@@ -75,9 +78,42 @@ export function RequestFormStepper({
   const [draftLoading, setDraftLoading] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [customPercentRows, setCustomPercentRows] = useState<Record<number, boolean>>({})
-  const [customCreditTerm, setCustomCreditTerm] = useState(false)
-  const [creditTermDropdownOpen, setCreditTermDropdownOpen] = useState(false)
+
+  // ── HW payment state ──
+  const [hwCreditTermDays, setHwCreditTermDays] = useState<number | ''>(
+    req?.installments[0]?.creditTermDays ?? 0
+  )
+  const [hwInstallmentCount, setHwInstallmentCount] = useState<number>(
+    req?.installmentCount ?? 1
+  )
+  const [hwInstallments, setHwInstallments] = useState<InstRow[]>(
+    req?.installments?.map(i => ({
+      installmentPercent: i.installmentPercent,
+      creditTermDays: i.creditTermDays,
+      paymentCondition: i.paymentCondition,
+    })) ?? [{ installmentPercent: 100, creditTermDays: 0, paymentCondition: 'on_delivery' }]
+  )
+  const [hwCustomCreditTerm, setHwCustomCreditTerm] = useState(false)
+  const [hwCreditTermDropdownOpen, setHwCreditTermDropdownOpen] = useState(false)
+  const [hwCustomPercentRows, setHwCustomPercentRows] = useState<Record<number, boolean>>({})
+
+  // ── SW payment state ──
+  const [swCreditTermDays, setSwCreditTermDays] = useState<number | ''>(
+    req?.swInstallments?.[0]?.creditTermDays ?? 0
+  )
+  const [swInstallmentCount, setSwInstallmentCount] = useState<number>(
+    req?.swInstallmentCount ?? 1
+  )
+  const [swInstallments, setSwInstallments] = useState<InstRow[]>(
+    req?.swInstallments?.map(i => ({
+      installmentPercent: i.installmentPercent,
+      creditTermDays: i.creditTermDays,
+      paymentCondition: i.paymentCondition,
+    })) ?? [{ installmentPercent: 100, creditTermDays: 0, paymentCondition: 'on_delivery' }]
+  )
+  const [swCustomCreditTerm, setSwCustomCreditTerm] = useState(false)
+  const [swCreditTermDropdownOpen, setSwCreditTermDropdownOpen] = useState(false)
+  const [swCustomPercentRows, setSwCustomPercentRows] = useState<Record<number, boolean>>({})
 
   const fd = formData
   const saleType = String(fd.saleType || '') as SaleType
@@ -86,21 +122,29 @@ export function RequestFormStepper({
   const nc = (fd.newCustomer as Record<string, string>) ?? {}
   const ec = (fd.existingCustomer as Record<string, unknown>) ?? {}
   const rs = (fd.reseller as Record<string, string>) ?? {}
-  const installmentCount = numVal(fd.installmentCount) || 1
-  const installments = (fd.installments as InstRow[]) ?? []
   const proposalNo = String(fd.proposalNo || '')
-  const hardwareQuotationNo = proposalNo ? `${proposalNo}-1` : 'Quotation-1'
-  const serviceQuotationNo = proposalNo ? `${proposalNo}-${separateQuotation ? '2' : '1'}` : `Quotation-${separateQuotation ? '2' : '1'}`
+  const hwQuotationNo = proposalNo ? `${proposalNo}-1` : 'Quotation-1'
+  const swQuotationNo = proposalNo ? `${proposalNo}-2` : 'Quotation-2'
 
-  /* Sync installment rows when count changes */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  /* Sync hw installment rows when count changes */
   useEffect(() => {
-    const current = [...installments]
-    while (current.length < installmentCount) {
+    const current = [...hwInstallments]
+    while (current.length < hwInstallmentCount) {
       current.push({ installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' })
     }
-    update({ installments: current.slice(0, installmentCount) })
-  }, [installmentCount])
+    setHwInstallments(current.slice(0, hwInstallmentCount))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hwInstallmentCount])
+
+  /* Sync sw installment rows when count changes */
+  useEffect(() => {
+    const current = [...swInstallments]
+    while (current.length < swInstallmentCount) {
+      current.push({ installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' })
+    }
+    setSwInstallments(current.slice(0, swInstallmentCount))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [swInstallmentCount])
 
   /* Totals */
   const hwSelling   = numVal(fd.hardwareSellingPrice)
@@ -113,11 +157,6 @@ export function RequestFormStepper({
   const serviceCost = swCost + instCost
   const totalSelling = hwSelling + serviceSelling
   const totalCost = hwCost + serviceCost
-
-  const totalPct = calcTotalInstallmentPercent(installments.slice(0, installmentCount))
-  const pctOk = Math.abs(totalPct - 100) < 0.01
-  const creditTermDays = numVal(fd.creditTermDays)
-  const creditTermIsCustom = customCreditTerm || (fd.creditTermDays !== '' && !CREDIT_TERM_PRESETS.includes(creditTermDays))
 
   function update(patch: Record<string, unknown>) {
     setFormData(prev => ({ ...prev, ...patch }))
@@ -139,9 +178,9 @@ export function RequestFormStepper({
     update({
       existingCustomerId: c.id,
       existingCustomer: { companyName: c.companyName, taxId: c.taxId ?? '', defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: c.contactPerson ?? '', contactPhone: c.contactPhone ?? '' },
-      creditTermDays: c.defaultCreditTerm ?? 0,
     })
-    setCustomCreditTerm(false)
+    setHwCreditTermDays(c.defaultCreditTerm ?? 0)
+    setHwCustomCreditTerm(false)
     setExistingDropdownOpen(false)
     setExistingResults([])
   }
@@ -161,47 +200,23 @@ export function RequestFormStepper({
   function selectReseller(c: Customer) {
     update({
       reseller: { ...rs, resellerId: c.id, resellerCompanyName: c.companyName, defaultCreditTerm: c.defaultCreditTerm ?? 0 },
-      creditTermDays: c.defaultCreditTerm ?? 0,
     })
-    setCustomCreditTerm(false)
+    setHwCreditTermDays(c.defaultCreditTerm ?? 0)
+    setHwCustomCreditTerm(false)
     setResellerDropdownOpen(false)
     setResellerResults([])
   }
 
-  function updateInst(i: number, field: keyof InstRow, value: unknown) {
-    const updated = [...installments]
-    if (!updated[i]) updated[i] = { installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' }
-    updated[i] = { ...updated[i], [field]: value }
-    update({ installments: updated })
-  }
-
-  function applyInstallmentPreset(percents: number[]) {
-    const updated = percents.map((percent, idx) => ({
-      ...(installments[idx] || { creditTermDays: 0, paymentCondition: 'on_delivery' as PaymentCondition }),
-      installmentPercent: percent,
-    }))
-    setCustomPercentRows({})
-    update({ installmentCount: percents.length, installments: updated })
-  }
-
-  function applyCustomInstallments() {
-    const updated = Array.from({ length: installmentCount }, (_, idx) => ({
-      ...(installments[idx] || { creditTermDays: 0, paymentCondition: 'on_delivery' as PaymentCondition }),
-      installmentPercent: '' as '',
-    }))
-    setCustomPercentRows(Object.fromEntries(Array.from({ length: installmentCount }, (_, idx) => [idx, true])))
-    update({ installments: updated })
-  }
-
-  function changeInstallmentCount(next: number) {
-    const clamped = Math.max(1, Math.min(4, next))
-    const preset = INSTALLMENT_PRESETS[clamped]?.[0]?.percents ?? []
-    if (preset.length) {
-      applyInstallmentPreset(preset)
-      return
+  function collectData(): Record<string, unknown> {
+    return {
+      ...formData,
+      hwCreditTermDays,
+      hwInstallmentCount,
+      hwInstallments,
+      swCreditTermDays,
+      swInstallmentCount,
+      swInstallments,
     }
-    setCustomPercentRows(prev => Object.fromEntries(Object.entries(prev).filter(([idx]) => Number(idx) < clamped)))
-    update({ installmentCount: clamped })
   }
 
   function validate(): boolean {
@@ -216,18 +231,29 @@ export function RequestFormStepper({
       if (!rs?.endCustomerCompanyName?.trim()) e['res.endCustomerCompanyName'] = 'กรุณาระบุลูกค้าปลายทาง'
     }
     if (numVal(fd.hardwareSellingPrice) <= 0) e.hwSell = 'กรุณาระบุราคาขาย Hardware'
-    if (numVal(fd.creditTermDays) < 0 || fd.creditTermDays === '') e.creditTermDays = 'กรุณาระบุ Credit Term'
-    installments.slice(0, installmentCount).forEach((row, i) => {
-      if (!row.installmentPercent) e[`inst${i}.pct`] = 'ระบุ%'
+    if (hwCreditTermDays === '' || numVal(hwCreditTermDays) < 0) e.hwCreditTermDays = 'กรุณาระบุ Credit Term'
+    const hwTotalPct = calcTotalInstallmentPercent(hwInstallments.slice(0, hwInstallmentCount))
+    hwInstallments.slice(0, hwInstallmentCount).forEach((row, i) => {
+      if (!row.installmentPercent) e[`hwInst${i}.pct`] = 'ระบุ%'
     })
-    if (!pctOk && installmentCount > 0) e.totalPct = `รวม ${totalPct.toFixed(1)}% ≠ 100%`
+    if (Math.abs(hwTotalPct - 100) >= 0.01 && hwInstallmentCount > 0) e.hwTotalPct = `รวม ${hwTotalPct.toFixed(1)}% ≠ 100%`
+
+    if (separateQuotation) {
+      if (swCreditTermDays === '' || numVal(swCreditTermDays) < 0) e.swCreditTermDays = 'กรุณาระบุ Credit Term SW'
+      const swTotalPct = calcTotalInstallmentPercent(swInstallments.slice(0, swInstallmentCount))
+      swInstallments.slice(0, swInstallmentCount).forEach((row, i) => {
+        if (!row.installmentPercent) e[`swInst${i}.pct`] = 'ระบุ%'
+      })
+      if (Math.abs(swTotalPct - 100) >= 0.01 && swInstallmentCount > 0) e.swTotalPct = `รวม ${swTotalPct.toFixed(1)}% ≠ 100%`
+    }
+
     setErrors(e)
     return Object.keys(e).length === 0
   }
 
   async function handleDraft() {
     setDraftLoading(true); setSubmitError('')
-    try { await onSaveDraft(formData) } catch (e: unknown) { setSubmitError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด') }
+    try { await onSaveDraft(collectData()) } catch (e: unknown) { setSubmitError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด') }
     finally { setDraftLoading(false) }
   }
 
@@ -235,13 +261,13 @@ export function RequestFormStepper({
     if (!validate()) { setSubmitError('กรุณากรอกข้อมูลให้ครบถ้วน'); return }
     setSubmitLoading(true); setSubmitError('')
     try {
-      if (isResubmit && onResubmit) await onResubmit(formData)
-      else await onSubmit(formData)
+      if (isResubmit && onResubmit) await onResubmit(collectData())
+      else await onSubmit(collectData())
     } catch (e: unknown) { setSubmitError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด') }
     finally { setSubmitLoading(false) }
   }
 
-  /* ── Shared styles ── */
+  /* ── Shared style helpers ── */
   const comboDropdown = (
     results: Customer[],
     visible: boolean,
@@ -294,11 +320,13 @@ export function RequestFormStepper({
   )
 
   const selectStyle: React.CSSProperties = { width: '100%', height: 38 }
+
   const summaryAmount = (value: number, color = '#001122') => (
     <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color }}>
       {formatCurrency(value)}
     </span>
   )
+
   const quotationHeader = (quotationNo: string, groupLabel: string, color: string) => (
     <div style={{ background: color, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 15, fontWeight: 800, color: '#fff' }}>
@@ -310,8 +338,268 @@ export function RequestFormStepper({
     </div>
   )
 
+  /* ── renderPaymentBlock: closure over component state ── */
+  function renderPaymentBlock(prefix: 'hw' | 'sw', sellingTotal: number) {
+    // Read state by prefix
+    const ctDays = prefix === 'hw' ? hwCreditTermDays : swCreditTermDays
+    const setCtDays = prefix === 'hw' ? setHwCreditTermDays : setSwCreditTermDays
+    const instCount = prefix === 'hw' ? hwInstallmentCount : swInstallmentCount
+    const setInstCount = prefix === 'hw' ? setHwInstallmentCount : setSwInstallmentCount
+    const insts = prefix === 'hw' ? hwInstallments : swInstallments
+    const setInsts = prefix === 'hw' ? setHwInstallments : setSwInstallments
+    const isCustomCT = prefix === 'hw' ? hwCustomCreditTerm : swCustomCreditTerm
+    const setIsCustomCT = prefix === 'hw' ? setHwCustomCreditTerm : setSwCustomCreditTerm
+    const ctDropOpen = prefix === 'hw' ? hwCreditTermDropdownOpen : swCreditTermDropdownOpen
+    const setCtDropOpen = prefix === 'hw' ? setHwCreditTermDropdownOpen : setSwCreditTermDropdownOpen
+    const customPctRows = prefix === 'hw' ? hwCustomPercentRows : swCustomPercentRows
+    const setCustomPctRows = prefix === 'hw' ? setHwCustomPercentRows : setSwCustomPercentRows
+
+    const creditTermIsCustom = isCustomCT || (ctDays !== '' && !CREDIT_TERM_PRESETS.includes(numVal(ctDays)))
+    const totalPct = calcTotalInstallmentPercent(insts.slice(0, instCount))
+    const pctOk = Math.abs(totalPct - 100) < 0.01
+    const ctErrKey = prefix === 'hw' ? 'hwCreditTermDays' : 'swCreditTermDays'
+    const pctErrKey = prefix === 'hw' ? 'hwTotalPct' : 'swTotalPct'
+
+    function updateInstRow(i: number, field: keyof InstRow, value: unknown) {
+      const updated = [...insts]
+      if (!updated[i]) updated[i] = { installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' }
+      updated[i] = { ...updated[i], [field]: value }
+      setInsts(updated)
+    }
+
+    function applyPreset(percents: number[]) {
+      const updated = percents.map((percent, idx) => ({
+        ...(insts[idx] || { creditTermDays: 0, paymentCondition: 'on_delivery' as PaymentCondition }),
+        installmentPercent: percent,
+      }))
+      setCustomPctRows({})
+      setInstCount(percents.length)
+      setInsts(updated)
+    }
+
+    function applyCustom() {
+      const updated = Array.from({ length: instCount }, (_, idx) => ({
+        ...(insts[idx] || { creditTermDays: 0, paymentCondition: 'on_delivery' as PaymentCondition }),
+        installmentPercent: '' as '',
+      }))
+      setCustomPctRows(Object.fromEntries(Array.from({ length: instCount }, (_, idx) => [idx, true])))
+      setInsts(updated)
+    }
+
+    function changeCount(next: number) {
+      const clamped = Math.max(1, Math.min(4, next))
+      const preset = INSTALLMENT_PRESETS[clamped]?.[0]?.percents ?? []
+      if (preset.length) {
+        applyPreset(preset)
+        return
+      }
+      setCustomPctRows(prev => Object.fromEntries(Object.entries(prev).filter(([idx]) => Number(idx) < clamped)))
+      setInstCount(clamped)
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '14px 14px 14px 14px', borderTop: '1px solid #E2E8F0' }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <FormGroup label="Credit Term" required error={errors[ctErrKey]} style={{ width: 168 }}>
+            <div
+              style={{ position: 'relative', width: 168 }}
+              onBlur={e => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setCtDropOpen(false)
+              }}
+            >
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={String(ctDays ?? '')}
+                onFocus={() => setCtDropOpen(true)}
+                onChange={e => {
+                  const nextValue = e.target.value.replace(/\D/g, '')
+                  const nextDays = nextValue === '' ? '' : Number(nextValue)
+                  setIsCustomCT(nextDays === '' || !CREDIT_TERM_PRESETS.includes(numVal(nextDays)))
+                  setCtDays(nextDays)
+                }}
+                placeholder={creditTermIsCustom ? 'ระบุเอง' : 'เลือกวัน'}
+                error={errors[ctErrKey]}
+                style={{ paddingRight: 38 }}
+              />
+              <button
+                type="button"
+                onClick={() => setCtDropOpen(open => !open)}
+                style={{ position: 'absolute', top: 1, right: 1, width: 36, height: 36, border: 'none', borderLeft: '1px solid #E2E8F0', borderRadius: '0 7px 7px 0', background: '#fff', color: '#4A5568', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
+                aria-label="เลือก Credit Term"
+              >
+                ˅
+              </button>
+              {ctDropOpen && (
+                <div style={{ position: 'absolute', zIndex: 5, top: 42, left: 0, width: 168, maxHeight: 220, overflowY: 'auto', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 8px 20px rgba(0, 64, 129, 0.14)' }}>
+                  {CREDIT_TERM_PRESETS.map(days => (
+                    <button
+                      key={days}
+                      type="button"
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => {
+                        setIsCustomCT(false)
+                        setCtDays(days)
+                        setCtDropOpen(false)
+                      }}
+                      style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', borderBottom: '1px solid #F2F6F8', background: numVal(ctDays) === days ? '#F2F8FF' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      {days} วัน
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => {
+                      setIsCustomCT(true)
+                      setCtDays('')
+                      setCtDropOpen(false)
+                    }}
+                    style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', background: creditTermIsCustom ? '#F2F8FF' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    ระบุเอง
+                  </button>
+                </div>
+              )}
+            </div>
+            {ctDays !== '' && ctDays !== undefined && (
+              <span style={{ fontSize: 11, color: '#66C5C5', marginTop: 2, fontWeight: 600 }}>{formatCreditTerm(numVal(ctDays))}</span>
+            )}
+          </FormGroup>
+
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#001122', marginBottom: 5 }}>จำนวนงวด</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '38px 92px 38px', alignItems: 'center', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', background: '#fff', height: 38, width: 168, boxSizing: 'border-box' }}>
+              <button
+                type="button"
+                disabled={instCount <= 1}
+                onClick={() => changeCount(instCount - 1)}
+                style={{ height: 38, border: 'none', borderRight: '1px solid #D0D6DF', background: instCount <= 1 ? '#F2F6F8' : '#fff', color: instCount <= 1 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: instCount <= 1 ? 'default' : 'pointer' }}
+              >
+                -
+              </button>
+              <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#001122' }}>
+                {instCount} งวด
+              </div>
+              <button
+                type="button"
+                disabled={instCount >= 4}
+                onClick={() => changeCount(instCount + 1)}
+                style={{ height: 38, border: 'none', borderLeft: '1px solid #D0D6DF', background: instCount >= 4 ? '#F2F6F8' : '#fff', color: instCount >= 4 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: instCount >= 4 ? 'default' : 'pointer' }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
+          <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>สัดส่วนงวดที่แนะนำ</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {(INSTALLMENT_PRESETS[instCount] ?? []).slice(0, 4).map(preset => {
+              const active = preset.percents.every((percent, idx) => numVal(insts[idx]?.installmentPercent) === percent)
+              return (
+                <button key={preset.label} type="button" onClick={() => applyPreset(preset.percents)}
+                  style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    border: `1.5px solid ${active ? '#004081' : '#D0D6DF'}`,
+                    background: active ? '#004081' : '#fff',
+                    color: active ? '#fff' : '#586782' }}
+                >
+                  {preset.label}
+                </button>
+              )
+            })}
+            <button type="button"
+              onClick={applyCustom}
+              style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                border: '1.5px dashed #586782',
+                background: Object.values(customPctRows).some(Boolean) ? '#586782' : '#fff',
+                color: Object.values(customPctRows).some(Boolean) ? '#fff' : '#586782' }}
+            >
+              ระบุเอง
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>รายละเอียดงวด</div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${instCount}, minmax(0, 1fr))`, gap: 8 }}>
+            {insts.slice(0, instCount).map((row, i) => {
+              const pct = numVal(row.installmentPercent)
+              const pctIsCustom = customPctRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
+              const pctSelectValue = row.installmentPercent === '' ? (customPctRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
+              const suggestedPct = Math.max(0, Math.min(100, 100 - (totalPct - pct)))
+              const totalAmt = sellingTotal > 0 && pct > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
+              const pctErrRowKey = `${prefix}Inst${i}.pct`
+              return (
+                <div key={i} style={{ background: '#FAFBFC', border: `1px solid ${errors[pctErrRowKey] ? '#F3554F' : '#D0D6DF'}`, borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+                    <span style={{ fontSize: 11, color: '#929EB4', fontWeight: 600 }}>งวดที่ {i + 1}</span>
+                  </div>
+                  <FormGroup error={errors[pctErrRowKey]}>
+                    {pctIsCustom ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                        <Input type="number" min="1" max="100" value={row.installmentPercent}
+                          onChange={e => updateInstRow(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
+                          placeholder={`แนะนำ ${suggestedPct}%`}
+                          style={{ textAlign: 'right', flex: 1 }} error={errors[pctErrRowKey]} />
+                        <span style={{ color: '#586782', fontSize: 12, fontWeight: 600 }}>%</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Select
+                          value={pctSelectValue}
+                          onChange={e => {
+                            const isCustom = e.target.value === 'custom'
+                            setCustomPctRows(prev => ({ ...prev, [i]: isCustom }))
+                            updateInstRow(i, 'installmentPercent', isCustom || e.target.value === '' ? '' : Number(e.target.value))
+                          }}
+                          error={errors[pctErrRowKey]}
+                          style={selectStyle}
+                        >
+                          <option value="">— เลือก % —</option>
+                          {INSTALLMENT_PERCENT_PRESETS.map(percent => <option key={percent} value={percent}>{percent}%</option>)}
+                          <option value="custom">ระบุเอง</option>
+                        </Select>
+                        {row.installmentPercent === '' && suggestedPct > 0 && (
+                          <div style={{ marginTop: 4, fontSize: 10, color: '#929EB4', fontWeight: 600 }}>
+                            แนะนำ {suggestedPct}%
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </FormGroup>
+                  {totalAmt > 0 && (
+                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', paddingTop: 8, borderTop: '1px solid #E2E8F0', marginTop: 'auto' }}>
+                      {formatCurrency(totalAmt)}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>รวมสัดส่วนงวด</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: pctOk ? '#66C5C5' : '#F3554F' }}>
+              {totalPct.toFixed(0)}%
+            </span>
+          </div>
+          <div style={{ height: 8, background: '#E2E8F0', borderRadius: 999, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${Math.min(Math.max(totalPct, 0), 100)}%`, background: pctOk ? '#66C5C5' : '#F3554F', transition: 'width 0.2s' }} />
+          </div>
+        </div>
+
+        {errors[pctErrKey] && <div style={{ fontSize: 12, color: '#F3554F' }}>{errors[pctErrKey]}</div>}
+      </div>
+    )
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 720, margin: '0 auto' }}>
 
       {isResubmit && initialRequest?.approvalResult && (
         <Alert type="error" title="เหตุผลที่ถูก Reject ครั้งก่อน">
@@ -322,171 +610,219 @@ export function RequestFormStepper({
         </Alert>
       )}
 
-      {/* ─── Section 1: ข้อมูลคำขอและลูกค้า ─── */}
-      <Card title="1. ข้อมูลคำขอและลูกค้า">
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 28, alignItems: 'start' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ข้อมูลคำขอ</div>
-            <FormGroup label="Proposal No." required error={errors.proposalNo}>
-              <Input value={String(fd.proposalNo || '')} onChange={e => update({ proposalNo: e.target.value })} placeholder="PRO-2026-001" error={errors.proposalNo} />
-            </FormGroup>
+      {/* ─── Section 1: ข้อมูลคำขอ ─── */}
+      <Card title="1. ข้อมูลคำขอ">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <FormGroup label="Proposal No." required error={errors.proposalNo}>
+            <Input value={String(fd.proposalNo || '')} onChange={e => update({ proposalNo: e.target.value })} placeholder="PRO-2026-001" error={errors.proposalNo} />
+          </FormGroup>
 
-            <FormGroup label="ประเภทการขาย" required error={errors.saleType}>
-              <Select value={saleType} onChange={e => update({ saleType: e.target.value })} error={errors.saleType}>
-                <option value="">— เลือกประเภท —</option>
-                {SALE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </Select>
-            </FormGroup>
-          </div>
+          <FormGroup label="ประเภทการขาย" required error={errors.saleType}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {SALE_TYPES.map(t => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => update({ saleType: t.value })}
+                  style={{
+                    padding: '7px 18px',
+                    borderRadius: 20,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: `1.5px solid ${saleType === t.value ? '#004081' : '#D0D6DF'}`,
+                    background: saleType === t.value ? '#004081' : '#fff',
+                    color: saleType === t.value ? '#fff' : '#586782',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            {errors.saleType && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 4 }}>{errors.saleType}</div>}
+          </FormGroup>
+        </div>
+      </Card>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, borderLeft: '1px solid #D0D6DF', paddingLeft: 28, minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ข้อมูลลูกค้า</div>
+      {/* ─── Section 2: ข้อมูลลูกค้า ─── */}
+      <Card title="2. ข้อมูลลูกค้า">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* Customer type pill buttons */}
+          <FormGroup label="ประเภทลูกค้า" required error={errors.customerType}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {CUSTOMER_TYPES.map(type => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => {
+                    update({ customerType: type })
+                    setExistingDropdownOpen(false)
+                    setResellerDropdownOpen(false)
+                  }}
+                  style={{
+                    padding: '7px 18px',
+                    borderRadius: 20,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: `1.5px solid ${customerType === type ? '#004081' : '#D0D6DF'}`,
+                    background: customerType === type ? '#004081' : '#fff',
+                    color: customerType === type ? '#fff' : '#586782',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {CUSTOMER_TYPE_LABELS[type]}
+                </button>
+              ))}
+            </div>
+            {errors.customerType && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 4 }}>{errors.customerType}</div>}
+          </FormGroup>
 
-            <FormGroup label="ประเภทลูกค้า" required error={errors.customerType}>
-              <Select
-                value={customerType}
-                onChange={e => {
-                  update({ customerType: e.target.value })
-                  setExistingDropdownOpen(false)
-                  setResellerDropdownOpen(false)
-                }}
-                error={errors.customerType}
-              >
-                <option value="">— เลือกประเภทลูกค้า —</option>
-                {CUSTOMER_TYPES.map(type => <option key={type} value={type}>{CUSTOMER_TYPE_LABELS[type]}</option>)}
-              </Select>
-            </FormGroup>
-
-            {/* ลูกค้าใหม่ */}
-            {customerType === 'new' && (
-              <div style={{ paddingTop: 2 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>ข้อมูลลูกค้าใหม่</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
-                  <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
-                    <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
-                  </FormGroup>
-                  <FormGroup label="ผู้ติดต่อ">
-                    <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
-                  </FormGroup>
-                  <FormGroup label="เบอร์โทร">
-                    <Input value={nc.contactPhone ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
-                  </FormGroup>
-                </div>
+          {/* ลูกค้าใหม่ */}
+          {customerType === 'new' && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>ข้อมูลลูกค้าใหม่</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+                <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
+                  <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
+                </FormGroup>
+                <FormGroup label="ผู้ติดต่อ">
+                  <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+                </FormGroup>
+                <FormGroup label="เบอร์โทร">
+                  <Input value={nc.contactPhone ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                </FormGroup>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* ลูกค้าเก่า — combobox */}
-            {customerType === 'existing' && (
-              <div style={{ paddingTop: 2 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>เลือกลูกค้าเก่า</div>
-                <FormGroup label="ชื่อบริษัท" required error={errors.existingCompanyName}>
+          {/* ลูกค้าเก่า — combobox */}
+          {customerType === 'existing' && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>เลือกลูกค้าเก่า</div>
+              <FormGroup label="ชื่อบริษัท" required error={errors.existingCompanyName}>
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative' }}>
+                    <Input
+                      value={String(ec.companyName ?? '')}
+                      onChange={e => onExistingType(e.target.value)}
+                      onFocus={() => openExistingDropdown()}
+                      onClick={() => openExistingDropdown()}
+                      onBlur={() => setTimeout(() => setExistingDropdownOpen(false), 150)}
+                      placeholder="เลือกลูกค้าจากรายการ หรือพิมพ์เพื่อกรอง"
+                      error={errors.existingCompanyName}
+                      style={{ paddingRight: ec.companyName ? 32 : undefined }}
+                    />
+                    {!!ec.companyName && (
+                      <button
+                        onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
+                        style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  {comboDropdown(existingResults, existingDropdownOpen, selectExisting)}
+                </div>
+              </FormGroup>
+              {!!fd.existingCustomerId && (
+                <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
+                <FormGroup label="ผู้ติดต่อ">
+                  <Input value={String(ec.contactPerson ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+                </FormGroup>
+                <FormGroup label="เบอร์โทร">
+                  <Input value={String(ec.contactPhone ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                </FormGroup>
+              </div>
+            </div>
+          )}
+
+          {/* Reseller — combobox */}
+          {customerType === 'reseller' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Reseller combobox */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
+                <FormGroup error={errors['res.resellerCompanyName']}>
                   <div style={{ position: 'relative' }}>
                     <div style={{ position: 'relative' }}>
                       <Input
-                        value={String(ec.companyName ?? '')}
-                        onChange={e => onExistingType(e.target.value)}
-                        onFocus={() => openExistingDropdown()}
-                        onClick={() => openExistingDropdown()}
-                        onBlur={() => setTimeout(() => setExistingDropdownOpen(false), 150)}
-                        placeholder="เลือกลูกค้าจากรายการ หรือพิมพ์เพื่อกรอง"
-                        error={errors.existingCompanyName}
-                        style={{ paddingRight: ec.companyName ? 32 : undefined }}
+                        value={rs.resellerCompanyName ?? ''}
+                        onChange={e => onResellerType(e.target.value)}
+                        onFocus={() => openResellerDropdown()}
+                        onClick={() => openResellerDropdown()}
+                        onBlur={() => setTimeout(() => setResellerDropdownOpen(false), 150)}
+                        placeholder="เลือก Reseller จากรายการ หรือพิมพ์เพื่อกรอง"
+                        error={errors['res.resellerCompanyName']}
+                        style={{ paddingRight: rs.resellerCompanyName ? 32 : undefined }}
                       />
-                      {!!ec.companyName && (
+                      {rs.resellerCompanyName && (
                         <button
-                          onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
+                          onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0 } })}
                           style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
                         >
                           <X size={14} />
                         </button>
                       )}
                     </div>
-                    {comboDropdown(existingResults, existingDropdownOpen, selectExisting)}
+                    {comboDropdown(resellerResults, resellerDropdownOpen, selectReseller)}
                   </div>
                 </FormGroup>
-                {!!fd.existingCustomerId && (
-                  <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</div>
+                {rs.resellerId && (
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
-                  <FormGroup label="ผู้ติดต่อ">
-                    <Input value={String(ec.contactPerson ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+              </div>
+
+              {/* End Customer */}
+              <div style={{ borderTop: '1px solid #D0D6DF', paddingTop: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+                  <FormGroup label="ชื่อบริษัทปลายทาง" required error={errors['res.endCustomerCompanyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
+                    <Input
+                      value={rs.endCustomerCompanyName ?? ''}
+                      onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })}
+                      placeholder="ใส่ชื่อบริษัทปลายทาง"
+                      error={errors['res.endCustomerCompanyName']}
+                    />
+                  </FormGroup>
+                  <FormGroup label="ผู้ติดต่อปลายทาง">
+                    <Input value={rs.endCustomerContactPerson ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerContactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
                   </FormGroup>
                   <FormGroup label="เบอร์โทร">
-                    <Input value={String(ec.contactPhone ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                    <Input value={rs.endCustomerPhone ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
                   </FormGroup>
                 </div>
               </div>
-            )}
-
-            {/* Reseller — combobox */}
-            {customerType === 'reseller' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 2 }}>
-                {/* Reseller combobox */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
-                  <FormGroup error={errors['res.resellerCompanyName']}>
-                    <div style={{ position: 'relative' }}>
-                      <div style={{ position: 'relative' }}>
-                        <Input
-                          value={rs.resellerCompanyName ?? ''}
-                          onChange={e => onResellerType(e.target.value)}
-                          onFocus={() => openResellerDropdown()}
-                          onClick={() => openResellerDropdown()}
-                          onBlur={() => setTimeout(() => setResellerDropdownOpen(false), 150)}
-                          placeholder="เลือก Reseller จากรายการ หรือพิมพ์เพื่อกรอง"
-                          error={errors['res.resellerCompanyName']}
-                          style={{ paddingRight: rs.resellerCompanyName ? 32 : undefined }}
-                        />
-                        {rs.resellerCompanyName && (
-                          <button
-                            onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0 } })}
-                            style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
-                      </div>
-                      {comboDropdown(resellerResults, resellerDropdownOpen, selectReseller)}
-                    </div>
-                  </FormGroup>
-                  {rs.resellerId && (
-                    <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
-                  )}
-                </div>
-
-                {/* End Customer */}
-                <div style={{ borderTop: '1px solid #D0D6DF', paddingTop: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
-                    <FormGroup label="ชื่อบริษัทปลายทาง" required error={errors['res.endCustomerCompanyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
-                      <Input
-                        value={rs.endCustomerCompanyName ?? ''}
-                        onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })}
-                        placeholder="ใส่ชื่อบริษัทปลายทาง"
-                        error={errors['res.endCustomerCompanyName']}
-                      />
-                    </FormGroup>
-                    <FormGroup label="ผู้ติดต่อปลายทาง">
-                      <Input value={rs.endCustomerContactPerson ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerContactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
-                    </FormGroup>
-                    <FormGroup label="เบอร์โทร">
-                      <Input value={rs.endCustomerPhone ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
-                    </FormGroup>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </Card>
 
-      {/* ─── Section 2: ราคา ─── */}
-      <Card title="2. ราคาขายและต้นทุน / ใบเสนอราคา">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-          {/* Hardware group */}
-          <div style={{ border: '1px solid #D0D6DF', borderRadius: 10, overflow: 'hidden' }}>
-            {quotationHeader(hardwareQuotationNo, 'Hardware', '#002B5C')}
+      {/* ─── Section 3: Quotation cards with embedded payment ─── */}
+      {!separateQuotation ? (
+        /* Single mode */
+        <div style={{ border: '1px solid #D0D6DF', borderRadius: 14, overflow: 'hidden', background: '#fff' }}>
+          {quotationHeader(hwQuotationNo, 'Hardware & Software & Installation', '#002B5C')}
+          <div style={{ padding: '0 14px' }}>
+            {priceRow('Hardware', 'hardwareSellingPrice', 'hardwareCost')}
+            {priceRow('Software', 'softwareSellingPrice', 'softwareCost')}
+            {priceRow('Installation', 'installationSellingPrice', 'installationCost')}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 14px', fontSize: 13, background: '#FAFBFC', borderTop: '1px solid #E2E8F0' }}>
+            <span style={{ color: '#586782', fontWeight: 600 }}>รวมทั้งหมด</span>
+            {plainAmount(totalSelling)}
+          </div>
+          {renderPaymentBlock('hw', totalSelling)}
+        </div>
+      ) : (
+        /* Split mode */
+        <>
+          {/* HW card */}
+          <div style={{ border: '1px solid #D0D6DF', borderRadius: 14, overflow: 'hidden', background: '#fff' }}>
+            {quotationHeader(hwQuotationNo, 'Hardware', '#002B5C')}
             <div style={{ padding: '0 14px' }}>
               {priceRow('Hardware', 'hardwareSellingPrice', 'hardwareCost')}
             </div>
@@ -494,11 +830,12 @@ export function RequestFormStepper({
               <span style={{ color: '#586782', fontWeight: 600 }}>รวม Hardware</span>
               {plainAmount(hwSelling)}
             </div>
+            {renderPaymentBlock('hw', hwSelling)}
           </div>
 
-          {/* Software & Installation group */}
-          <div style={{ border: '1px solid #D0D6DF', borderRadius: 10, overflow: 'hidden' }}>
-            {quotationHeader(serviceQuotationNo, 'Software & Installation', '#3D5580')}
+          {/* SW card */}
+          <div style={{ border: '1px solid #D0D6DF', borderRadius: 14, overflow: 'hidden', background: '#fff' }}>
+            {quotationHeader(swQuotationNo, 'Software & Installation', '#3D5580')}
             <div style={{ padding: '0 14px' }}>
               {priceRow('Software', 'softwareSellingPrice', 'softwareCost')}
               {priceRow('Installation', 'installationSellingPrice', 'installationCost')}
@@ -507,210 +844,10 @@ export function RequestFormStepper({
               <span style={{ color: '#586782', fontWeight: 600 }}>รวม Software &amp; Installation</span>
               {plainAmount(serviceSelling, '#3D5580')}
             </div>
+            {renderPaymentBlock('sw', serviceSelling)}
           </div>
-
-        </div>
-      </Card>
-
-      {/* ─── Section 3: งวดชำระ ─── */}
-      <Card title="3. งวดชำระและ Credit Term">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <FormGroup label="Credit Term" required error={errors.creditTermDays} style={{ width: 168 }}>
-              <div
-                style={{ position: 'relative', width: 168 }}
-                onBlur={e => {
-                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setCreditTermDropdownOpen(false)
-                }}
-              >
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  value={String(fd.creditTermDays ?? '')}
-                  onFocus={() => setCreditTermDropdownOpen(true)}
-                  onChange={e => {
-                    const nextValue = e.target.value.replace(/\D/g, '')
-                    const nextDays = nextValue === '' ? '' : Number(nextValue)
-                    setCustomCreditTerm(nextDays === '' || !CREDIT_TERM_PRESETS.includes(nextDays))
-                    update({ creditTermDays: nextDays })
-                  }}
-                  placeholder={creditTermIsCustom ? 'ระบุเอง' : 'เลือกวัน'}
-                  error={errors.creditTermDays}
-                  style={{ paddingRight: 38 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setCreditTermDropdownOpen(open => !open)}
-                  style={{ position: 'absolute', top: 1, right: 1, width: 36, height: 36, border: 'none', borderLeft: '1px solid #E2E8F0', borderRadius: '0 7px 7px 0', background: '#fff', color: '#4A5568', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
-                  aria-label="เลือก Credit Term"
-                >
-                  ˅
-                </button>
-                {creditTermDropdownOpen && (
-                  <div style={{ position: 'absolute', zIndex: 5, top: 42, left: 0, width: 168, maxHeight: 220, overflowY: 'auto', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 8px 20px rgba(0, 64, 129, 0.14)' }}>
-                    {CREDIT_TERM_PRESETS.map(days => (
-                      <button
-                        key={days}
-                        type="button"
-                        onMouseDown={e => e.preventDefault()}
-                        onClick={() => {
-                          setCustomCreditTerm(false)
-                          update({ creditTermDays: days })
-                          setCreditTermDropdownOpen(false)
-                        }}
-                        style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', borderBottom: '1px solid #F2F6F8', background: Number(fd.creditTermDays) === days ? '#F2F8FF' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-                      >
-                        {days} วัน
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onMouseDown={e => e.preventDefault()}
-                      onClick={() => {
-                        setCustomCreditTerm(true)
-                        update({ creditTermDays: '' })
-                        setCreditTermDropdownOpen(false)
-                      }}
-                      style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', background: creditTermIsCustom ? '#F2F8FF' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      ระบุเอง
-                    </button>
-                  </div>
-                )}
-              </div>
-              {fd.creditTermDays !== '' && fd.creditTermDays !== undefined && (
-                <span style={{ fontSize: 11, color: '#66C5C5', marginTop: 2, fontWeight: 600 }}>{formatCreditTerm(creditTermDays)}</span>
-              )}
-            </FormGroup>
-
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#001122', marginBottom: 5 }}>จำนวนงวด</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '38px 92px 38px', alignItems: 'center', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', background: '#fff', height: 38, width: 168, boxSizing: 'border-box' }}>
-                <button
-                  type="button"
-                  disabled={installmentCount <= 1}
-                  onClick={() => changeInstallmentCount(installmentCount - 1)}
-                  style={{ height: 38, border: 'none', borderRight: '1px solid #D0D6DF', background: installmentCount <= 1 ? '#F2F6F8' : '#fff', color: installmentCount <= 1 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: installmentCount <= 1 ? 'default' : 'pointer' }}
-                >
-                  -
-                </button>
-                <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#001122' }}>
-                  {installmentCount} งวด
-                </div>
-                <button
-                  type="button"
-                  disabled={installmentCount >= 4}
-                  onClick={() => changeInstallmentCount(installmentCount + 1)}
-                  style={{ height: 38, border: 'none', borderLeft: '1px solid #D0D6DF', background: installmentCount >= 4 ? '#F2F6F8' : '#fff', color: installmentCount >= 4 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: installmentCount >= 4 ? 'default' : 'pointer' }}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
-            <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>สัดส่วนงวดที่แนะนำ</div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {(INSTALLMENT_PRESETS[installmentCount] ?? []).slice(0, 4).map(preset => {
-                const active = preset.percents.every((percent, idx) => numVal(installments[idx]?.installmentPercent) === percent)
-                return (
-                  <button key={preset.label} type="button" onClick={() => applyInstallmentPreset(preset.percents)}
-                    style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                      border: `1.5px solid ${active ? '#004081' : '#D0D6DF'}`,
-                      background: active ? '#004081' : '#fff',
-                      color: active ? '#fff' : '#586782' }}
-                  >
-                    {preset.label}
-                  </button>
-                )
-              })}
-              <button type="button"
-                onClick={applyCustomInstallments}
-                style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  border: '1.5px dashed #586782',
-                  background: Object.values(customPercentRows).some(Boolean) ? '#586782' : '#fff',
-                  color: Object.values(customPercentRows).some(Boolean) ? '#fff' : '#586782' }}
-              >
-                ระบุเอง
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>รายละเอียดงวด</div>
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${installmentCount}, minmax(0, 1fr))`, gap: 8 }}>
-              {installments.slice(0, installmentCount).map((row, i) => {
-                const pct = numVal(row.installmentPercent)
-                const pctIsCustom = customPercentRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
-                const pctSelectValue = row.installmentPercent === '' ? (customPercentRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
-                const suggestedPct = Math.max(0, Math.min(100, 100 - (totalPct - pct)))
-                const totalAmt = totalSelling > 0 && pct > 0 ? calcInstallmentAmount(totalSelling, pct) : 0
-                return (
-                  <div key={i} style={{ background: '#FAFBFC', border: `1px solid ${errors[`inst${i}.pct`] ? '#F3554F' : '#D0D6DF'}`, borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                      <span style={{ fontSize: 11, color: '#929EB4', fontWeight: 600 }}>งวดที่ {i + 1}</span>
-                    </div>
-                    <FormGroup error={errors[`inst${i}.pct`]}>
-                      {pctIsCustom ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                          <Input type="number" min="1" max="100" value={row.installmentPercent}
-                            onChange={e => updateInst(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
-                            placeholder={`แนะนำ ${suggestedPct}%`}
-                            style={{ textAlign: 'right', flex: 1 }} error={errors[`inst${i}.pct`]} />
-                          <span style={{ color: '#586782', fontSize: 12, fontWeight: 600 }}>%</span>
-                        </div>
-                      ) : (
-                        <>
-                          <Select
-                            value={pctSelectValue}
-                            onChange={e => {
-                              const isCustom = e.target.value === 'custom'
-                              setCustomPercentRows(prev => ({ ...prev, [i]: isCustom }))
-                              updateInst(i, 'installmentPercent', isCustom || e.target.value === '' ? '' : Number(e.target.value))
-                            }}
-                            error={errors[`inst${i}.pct`]}
-                            style={selectStyle}
-                          >
-                            <option value="">— เลือก % —</option>
-                            {INSTALLMENT_PERCENT_PRESETS.map(percent => <option key={percent} value={percent}>{percent}%</option>)}
-                            <option value="custom">ระบุเอง</option>
-                          </Select>
-                          {row.installmentPercent === '' && suggestedPct > 0 && (
-                            <div style={{ marginTop: 4, fontSize: 10, color: '#929EB4', fontWeight: 600 }}>
-                              แนะนำ {suggestedPct}%
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </FormGroup>
-                    {totalAmt > 0 && (
-                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', paddingTop: 8, borderTop: '1px solid #E2E8F0', marginTop: 'auto' }}>
-                        {formatCurrency(totalAmt)}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>รวมสัดส่วนงวด</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: pctOk ? '#66C5C5' : '#F3554F' }}>
-                {totalPct.toFixed(0)}%
-              </span>
-            </div>
-            <div style={{ height: 8, background: '#E2E8F0', borderRadius: 999, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(Math.max(totalPct, 0), 100)}%`, background: pctOk ? '#66C5C5' : '#F3554F', transition: 'width 0.2s' }} />
-            </div>
-          </div>
-
-          {errors.totalPct && <div style={{ fontSize: 12, color: '#F3554F' }}>{errors.totalPct}</div>}
-        </div>
-      </Card>
+        </>
+      )}
 
       {/* ─── Section 4: สรุปรวมทั้งหมด ─── */}
       <Card title="4. สรุปรวมทั้งหมด" noPad>
@@ -724,8 +861,8 @@ export function RequestFormStepper({
           </thead>
           <tbody>
             {[
-              { label: `${hardwareQuotationNo} Hardware`, selling: hwSelling, cost: hwCost },
-              { label: `${serviceQuotationNo} Software & Installation`, selling: serviceSelling, cost: serviceCost },
+              { label: `${hwQuotationNo} Hardware`, selling: hwSelling, cost: hwCost },
+              { label: `${separateQuotation ? swQuotationNo : hwQuotationNo} Software & Installation`, selling: serviceSelling, cost: serviceCost },
             ].map(row => (
               <tr key={row.label} style={{ borderBottom: '1px solid #F2F6F8' }}>
                 <td style={{ padding: '10px 12px', fontWeight: 600, color: '#001122' }}>{row.label}</td>
@@ -744,18 +881,27 @@ export function RequestFormStepper({
         </table>
       </Card>
 
-      {/* ─── Section 5: ตรวจความพร้อมและส่ง ─── */}
+      {/* ─── Footer ─── */}
       <div style={{ background: '#fff', border: '1px solid #D0D6DF', borderRadius: 14, padding: '20px 24px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={e => setConfirmed(e.target.checked)}
+            style={{ width: 16, height: 16, accentColor: '#004081', cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: 13, color: '#586782', fontWeight: 500 }}>
+            ข้าพเจ้าขอยืนยันว่าข้อมูลข้างต้นถูกต้องและครบถ้วน
+          </span>
+        </label>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
             บันทึกแบบร่าง
           </Button>
-          <Button icon={<Send size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading}>
+          <Button icon={<Send size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading || !confirmed}>
             {isResubmit ? 'ส่งขออนุมัติอีกครั้ง' : 'ส่งขออนุมัติ'}
           </Button>
-          </div>
         </div>
       </div>
 
@@ -782,10 +928,6 @@ function getDefaults(user: CurrentUser): Record<string, unknown> {
     softwareCost: 0,
     installationSellingPrice: '',
     installationCost: 0,
-    creditTermDays: 0,
-    paymentCondition: 'on_delivery',
-    installmentCount: 1,
-    installments: [{ installmentPercent: 100, creditTermDays: 0, paymentCondition: 'on_delivery' }],
   }
 }
 
@@ -802,14 +944,6 @@ function flattenRequest(req: Request): Record<string, unknown> {
     projectName: req.projectName,
     saleType: req.saleType,
     customerType: req.customerInfo.type,
-    installmentCount: req.installmentCount,
-    creditTermDays: req.installments[0]?.creditTermDays ?? 0,
-    paymentCondition: req.installments[0]?.paymentCondition ?? 'on_delivery',
-    installments: req.installments.map(i => ({
-      installmentPercent: i.installmentPercent,
-      creditTermDays: i.creditTermDays,
-      paymentCondition: i.paymentCondition,
-    })),
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
     existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },

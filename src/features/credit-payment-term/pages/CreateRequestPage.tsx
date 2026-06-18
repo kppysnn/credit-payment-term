@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
 import { RequestFormStepper } from '../components/RequestFormStepper'
 import { createRequest, submitRequest } from '../services/creditTermService'
-import type { Request, QuotationItem, PaymentInstallment, SaleType, PaymentCondition } from '../types/request'
+import type { Request, QuotationItem, PaymentInstallment, SaleType } from '../types/request'
 import type { RequestCustomerInfo } from '../types/customer'
 import { calcGrossProfit, calcMarginPercent, calcInstallmentAmount } from '../utils/calculations'
 import { generateId } from '../data/mockRequests'
@@ -11,6 +11,7 @@ function numVal(v: unknown): number { return Number(v) || 0 }
 
 function buildRequestFromFormData(data: Record<string, unknown>, user: { id: string; name: string; email: string }): Omit<Request, 'id' | 'requestNo' | 'createdAt' | 'updatedAt' | 'history'> {
   const saleType = String(data.saleType || '') as SaleType
+  const separateQuotation = saleType === 'hardware_software_installation'
 
   const customerType = String(data.customerType || '') as 'new' | 'existing' | 'reseller'
   let customerInfo: RequestCustomerInfo
@@ -44,19 +45,38 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
   const grossProfit = totalSelling - totalCost
   const marginPercent = calcMarginPercent(totalSelling, grossProfit)
 
-  const installmentCount = numVal(data.installmentCount) || 1
-  const rawInst = (data.installments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
-  const creditTermDays = numVal(data.creditTermDays)
-  const paymentCondition = String(data.paymentCondition || 'on_delivery') as PaymentCondition
-  const installments: PaymentInstallment[] = rawInst.slice(0, installmentCount).map((row, i) => ({
+  // HW installments
+  const hwCreditTermDays = numVal(data.hwCreditTermDays)
+  const hwInstallmentCount = numVal(data.hwInstallmentCount) || 1
+  const rawHwInst = (data.hwInstallments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
+  const installments: PaymentInstallment[] = rawHwInst.slice(0, hwInstallmentCount).map((row, i) => ({
     installmentNo: i + 1,
     installmentPercent: numVal(row.installmentPercent),
-    installmentAmount: calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)),
-    creditTermDays,
-    paymentCondition,
+    installmentAmount: calcInstallmentAmount(hwSp > 0 ? hwSp : totalSelling, numVal(row.installmentPercent)),
+    creditTermDays: hwCreditTermDays,
+    paymentCondition: (row.paymentCondition || 'on_delivery') as PaymentInstallment['paymentCondition'],
   }))
 
-  const maxCreditTerm = installments.reduce((m, i) => Math.max(m, i.creditTermDays), 0)
+  // SW installments (only if split mode)
+  let swInstallments: PaymentInstallment[] | undefined
+  let swInstallmentCount: number | undefined
+  if (separateQuotation) {
+    const swCreditTermDays = numVal(data.swCreditTermDays)
+    const swCount = numVal(data.swInstallmentCount) || 1
+    swInstallmentCount = swCount
+    const rawSwInst = (data.swInstallments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
+    const swTotal = numVal(data.softwareSellingPrice) + numVal(data.installationSellingPrice)
+    swInstallments = rawSwInst.slice(0, swCount).map((row, i) => ({
+      installmentNo: i + 1,
+      installmentPercent: numVal(row.installmentPercent),
+      installmentAmount: calcInstallmentAmount(swTotal, numVal(row.installmentPercent)),
+      creditTermDays: swCreditTermDays,
+      paymentCondition: (row.paymentCondition || 'on_delivery') as PaymentInstallment['paymentCondition'],
+    }))
+  }
+
+  const allInstallments = [...installments, ...(swInstallments ?? [])]
+  const maxCreditTerm = allInstallments.reduce((m, i) => Math.max(m, i.creditTermDays), 0)
 
   return {
     version: 1,
@@ -68,8 +88,10 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
     saleType,
     customerInfo,
     quotationItems: items,
-    installmentCount,
+    installmentCount: hwInstallmentCount,
     installments,
+    swInstallmentCount,
+    swInstallments,
     financial: { totalSelling, totalCost, grossProfit, marginPercent, maxCreditTerm },
     status: 'draft',
   }

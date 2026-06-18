@@ -100,6 +100,8 @@ export interface Request {
   paymentTermReason?: string
   creditTermReason?: string
   installments: PaymentInstallment[]
+  swInstallmentCount?: number
+  swInstallments?: PaymentInstallment[]
 
   financial: FinancialSummary
 
