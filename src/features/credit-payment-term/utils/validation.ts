@@ -2,10 +2,9 @@ import { z } from 'zod'
 
 export const step1Schema = z.object({
   proposalNo: z.string().min(1, 'กรุณาระบุ Proposal No.'),
-  quotationNo: z.string().optional(),
-  projectName: z.string().min(1, 'กรุณาระบุชื่อโปรเจกต์'),
-  saleType: z.enum(['hardware', 'software_installation', 'mixed']).refine(v => !!v, { message: 'กรุณาเลือกประเภทการขาย' }),
-  requestPurpose: z.string().min(10, 'กรุณาระบุวัตถุประสงค์อย่างน้อย 10 ตัวอักษร'),
+  projectName: z.string().optional(),
+  saleType: z.enum(['hardware', 'hardware_software_installation']).refine(v => !!v, { message: 'กรุณาเลือกประเภทการขาย' }),
+  requestPurpose: z.string().optional(),
   remark: z.string().optional(),
 })
 
@@ -59,15 +58,6 @@ const installmentSchema = z.object({
     .number()
     .positive('เปอร์เซ็นต์ต้องมากกว่า 0')
     .max(100, 'เปอร์เซ็นต์ต้องไม่เกิน 100'),
-  creditTermDays: z
-    .number()
-    .int('จำนวนวันต้องเป็นจำนวนเต็ม')
-    .nonnegative('จำนวนวันต้องไม่ติดลบ'),
-  paymentCondition: z.enum([
-    'before_delivery', 'on_po', 'on_delivery',
-    'on_installation', 'on_acceptance', 'monthly', 'other',
-  ]).refine(v => !!v, { message: 'กรุณาเลือกเงื่อนไขการชำระ' }),
-  creditTermReason: z.string().min(1, 'กรุณาระบุเหตุผล Credit Term'),
   remark: z.string().optional(),
 })
 
@@ -77,8 +67,10 @@ export const step4Schema = z.object({
     .int()
     .min(1, 'จำนวนงวดต้องอย่างน้อย 1 งวด')
     .max(4, 'จำนวนงวดต้องไม่เกิน 4 งวด'),
-  paymentTermReason: z.string().min(1, 'กรุณาระบุเหตุผลการขอเงื่อนไขการชำระ'),
-  overallCreditTermReason: z.string().optional(),
+  creditTermDays: z
+    .number()
+    .int('จำนวนวันต้องเป็นจำนวนเต็ม')
+    .nonnegative('จำนวนวันต้องไม่ติดลบ'),
   installments: z.array(installmentSchema),
 })
 

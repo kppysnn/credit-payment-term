@@ -47,7 +47,7 @@ function buildPatch(data: Record<string, unknown>, _user: { id: string; name: st
 
   return {
     proposalNo: String(data.proposalNo || ''),
-    projectName: String(data.projectName || ''),
+    projectName: String(data.projectName || data.proposalNo || ''),
     saleType,
     customerInfo, quotationItems: items, installmentCount,
     installments,

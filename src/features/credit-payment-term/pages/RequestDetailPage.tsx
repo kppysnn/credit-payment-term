@@ -4,7 +4,7 @@ import { useCurrentUser } from '../../../app/UserContext'
 import { getRequestById, approveRequest, rejectRequest, cancelRequest, submitRequest } from '../services/creditTermService'
 import { exportPDF } from '../services/exportService'
 import type { Request } from '../types/request'
-import { SALE_TYPE_LABELS, PAYMENT_CONDITION_LABELS, type PaymentCondition } from '../types/request'
+import { SALE_TYPE_LABELS } from '../types/request'
 import { CUSTOMER_TYPE_LABELS } from '../types/customer'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { StatusTimeline } from '../../../components/ui/StatusTimeline'
@@ -45,6 +45,7 @@ export function RequestDetailPage() {
     req.customerInfo.type === 'existing' ? req.customerInfo.data.companyName :
     req.customerInfo.type === 'new'      ? req.customerInfo.data.companyName :
     req.customerInfo.data.resellerCompanyName
+  const displayProjectName = req.projectName || req.proposalNo
   const separateQuotation = req.saleType === 'hardware_software_installation'
   const hardwareQuotationNo = `${req.proposalNo}-1`
   const serviceQuotationNo = `${req.proposalNo}-${separateQuotation ? '2' : '1'}`
@@ -53,7 +54,6 @@ export function RequestDetailPage() {
   const hardwareSelling = hardwareItems.reduce((sum, item) => sum + item.sellingPrice, 0)
   const serviceSelling = serviceItems.reduce((sum, item) => sum + item.sellingPrice, 0)
   const creditTermDays = req.installments[0]?.creditTermDays ?? req.financial.maxCreditTerm
-  const paymentCondition = req.installments[0]?.paymentCondition
 
   async function handleApprove(comment: string) {
     if (!id) return
@@ -101,7 +101,7 @@ export function RequestDetailPage() {
               )}
             </div>
             <p style={{ margin: '6px 0 0', color: '#586782', fontSize: 14 }}>
-              {req.projectName} · {customerName} · {SALE_TYPE_LABELS[req.saleType]}
+              {displayProjectName} · {customerName} · {SALE_TYPE_LABELS[req.saleType]}
             </p>
           </div>
 
@@ -145,18 +145,19 @@ export function RequestDetailPage() {
               <FieldGrid cols={3}>
                 <FieldDisplay label="Request No." value={req.requestNo} mono />
                 <FieldDisplay label="Proposal No." value={req.proposalNo} mono />
-                <FieldDisplay label="Quotation No." value={req.quotationNo || '—'} mono />
-                <FieldDisplay label="ชื่อโปรเจกต์" value={req.projectName} />
+                <FieldDisplay label="ชื่อโปรเจกต์" value={displayProjectName} />
                 <FieldDisplay label="ประเภทการขาย" value={SALE_TYPE_LABELS[req.saleType]} />
                 <FieldDisplay label="Sales" value={`${req.salesName}`} />
                 <FieldDisplay label="วันที่สร้าง" value={formatDateTime(req.createdAt)} />
                 <FieldDisplay label="อัปเดตล่าสุด" value={formatDateTime(req.updatedAt)} />
                 <FieldDisplay label="เวอร์ชัน" value={`v${req.version}`} />
               </FieldGrid>
-              <div style={{ marginTop: 16 }}>
-                <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 4 }}>วัตถุประสงค์</div>
-                <p style={{ margin: 0, fontSize: 14, color: '#001122', lineHeight: 1.6 }}>{req.requestPurpose}</p>
-              </div>
+              {req.requestPurpose && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 4 }}>วัตถุประสงค์</div>
+                  <p style={{ margin: 0, fontSize: 14, color: '#001122', lineHeight: 1.6 }}>{req.requestPurpose}</p>
+                </div>
+              )}
               {req.remark && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, marginBottom: 4 }}>หมายเหตุ</div>
@@ -237,19 +238,8 @@ export function RequestDetailPage() {
             <Card title="Payment Schedule">
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 13, color: '#505060', marginBottom: 4 }}>
-                  <strong>เหตุผล:</strong> {req.paymentTermReason}
-                </div>
-                <div style={{ fontSize: 13, color: '#505060', marginBottom: 4 }}>
                   <strong>Credit Term:</strong> {formatCreditTerm(creditTermDays)}
                 </div>
-                <div style={{ fontSize: 13, color: '#505060', marginBottom: 4 }}>
-                  <strong>เงื่อนไขการชำระ:</strong> {paymentCondition ? PAYMENT_CONDITION_LABELS[paymentCondition as PaymentCondition] : '—'}
-                </div>
-                {req.creditTermReason && (
-                  <div style={{ fontSize: 13, color: '#505060' }}>
-                    <strong>Credit Term Reason:</strong> {req.creditTermReason}
-                  </div>
-                )}
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>

@@ -31,7 +31,7 @@ function _toListItem(req: Request): RequestListItem {
     id: req.id,
     requestNo: req.requestNo,
     proposalNo: req.proposalNo,
-    projectName: req.projectName,
+    projectName: req.projectName || req.proposalNo,
     customerName,
     customerType: req.customerInfo.type,
     saleType: req.saleType,

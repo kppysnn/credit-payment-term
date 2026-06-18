@@ -64,7 +64,7 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
     salesName: user.name,
     salesId: user.id,
     proposalNo: String(data.proposalNo || ''),
-    projectName: String(data.projectName || ''),
+    projectName: String(data.projectName || data.proposalNo || ''),
     saleType,
     customerInfo,
     quotationItems: items,

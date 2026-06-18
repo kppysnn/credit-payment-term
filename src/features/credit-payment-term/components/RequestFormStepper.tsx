@@ -72,7 +72,6 @@ export function RequestFormStepper({
   const [resellerResults, setResellerResults] = useState<Customer[]>([])
 
   // Submit state
-  const [confirmed, setConfirmed] = useState(false)
   const [draftLoading, setDraftLoading] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -196,6 +195,11 @@ export function RequestFormStepper({
 
   function changeInstallmentCount(next: number) {
     const clamped = Math.max(1, Math.min(4, next))
+    const preset = INSTALLMENT_PRESETS[clamped]?.[0]?.percents ?? []
+    if (preset.length) {
+      applyInstallmentPreset(preset)
+      return
+    }
     setCustomPercentRows(prev => Object.fromEntries(Object.entries(prev).filter(([idx]) => Number(idx) < clamped)))
     update({ installmentCount: clamped })
   }
@@ -229,7 +233,6 @@ export function RequestFormStepper({
 
   async function handleSubmit() {
     if (!validate()) { setSubmitError('กรุณากรอกข้อมูลให้ครบถ้วน'); return }
-    if (!confirmed) { setSubmitError('กรุณายืนยันข้อมูลก่อนส่ง'); return }
     setSubmitLoading(true); setSubmitError('')
     try {
       if (isResubmit && onResubmit) await onResubmit(formData)
@@ -743,13 +746,6 @@ export function RequestFormStepper({
 
       {/* ─── ยืนยันและส่ง ─── */}
       <div style={{ background: '#fff', border: '1px solid #D0D6DF', borderRadius: 14, padding: '20px 24px' }}>
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', marginBottom: 16 }}>
-          <input type="checkbox" checked={confirmed} onChange={e => { setConfirmed(e.target.checked); setSubmitError('') }}
-            style={{ marginTop: 2, accentColor: '#004081', width: 16, height: 16 }} />
-          <span style={{ fontSize: 14, lineHeight: 1.5, color: '#001122' }}>
-            ข้าพเจ้ายืนยันว่าข้อมูลที่กรอกถูกต้อง และพร้อมสำหรับการพิจารณาอนุมัติ
-          </span>
-        </label>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
@@ -772,7 +768,7 @@ function getDefaults(user: CurrentUser): Record<string, unknown> {
     salesId: user.id,
     proposalNo: '',
     projectName: '',
-    saleType: '',
+    saleType: 'hardware',
     customerType: '',
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
@@ -787,7 +783,7 @@ function getDefaults(user: CurrentUser): Record<string, unknown> {
     creditTermDays: 0,
     paymentCondition: 'on_delivery',
     installmentCount: 1,
-    installments: [{ installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' }],
+    installments: [{ installmentPercent: 100, creditTermDays: 0, paymentCondition: 'on_delivery' }],
   }
 }
 

@@ -5,6 +5,7 @@
  * html2pdf.js can be wired in here if added to dependencies.
  */
 import type { Request } from '../types/request'
+import { SALE_TYPE_LABELS } from '../types/request'
 
 export function printRequest(requestId: string): void {
   window.open(`/print/${requestId}`, '_blank')
@@ -33,7 +34,7 @@ function buildPrintHTML(req: Request): string {
   const hardwareSelling = hardwareItems.reduce((sum, item) => sum + item.sellingPrice, 0)
   const serviceSelling = serviceItems.reduce((sum, item) => sum + item.sellingPrice, 0)
   const creditTermDays = req.installments[0]?.creditTermDays ?? req.financial.maxCreditTerm
-  const paymentCondition = req.installments[0]?.paymentCondition ?? '—'
+  const projectName = req.projectName || req.proposalNo
 
   return `<!DOCTYPE html><html><head><title>${req.requestNo}</title>
 <style>
@@ -70,11 +71,10 @@ function buildPrintHTML(req: Request): string {
     <div class="section-title">1. ข้อมูลคำขอ</div>
     <div class="grid2">
       <div><div class="field-label">Proposal No.</div><div class="field-val mono">${req.proposalNo}</div></div>
-      <div><div class="field-label">Quotation No.</div><div class="field-val mono">${req.quotationNo || '—'}</div></div>
-      <div><div class="field-label">ชื่อโปรเจกต์</div><div class="field-val">${req.projectName}</div></div>
-      <div><div class="field-label">ประเภทการขาย</div><div class="field-val">${req.saleType}</div></div>
+      <div><div class="field-label">ชื่อโปรเจกต์</div><div class="field-val">${projectName}</div></div>
+      <div><div class="field-label">ประเภทการขาย</div><div class="field-val">${SALE_TYPE_LABELS[req.saleType]}</div></div>
       <div style="grid-column:span 2"><div class="field-label">Sales</div><div class="field-val">${req.salesName} (${req.salesEmail})</div></div>
-      <div style="grid-column:span 2"><div class="field-label">วัตถุประสงค์</div><div class="field-val">${req.requestPurpose}</div></div>
+      ${req.requestPurpose ? `<div style="grid-column:span 2"><div class="field-label">วัตถุประสงค์</div><div class="field-val">${req.requestPurpose}</div></div>` : ''}
     </div>
   </div>
 
@@ -99,7 +99,6 @@ function buildPrintHTML(req: Request): string {
     <div class="section-title">4. ตาราง Payment Schedule</div>
     <div class="grid2" style="margin-bottom:8px">
       <div><div class="field-label">Credit Term</div><div class="field-val">Net ${creditTermDays}</div></div>
-      <div><div class="field-label">เงื่อนไขการชำระ</div><div class="field-val">${paymentCondition}</div></div>
     </div>
     <table>
       <tr><th>งวด</th><th>%</th><th>จำนวนเงิน</th></tr>
