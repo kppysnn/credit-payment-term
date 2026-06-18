@@ -319,29 +319,13 @@ export function RequestFormStepper({
             </FormGroup>
           </div>
 
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#586782', marginBottom: 8 }}>ประเภทการขาย <span style={{ color: '#F3554F' }}>*</span></div>
-            <div style={{ display: 'inline-grid', gridTemplateColumns: '1fr 1fr', gap: 2, padding: 3, border: '1px solid #D0D6DF', borderRadius: 10, background: '#F2F6F8' }}>
-              {SALE_TYPES.map(t => (
-                <label key={t.value} style={{
-                  minWidth: 128,
-                  padding: '8px 14px',
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  background: saleType === t.value ? '#004081' : 'transparent',
-                  color: saleType === t.value ? '#fff' : '#586782',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  textAlign: 'center',
-                  transition: 'all 0.15s',
-                }}>
-                  <input type="radio" name="saleType" value={t.value} checked={saleType === t.value}
-                    onChange={() => update({ saleType: t.value })} style={{ display: 'none' }} />
-                  {t.label}
-                </label>
-              ))}
-            </div>
-            {errors.saleType && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 5 }}>{errors.saleType}</div>}
+          <div style={{ maxWidth: 280 }}>
+            <FormGroup label="ประเภทการขาย" required error={errors.saleType}>
+              <Select value={saleType} onChange={e => update({ saleType: e.target.value })} error={errors.saleType}>
+                <option value="">— เลือกประเภท —</option>
+                {SALE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </Select>
+            </FormGroup>
           </div>
 
         </div>
