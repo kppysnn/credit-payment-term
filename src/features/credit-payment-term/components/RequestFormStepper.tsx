@@ -116,7 +116,6 @@ export function RequestFormStepper({
 
   const totalPct = calcTotalInstallmentPercent(installments.slice(0, installmentCount))
   const pctOk = Math.abs(totalPct - 100) < 0.01
-  const pctDelta = totalPct - 100
   const creditTermDays = numVal(fd.creditTermDays)
   const creditTermIsCustom = customCreditTerm || (fd.creditTermDays !== '' && !CREDIT_TERM_PRESETS.includes(creditTermDays))
   const creditTermPresetValue = fd.creditTermDays === '' ? '' : (CREDIT_TERM_PRESETS.includes(creditTermDays) ? String(creditTermDays) : 'custom')
@@ -547,7 +546,7 @@ export function RequestFormStepper({
 
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#001122', marginBottom: 5 }}>จำนวนงวด</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '38px minmax(0, 1fr) 38px', alignItems: 'center', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', background: '#fff', height: 38, width: '100%', boxSizing: 'border-box' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '38px 92px 38px', alignItems: 'center', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', background: '#fff', height: 38, width: 168, boxSizing: 'border-box' }}>
                 <button
                   type="button"
                   disabled={installmentCount <= 1}
@@ -659,7 +658,7 @@ export function RequestFormStepper({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>รวมสัดส่วนงวด</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: pctOk ? '#66C5C5' : '#F3554F' }}>
-                {totalPct.toFixed(0)}%{pctOk ? ' ครบ 100%' : pctDelta < 0 ? ` ขาด ${Math.abs(pctDelta).toFixed(0)}%` : ` เกิน ${pctDelta.toFixed(0)}%`}
+                {totalPct.toFixed(0)}%
               </span>
             </div>
             <div style={{ height: 8, background: '#E2E8F0', borderRadius: 999, overflow: 'hidden' }}>
