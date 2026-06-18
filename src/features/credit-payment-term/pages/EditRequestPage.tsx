@@ -14,7 +14,6 @@ function numVal(v: unknown): number { return Number(v) || 0 }
 
 function buildPatch(data: Record<string, unknown>, _user: { id: string; name: string; email: string }): Partial<Request> {
   const saleType = String(data.saleType || '') as SaleType
-  const showSw = saleType === 'hardware_software_installation'
 
   const customerType = String(data.customerType || '') as 'new' | 'existing' | 'reseller'
   let customerInfo: RequestCustomerInfo
@@ -26,12 +25,10 @@ function buildPatch(data: Record<string, unknown>, _user: { id: string; name: st
   const hwSp = numVal(data.hardwareSellingPrice); const hwCost = numVal(data.hardwareCost); const hwGp = calcGrossProfit(hwSp, hwCost)
   if (hwSp > 0) items.push({ itemId: generateId('item'), type: 'hardware', name: 'Hardware', sellingPrice: hwSp, cost: hwCost, grossProfit: hwGp, marginPercent: calcMarginPercent(hwSp, hwGp) })
 
-  if (showSw) {
-    const swSp = numVal(data.softwareSellingPrice); const swCost = numVal(data.softwareCost); const swGp = calcGrossProfit(swSp, swCost)
-    if (swSp > 0) items.push({ itemId: generateId('item'), type: 'software', name: 'Software', sellingPrice: swSp, cost: swCost, grossProfit: swGp, marginPercent: calcMarginPercent(swSp, swGp) })
-    const instSp = numVal(data.installationSellingPrice); const instCost = numVal(data.installationCost); const instGp = calcGrossProfit(instSp, instCost)
-    if (instSp > 0) items.push({ itemId: generateId('item'), type: 'installation', name: 'Installation', sellingPrice: instSp, cost: instCost, grossProfit: instGp, marginPercent: calcMarginPercent(instSp, instGp) })
-  }
+  const swSp = numVal(data.softwareSellingPrice); const swCost = numVal(data.softwareCost); const swGp = calcGrossProfit(swSp, swCost)
+  if (swSp > 0) items.push({ itemId: generateId('item'), type: 'software', name: 'Software', sellingPrice: swSp, cost: swCost, grossProfit: swGp, marginPercent: calcMarginPercent(swSp, swGp) })
+  const instSp = numVal(data.installationSellingPrice); const instCost = numVal(data.installationCost); const instGp = calcGrossProfit(instSp, instCost)
+  if (instSp > 0) items.push({ itemId: generateId('item'), type: 'installation', name: 'Installation', sellingPrice: instSp, cost: instCost, grossProfit: instGp, marginPercent: calcMarginPercent(instSp, instGp) })
 
   const totalSelling = items.reduce((s, i) => s + i.sellingPrice, 0)
   const totalCost = items.reduce((s, i) => s + i.cost, 0)
@@ -39,10 +36,12 @@ function buildPatch(data: Record<string, unknown>, _user: { id: string; name: st
   const marginPercent = calcMarginPercent(totalSelling, grossProfit)
   const installmentCount = numVal(data.installmentCount) || 1
   const rawInst = (data.installments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
+  const creditTermDays = numVal(data.creditTermDays)
+  const paymentCondition = String(data.paymentCondition || 'on_delivery') as PaymentCondition
   const installments: PaymentInstallment[] = rawInst.slice(0, installmentCount).map((row, i) => ({
     installmentNo: i + 1, installmentPercent: numVal(row.installmentPercent),
     installmentAmount: calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)),
-    creditTermDays: numVal(row.creditTermDays), paymentCondition: row.paymentCondition as PaymentCondition,
+    creditTermDays, paymentCondition,
   }))
   const maxCreditTerm = installments.reduce((m, i) => Math.max(m, i.creditTermDays), 0)
 

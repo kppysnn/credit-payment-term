@@ -38,6 +38,7 @@ export interface ExistingCustomerInfo {
 export interface ResellerInfo {
   resellerId: string
   resellerCompanyName: string
+  defaultCreditTerm?: number
   endCustomerCompanyName: string
   endCustomerContactPerson?: string
   endCustomerPhone?: string

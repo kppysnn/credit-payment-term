@@ -25,6 +25,16 @@ export function exportPDF(req: Request): void {
 }
 
 function buildPrintHTML(req: Request): string {
+  const separateQuotation = req.saleType === 'hardware_software_installation'
+  const hardwareQuotationNo = `${req.proposalNo}-1`
+  const serviceQuotationNo = `${req.proposalNo}-${separateQuotation ? '2' : '1'}`
+  const hardwareItems = req.quotationItems.filter(item => item.type === 'hardware')
+  const serviceItems = req.quotationItems.filter(item => item.type === 'software' || item.type === 'installation')
+  const hardwareSelling = hardwareItems.reduce((sum, item) => sum + item.sellingPrice, 0)
+  const serviceSelling = serviceItems.reduce((sum, item) => sum + item.sellingPrice, 0)
+  const creditTermDays = req.installments[0]?.creditTermDays ?? req.financial.maxCreditTerm
+  const paymentCondition = req.installments[0]?.paymentCondition ?? '—'
+
   return `<!DOCTYPE html><html><head><title>${req.requestNo}</title>
 <style>
   body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1A202C; margin: 0; padding: 0; }
@@ -36,6 +46,10 @@ function buildPrintHTML(req: Request): string {
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
   .field-label { font-size: 10px; color: #4A5568; font-weight: 600; }
   .field-val { font-size: 12px; color: #1A202C; margin-bottom: 6px; }
+  .quote-group { border:1px solid #CBD5E0; border-radius:6px; overflow:hidden; margin:12px 0; }
+  .quote-head { display:flex; justify-content:space-between; align-items:baseline; background:#1E3A5F; padding:7px 10px; font-weight:700; color:#fff; }
+  .quote-no { font-size:13px; }
+  .quote-label { font-size:10px; color:rgba(255,255,255,0.78); text-transform:uppercase; letter-spacing:.06em; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
   th { background: #EBF0F6; font-weight: 600; text-align: left; padding: 5px 8px; border: 1px solid #CBD5E0; }
   td { padding: 5px 8px; border: 1px solid #CBD5E0; }
@@ -71,37 +85,28 @@ function buildPrintHTML(req: Request): string {
 
   <div class="section">
     <div class="section-title">3. สรุปใบเสนอราคา</div>
+    ${buildQuotationGroup(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareSelling)}
+    ${buildQuotationGroup(serviceQuotationNo, 'Software & Installation', serviceItems, serviceSelling)}
     <table>
-      <tr><th>ประเภท</th><th>สินค้า/บริการ</th><th>ราคาขาย</th><th>ต้นทุน</th><th>Gross Profit</th><th>Margin %</th></tr>
-      ${req.quotationItems.map(i => `<tr>
-        <td>${i.type}</td>
-        <td>${i.name}</td>
-        <td class="mono">${i.sellingPrice.toLocaleString()}</td>
-        <td class="mono">${i.cost.toLocaleString()}</td>
-        <td class="mono">${i.grossProfit.toLocaleString()}</td>
-        <td>${i.marginPercent.toFixed(2)}%</td>
-      </tr>`).join('')}
       <tr style="font-weight:700;background:#EBF0F6">
-        <td colspan="2">รวม</td>
+        <td>สรุปรวม</td>
         <td class="mono">${req.financial.totalSelling.toLocaleString()}</td>
-        <td class="mono">${req.financial.totalCost.toLocaleString()}</td>
-        <td class="mono">${req.financial.grossProfit.toLocaleString()}</td>
-        <td>${req.financial.marginPercent.toFixed(2)}%</td>
       </tr>
     </table>
   </div>
 
   <div class="section">
     <div class="section-title">4. ตาราง Payment Schedule</div>
+    <div class="grid2" style="margin-bottom:8px">
+      <div><div class="field-label">Credit Term</div><div class="field-val">${creditTermDays === 0 ? 'COD' : `Net ${creditTermDays}`}</div></div>
+      <div><div class="field-label">เงื่อนไขการชำระ</div><div class="field-val">${paymentCondition}</div></div>
+    </div>
     <table>
-      <tr><th>งวด</th><th>%</th><th>จำนวนเงิน</th><th>Credit Term</th><th>เงื่อนไข</th><th>เหตุผล</th></tr>
+      <tr><th>งวด</th><th>%</th><th>จำนวนเงิน</th></tr>
       ${req.installments.map(i => `<tr>
         <td>${i.installmentNo}</td>
         <td>${i.installmentPercent}%</td>
         <td class="mono">${i.installmentAmount.toLocaleString()}</td>
-        <td>${i.creditTermDays === 0 ? 'COD' : `Net ${i.creditTermDays}`}</td>
-        <td>${i.paymentCondition}</td>
-        <td>${i.creditTermReason}</td>
       </tr>`).join('')}
     </table>
   </div>
@@ -116,6 +121,22 @@ function buildPrintHTML(req: Request): string {
     </div>
   </div>` : ''}
 </div></body></html>`
+}
+
+function buildQuotationGroup(no: string, title: string, items: Request['quotationItems'], total: number): string {
+  return `<div class="quote-group">
+    <div class="quote-head"><span class="quote-no">${no}</span><span class="quote-label">${title}</span></div>
+    <table>
+      ${items.map(i => `<tr>
+        <td>${i.name}</td>
+        <td class="mono" style="text-align:right">${i.sellingPrice.toLocaleString()}</td>
+      </tr>`).join('')}
+      <tr style="font-weight:700">
+        <td>รวม</td>
+        <td class="mono" style="text-align:right">${total.toLocaleString()}</td>
+      </tr>
+    </table>
+  </div>`
 }
 
 function buildCustomerSection(req: Request): string {

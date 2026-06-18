@@ -21,8 +21,8 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
 export type SaleType = 'hardware' | 'hardware_software_installation'
 
 export const SALE_TYPE_LABELS: Record<SaleType, string> = {
-  hardware: 'Hardware',
-  hardware_software_installation: 'Hardware + Software & Installation',
+  hardware: 'Quotation เดียว',
+  hardware_software_installation: 'แยก Quotation',
 }
 
 export type PaymentCondition =

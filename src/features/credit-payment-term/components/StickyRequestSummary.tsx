@@ -1,4 +1,4 @@
-import { formatCurrency, calcMarginPercent, calcTotalInstallmentPercent } from '../utils/calculations'
+import { formatCurrency, calcTotalInstallmentPercent } from '../utils/calculations'
 import { formatCreditTerm } from '../utils/formatters'
 import { SALE_TYPE_LABELS, type SaleType } from '../types/request'
 import { CUSTOMER_TYPE_LABELS, type CustomerType } from '../types/customer'
@@ -13,17 +13,12 @@ function numVal(v: unknown): number { return Number(v) || 0 }
 const STEP_LABELS = ['ข้อมูลคำขอ & ลูกค้า', 'ใบเสนอราคา & งวด', 'สรุปและส่ง']
 
 export function StickyRequestSummary({ data, currentStep }: Props) {
-  const hw = (data.hardwareItems as Array<{ sellingPrice: number | ''; cost: number | '' }>) ?? []
+  const hw = (data.hardwareItems as Array<{ sellingPrice: number | '' }>) ?? []
   const hwSelling = hw.reduce((s, i) => s + numVal(i.sellingPrice), 0)
-  const hwCost    = hw.reduce((s, i) => s + numVal(i.cost), 0)
+  const legacyHwSelling = numVal(data.hardwareSellingPrice)
   const swSelling = numVal(data.softwareSellingPrice)
-  const swCost    = numVal(data.softwareCost)
   const instSelling = numVal(data.installationSellingPrice)
-  const instCost    = numVal(data.installationCost)
-  const totalSelling = hwSelling + swSelling + instSelling
-  const totalCost    = hwCost + swCost + instCost
-  const gp = totalSelling - totalCost
-  const margin = calcMarginPercent(totalSelling, gp)
+  const totalSelling = (hwSelling || legacyHwSelling) + swSelling + instSelling
 
   const installments = (data.installments as Array<{ installmentPercent: number | ''; creditTermDays: number | '' }>) ?? []
   const installmentCount = numVal(data.installmentCount) || 1
@@ -46,9 +41,6 @@ export function StickyRequestSummary({ data, currentStep }: Props) {
     { label: 'Sale Type', value: saleTypeLabel, show: true },
     { label: 'ลูกค้า', value: `${customerTypeLabel}${customerName !== '—' ? ` — ${customerName}` : ''}`, show: customerType !== '' },
     { label: 'ราคาขาย', value: totalSelling > 0 ? formatCurrency(totalSelling) : '—', show: currentStep >= 1, bold: true },
-    { label: 'ต้นทุน', value: totalCost > 0 ? formatCurrency(totalCost) : '—', show: currentStep >= 1 },
-    { label: 'GP', value: totalSelling > 0 ? formatCurrency(gp) : '—', show: currentStep >= 1, danger: gp < 0 },
-    { label: 'Margin', value: totalSelling > 0 ? `${margin.toFixed(1)}%` : '—', show: currentStep >= 1, danger: margin < 0 },
     { label: 'งวด', value: currentStep >= 1 ? `${installmentCount} งวด` : '—', show: currentStep >= 1 },
     { label: 'รวม %', value: currentStep >= 1 && totalPct > 0 ? `${totalPct.toFixed(0)}%` : '—', show: currentStep >= 1, danger: currentStep >= 1 && totalPct > 0 && Math.abs(totalPct - 100) > 0.01 },
     { label: 'Max Credit', value: currentStep >= 1 && installmentCount > 0 ? formatCreditTerm(maxCreditTerm) : '—', show: currentStep >= 1 },
