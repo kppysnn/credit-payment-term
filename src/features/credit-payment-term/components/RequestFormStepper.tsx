@@ -512,7 +512,7 @@ export function RequestFormStepper({
       {/* ─── Section 4: งวดชำระ ─── */}
       <Card title="งวดชำระและ Credit Term">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 18, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
             <FormGroup label="Credit Term" required error={errors.creditTermDays} style={{ width: 168 }}>
               <div
                 style={{ position: 'relative', width: 168 }}
