@@ -118,30 +118,6 @@ export function RequestFormStepper({
   const pctOk = Math.abs(totalPct - 100) < 0.01
   const creditTermDays = numVal(fd.creditTermDays)
   const creditTermIsCustom = customCreditTerm || (fd.creditTermDays !== '' && !CREDIT_TERM_PRESETS.includes(creditTermDays))
-  const requestMissing: string[] = []
-  if (!proposalNo.trim()) requestMissing.push('Proposal No.')
-  if (!saleType) requestMissing.push('ประเภทการขาย')
-  if (!customerType) requestMissing.push('ประเภทลูกค้า')
-  if (customerType === 'new' && !nc?.companyName?.trim()) requestMissing.push('ชื่อลูกค้า')
-  if (customerType === 'existing' && !String(ec.companyName || '').trim()) requestMissing.push('ชื่อลูกค้า')
-  if (customerType === 'reseller') {
-    if (!rs?.resellerCompanyName?.trim()) requestMissing.push('Reseller')
-    if (!rs?.endCustomerCompanyName?.trim()) requestMissing.push('ลูกค้าปลายทาง')
-  }
-  const quoteMissing = numVal(fd.hardwareSellingPrice) > 0 ? [] : ['ราคาขาย Hardware']
-  const paymentMissing: string[] = []
-  if (numVal(fd.creditTermDays) < 0 || fd.creditTermDays === '') paymentMissing.push('Credit Term')
-  if (installments.slice(0, installmentCount).some(row => !row.installmentPercent)) paymentMissing.push('สัดส่วนงวด')
-  if (!pctOk) paymentMissing.push('รวมสัดส่วน 100%')
-  const sectionStatuses = [
-    { no: 1, title: 'ข้อมูลคำขอและลูกค้า', missing: requestMissing },
-    { no: 2, title: 'ใบเสนอราคา', missing: quoteMissing },
-    { no: 3, title: 'งวดชำระและ Credit Term', missing: paymentMissing },
-    { no: 4, title: 'สรุปรวมทั้งหมด', missing: totalSelling > 0 ? [] : ['ยอดรวม'] },
-  ]
-  const completedSections = sectionStatuses.filter(section => section.missing.length === 0).length
-  const readyToSubmit = completedSections === sectionStatuses.length
-  const readinessCompleted = readyToSubmit ? 5 : completedSections
 
   function update(patch: Record<string, unknown>) {
     setFormData(prev => ({ ...prev, ...patch }))
@@ -771,10 +747,7 @@ export function RequestFormStepper({
       {/* ─── Section 5: ตรวจความพร้อมและส่ง ─── */}
       <div style={{ background: '#fff', border: '1px solid #D0D6DF', borderRadius: 14, padding: '20px 24px' }}>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-          <div style={{ fontSize: 11, color: readyToSubmit ? '#008A7A' : '#929EB4', lineHeight: 1.4, minWidth: 0 }}>
-            <span style={{ fontWeight: 800, fontFamily: 'JetBrains Mono, monospace' }}>5. {readinessCompleted}/5</span>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
           <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
             บันทึกแบบร่าง
