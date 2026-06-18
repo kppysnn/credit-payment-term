@@ -511,8 +511,8 @@ export function RequestFormStepper({
 
       {/* ─── Section 4: งวดชำระ ─── */}
       <Card title="งวดชำระและ Credit Term">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <FormGroup label="Credit Term" required error={errors.creditTermDays} style={{ width: 168 }}>
               <div
                 style={{ position: 'relative', width: 168 }}
@@ -606,7 +606,7 @@ export function RequestFormStepper({
             </div>
           </div>
 
-          <div>
+          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
             <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>สัดส่วนงวดที่แนะนำ</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {(INSTALLMENT_PRESETS[installmentCount] ?? []).slice(0, 4).map(preset => {
@@ -634,63 +634,66 @@ export function RequestFormStepper({
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${installmentCount}, 1fr)`, gap: 8 }}>
-            {installments.slice(0, installmentCount).map((row, i) => {
-              const pct = numVal(row.installmentPercent)
-              const pctIsCustom = customPercentRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
-              const pctSelectValue = row.installmentPercent === '' ? (customPercentRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
-              const suggestedPct = Math.max(0, Math.min(100, 100 - (totalPct - pct)))
-              const totalAmt = totalSelling > 0 && pct > 0 ? calcInstallmentAmount(totalSelling, pct) : 0
-              return (
-                <div key={i} style={{ background: '#FAFBFC', border: `1px solid ${errors[`inst${i}.pct`] ? '#F3554F' : '#D0D6DF'}`, borderRadius: 10, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                    <span style={{ fontSize: 11, color: '#929EB4', fontWeight: 600 }}>งวดที่ {i + 1}</span>
-                  </div>
-                  <FormGroup error={errors[`inst${i}.pct`]}>
-                    {pctIsCustom ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                        <Input type="number" min="1" max="100" value={row.installmentPercent}
-                          onChange={e => updateInst(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
-                          placeholder={`แนะนำ ${suggestedPct}%`}
-                          style={{ textAlign: 'right', flex: 1 }} error={errors[`inst${i}.pct`]} />
-                        <span style={{ color: '#586782', fontSize: 12, fontWeight: 600 }}>%</span>
-                      </div>
-                    ) : (
-                      <>
-                        <Select
-                          value={pctSelectValue}
-                          onChange={e => {
-                            const isCustom = e.target.value === 'custom'
-                            setCustomPercentRows(prev => ({ ...prev, [i]: isCustom }))
-                            updateInst(i, 'installmentPercent', isCustom || e.target.value === '' ? '' : Number(e.target.value))
-                          }}
-                          error={errors[`inst${i}.pct`]}
-                          style={selectStyle}
-                        >
-                          <option value="">— เลือก % —</option>
-                          {INSTALLMENT_PERCENT_PRESETS.map(percent => <option key={percent} value={percent}>{percent}%</option>)}
-                          <option value="custom">ระบุเอง</option>
-                        </Select>
-                        {row.installmentPercent === '' && suggestedPct > 0 && (
-                          <div style={{ marginTop: 4, fontSize: 10, color: '#929EB4', fontWeight: 600 }}>
-                            แนะนำ {suggestedPct}%
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </FormGroup>
-                  {totalAmt > 0 && (
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', paddingTop: 8, borderTop: '1px solid #E2E8F0', marginTop: 'auto' }}>
-                      {formatCurrency(totalAmt)}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>รายละเอียดงวด</div>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${installmentCount}, minmax(0, 1fr))`, gap: 8 }}>
+              {installments.slice(0, installmentCount).map((row, i) => {
+                const pct = numVal(row.installmentPercent)
+                const pctIsCustom = customPercentRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
+                const pctSelectValue = row.installmentPercent === '' ? (customPercentRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
+                const suggestedPct = Math.max(0, Math.min(100, 100 - (totalPct - pct)))
+                const totalAmt = totalSelling > 0 && pct > 0 ? calcInstallmentAmount(totalSelling, pct) : 0
+                return (
+                  <div key={i} style={{ background: '#FAFBFC', border: `1px solid ${errors[`inst${i}.pct`] ? '#F3554F' : '#D0D6DF'}`, borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+                      <span style={{ fontSize: 11, color: '#929EB4', fontWeight: 600 }}>งวดที่ {i + 1}</span>
                     </div>
-                  )}
-                </div>
-              )
-            })}
+                    <FormGroup error={errors[`inst${i}.pct`]}>
+                      {pctIsCustom ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                          <Input type="number" min="1" max="100" value={row.installmentPercent}
+                            onChange={e => updateInst(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
+                            placeholder={`แนะนำ ${suggestedPct}%`}
+                            style={{ textAlign: 'right', flex: 1 }} error={errors[`inst${i}.pct`]} />
+                          <span style={{ color: '#586782', fontSize: 12, fontWeight: 600 }}>%</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Select
+                            value={pctSelectValue}
+                            onChange={e => {
+                              const isCustom = e.target.value === 'custom'
+                              setCustomPercentRows(prev => ({ ...prev, [i]: isCustom }))
+                              updateInst(i, 'installmentPercent', isCustom || e.target.value === '' ? '' : Number(e.target.value))
+                            }}
+                            error={errors[`inst${i}.pct`]}
+                            style={selectStyle}
+                          >
+                            <option value="">— เลือก % —</option>
+                            {INSTALLMENT_PERCENT_PRESETS.map(percent => <option key={percent} value={percent}>{percent}%</option>)}
+                            <option value="custom">ระบุเอง</option>
+                          </Select>
+                          {row.installmentPercent === '' && suggestedPct > 0 && (
+                            <div style={{ marginTop: 4, fontSize: 10, color: '#929EB4', fontWeight: 600 }}>
+                              แนะนำ {suggestedPct}%
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </FormGroup>
+                    {totalAmt > 0 && (
+                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', paddingTop: 8, borderTop: '1px solid #E2E8F0', marginTop: 'auto' }}>
+                        {formatCurrency(totalAmt)}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
-          <div>
+          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>รวมสัดส่วนงวด</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: pctOk ? '#66C5C5' : '#F3554F' }}>
