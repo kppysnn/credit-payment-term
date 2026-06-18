@@ -130,25 +130,7 @@ export function RequestDetailPage() {
           </Alert>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'flex-start' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Financial summary */}
-            <Card title="Financial Summary">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, textAlign: 'center' }}>
-                {[
-                  { label: 'Total Selling', value: formatCurrency(req.financial.totalSelling), big: true },
-                  { label: 'Total Cost', value: formatCurrency(req.financial.totalCost) },
-                  { label: 'Gross Profit', value: formatCurrency(req.financial.grossProfit), danger: req.financial.grossProfit < 0 },
-                  { label: 'Margin %', value: `${req.financial.marginPercent.toFixed(2)}%`, danger: req.financial.marginPercent < 0 },
-                ].map(f => (
-                  <div key={f.label}>
-                    <div style={{ fontSize: 11, color: '#586782', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</div>
-                    <div style={{ fontSize: f.big ? 20 : 16, fontWeight: 700, color: f.danger ? '#F3554F' : '#001122', fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Request Info */}
             <Card title="ข้อมูลคำขอ">
               <FieldGrid cols={3}>
@@ -212,7 +194,7 @@ export function RequestDetailPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
-                    {['ประเภท', 'ชื่อสินค้า/บริการ', 'รายละเอียด', 'ราคาขาย', 'ต้นทุน', 'Gross Profit', 'Margin%'].map(h => (
+                    {['ประเภท', 'ชื่อสินค้า/บริการ', 'รายละเอียด', 'ราคาขาย', 'ต้นทุน'].map(h => (
                       <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em', whiteSpace: 'nowrap' as const }}>{h}</th>
                     ))}
                   </tr>
@@ -227,11 +209,16 @@ export function RequestDetailPage() {
                       <td style={{ padding: '10px 12px', color: '#586782', fontSize: 12 }}>{item.description || '—'}</td>
                       <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(item.sellingPrice)}</td>
                       <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(item.cost)}</td>
-                      <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: item.grossProfit < 0 ? '#F3554F' : '#001122' }}>{formatCurrency(item.grossProfit)}</td>
-                      <td style={{ padding: '10px 12px', fontSize: 12 }}>{item.marginPercent.toFixed(2)}%</td>
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr style={{ borderTop: '2px solid #D0D6DF', background: '#F2F6F8' }}>
+                    <td colSpan={3} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 12, color: '#586782', textTransform: 'uppercase' }}>รวม</td>
+                    <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081' }}>{formatCurrency(req.financial.totalSelling)}</td>
+                    <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#586782' }}>{formatCurrency(req.financial.totalCost)}</td>
+                  </tr>
+                </tfoot>
               </table>
             </Card>
 
@@ -250,7 +237,7 @@ export function RequestDetailPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
-                    {['งวด', '%', 'จำนวนเงิน', 'Credit Term', 'เงื่อนไข', 'เหตุผล', 'หมายเหตุ'].map(h => (
+                    {['งวด', '%', 'จำนวนเงิน', 'Credit Term', 'เงื่อนไข', 'หมายเหตุ'].map(h => (
                       <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em', whiteSpace: 'nowrap' as const }}>{h}</th>
                     ))}
                   </tr>
@@ -263,7 +250,6 @@ export function RequestDetailPage() {
                       <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(inst.installmentAmount)}</td>
                       <td style={{ padding: '10px 12px' }}>{formatCreditTerm(inst.creditTermDays)}</td>
                       <td style={{ padding: '10px 12px', fontSize: 12 }}>{PAYMENT_CONDITION_LABELS[inst.paymentCondition as PaymentCondition]}</td>
-                      <td style={{ padding: '10px 12px', fontSize: 12, color: '#505060' }}>{inst.creditTermReason}</td>
                       <td style={{ padding: '10px 12px', fontSize: 12, color: '#929EB4' }}>{inst.remark || '—'}</td>
                     </tr>
                   ))}
@@ -297,15 +283,27 @@ export function RequestDetailPage() {
                 )}
               </Card>
             )}
-          </div>
 
-          {/* Right sidebar: timeline */}
-          <div>
+            {/* Status Timeline */}
             <Card title="ประวัติสถานะ">
               <StatusTimeline history={req.history} />
             </Card>
+
+            {/* Financial Summary — bottom */}
+            <Card title="Financial Summary">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, textAlign: 'center' }}>
+                {[
+                  { label: 'Total Selling', value: formatCurrency(req.financial.totalSelling), big: true },
+                  { label: 'Total Cost', value: formatCurrency(req.financial.totalCost) },
+                ].map(f => (
+                  <div key={f.label}>
+                    <div style={{ fontSize: 11, color: '#586782', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</div>
+                    <div style={{ fontSize: f.big ? 20 : 16, fontWeight: 700, color: '#001122', fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
-        </div>
       </div>
 
       <ApproveModal open={approveOpen} request={req} onClose={() => setApproveOpen(false)} onApprove={handleApprove} />

@@ -25,8 +25,8 @@ interface Props {
 }
 
 const SALE_TYPES = [
-  { value: 'hardware', label: 'Hardware Only', sub: 'Q1 เท่านั้น' },
-  { value: 'hardware_software_installation', label: 'Hardware + SW & Installation', sub: 'Q1 + Q2' },
+  { value: 'hardware', label: 'Quotation เดียว' },
+  { value: 'hardware_software_installation', label: 'แยก Quotation' },
 ]
 const CUSTOMER_TYPES: CustomerType[] = ['new', 'existing', 'reseller']
 
@@ -74,9 +74,13 @@ export function RequestFormStepper({
 
   /* Totals */
   const hwSelling   = numVal(fd.hardwareSellingPrice)
+  const hwCost      = numVal(fd.hardwareCost)
   const swSelling   = numVal(fd.softwareSellingPrice)
+  const swCost      = numVal(fd.softwareCost)
   const instSelling = numVal(fd.installationSellingPrice)
+  const instCost    = numVal(fd.installationCost)
   const totalSelling = hwSelling + (showSw ? swSelling + instSelling : 0)
+  const totalCost    = hwCost    + (showSw ? swCost    + instCost    : 0)
 
   const totalPct = calcTotalInstallmentPercent(installments.slice(0, installmentCount))
   const maxCreditTerm = installments.slice(0, installmentCount).reduce((m, i) => Math.max(m, numVal(i.creditTermDays)), 0)
@@ -89,14 +93,9 @@ export function RequestFormStepper({
   /* ── Existing-customer combobox ── */
   async function onExistingType(q: string) {
     update({ existingCustomer: { ...ec, companyName: q }, existingCustomerId: '' })
-    if (q.length > 0) {
-      const res = await searchCustomers(q)
-      setExistingResults(res)
-      setExistingDropdownOpen(res.length > 0)
-    } else {
-      setExistingResults([])
-      setExistingDropdownOpen(false)
-    }
+    const res = await searchCustomers(q)
+    setExistingResults(res)
+    setExistingDropdownOpen(res.length > 0)
   }
   function selectExisting(c: Customer) {
     update({
@@ -110,14 +109,9 @@ export function RequestFormStepper({
   /* ── Reseller combobox ── */
   async function onResellerType(q: string) {
     update({ reseller: { ...rs, resellerCompanyName: q, resellerId: '' } })
-    if (q.length > 0) {
-      const res = await searchCustomers(q)
-      setResellerResults(res)
-      setResellerDropdownOpen(res.length > 0)
-    } else {
-      setResellerResults([])
-      setResellerDropdownOpen(false)
-    }
+    const res = await searchCustomers(q)
+    setResellerResults(res)
+    setResellerDropdownOpen(res.length > 0)
   }
   function selectReseller(c: Customer) {
     update({ reseller: { ...rs, resellerId: c.id, resellerCompanyName: c.companyName } })
@@ -255,10 +249,7 @@ export function RequestFormStepper({
                 <label key={t.value} style={{ flex: 1, ...radioCard(saleType === t.value) }}>
                   <input type="radio" name="saleType" value={t.value} checked={saleType === t.value}
                     onChange={() => update({ saleType: t.value })} style={{ accentColor: '#004081', flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 13, color: saleType === t.value ? '#004081' : '#001122' }}>{t.label}</div>
-                    <div style={{ fontSize: 11, color: '#929EB4', marginTop: 1 }}>{t.sub}</div>
-                  </div>
+                  <span style={{ fontWeight: 600, fontSize: 13, color: saleType === t.value ? '#004081' : '#001122' }}>{t.label}</span>
                 </label>
               ))}
             </div>
@@ -304,7 +295,7 @@ export function RequestFormStepper({
                   <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
                 </FormGroup>
                 <FormGroup label="ผู้ติดต่อ">
-                  <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} />
+                  <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
                 </FormGroup>
                 <FormGroup label="เบอร์โทร">
                   <Input value={nc.contactPhone ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
@@ -324,8 +315,8 @@ export function RequestFormStepper({
                       value={String(ec.companyName ?? '')}
                       onChange={e => onExistingType(e.target.value)}
                       onFocus={async () => {
-                        const q = String(ec.companyName ?? '')
-                        if (q) { const r = await searchCustomers(q); setExistingResults(r); setExistingDropdownOpen(r.length > 0) }
+                        const r = await searchCustomers(String(ec.companyName ?? ''))
+                        setExistingResults(r); setExistingDropdownOpen(r.length > 0)
                       }}
                       onBlur={() => setTimeout(() => setExistingDropdownOpen(false), 150)}
                       placeholder="พิมพ์เพื่อค้นหา หรือกรอกชื่อบริษัทโดยตรง"
@@ -366,8 +357,8 @@ export function RequestFormStepper({
                         value={rs.resellerCompanyName ?? ''}
                         onChange={e => onResellerType(e.target.value)}
                         onFocus={async () => {
-                          const q = rs.resellerCompanyName ?? ''
-                          if (q) { const r = await searchCustomers(q); setResellerResults(r); setResellerDropdownOpen(r.length > 0) }
+                          const r = await searchCustomers(rs.resellerCompanyName ?? '')
+                          setResellerResults(r); setResellerDropdownOpen(r.length > 0)
                         }}
                         onBlur={() => setTimeout(() => setResellerDropdownOpen(false), 150)}
                         placeholder="พิมพ์เพื่อค้นหา หรือกรอกชื่อ Reseller โดยตรง"
@@ -406,7 +397,7 @@ export function RequestFormStepper({
                     />
                   </FormGroup>
                   <FormGroup label="ผู้ติดต่อปลายทาง">
-                    <Input value={rs.endCustomerContactPerson ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerContactPerson: e.target.value } })} />
+                    <Input value={rs.endCustomerContactPerson ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerContactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
                   </FormGroup>
                   <FormGroup label="เบอร์โทร">
                     <Input value={rs.endCustomerPhone ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
@@ -421,29 +412,44 @@ export function RequestFormStepper({
       {/* ─── Section 3: ราคา ─── */}
       <Card title="ราคาขายและต้นทุน">
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {/* Hardware */}
-          <div style={{ marginBottom: 4 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Hardware</div>
-          </div>
+          {/* Hardware group */}
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Hardware</div>
           {priceRow('Hardware', 'hardwareSellingPrice', 'hardwareCost')}
+          {hwSelling > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '0 16px', padding: '8px 0', borderBottom: '1px solid #E2E8F0' }}>
+              <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase' }}>รวม HW</div>
+              <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 700, color: '#004081', fontFamily: 'JetBrains Mono, monospace' }}>{formatCurrency(hwSelling)}</div>
+              <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 700, color: '#586782', fontFamily: 'JetBrains Mono, monospace' }}>{hwCost > 0 ? formatCurrency(hwCost) : '—'}</div>
+            </div>
+          )}
 
-          {/* Software & Installation */}
+          {/* Software & Installation group */}
           {showSw && (
             <>
-              <div style={{ marginTop: 20, marginBottom: 4 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Software & Installation</div>
-              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 20, marginBottom: 4 }}>Software &amp; Installation</div>
               {priceRow('Software', 'softwareSellingPrice', 'softwareCost')}
               {priceRow('Installation', 'installationSellingPrice', 'installationCost')}
+              {(swSelling + instSelling) > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '0 16px', padding: '8px 0', borderBottom: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase' }}>รวม SW/Inst</div>
+                  <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 700, color: '#004081', fontFamily: 'JetBrains Mono, monospace' }}>{formatCurrency(swSelling + instSelling)}</div>
+                  <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 700, color: '#586782', fontFamily: 'JetBrains Mono, monospace' }}>{(swCost + instCost) > 0 ? formatCurrency(swCost + instCost) : '—'}</div>
+                </div>
+              )}
             </>
           )}
 
-          {/* Total */}
+          {/* Grand total */}
           {totalSelling > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 24, marginTop: 16, paddingTop: 12, borderTop: '2px solid #D0D6DF' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '0 16px', marginTop: 12, paddingTop: 12, borderTop: '2px solid #D0D6DF' }}>
+              <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase' }}>รวมทั้งหมด</div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>ราคาขายรวม</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: '#004081', fontFamily: 'JetBrains Mono, monospace' }}>{formatCurrency(totalSelling)}</div>
+                <div style={{ fontSize: 11, color: '#929EB4', marginBottom: 2 }}>ราคาขาย</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#004081', fontFamily: 'JetBrains Mono, monospace' }}>{formatCurrency(totalSelling)}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: '#929EB4', marginBottom: 2 }}>ราคาทุน</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#586782', fontFamily: 'JetBrains Mono, monospace' }}>{totalCost > 0 ? formatCurrency(totalCost) : '—'}</div>
               </div>
             </div>
           )}
@@ -472,41 +478,58 @@ export function RequestFormStepper({
             {installments.slice(0, installmentCount).map((row, i) => {
               const amount = totalSelling > 0 && numVal(row.installmentPercent) > 0
                 ? calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)) : 0
+              const pct = numVal(row.installmentPercent)
               return (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '28px 80px 1fr 1fr auto', gap: '0 10px', alignItems: 'center', padding: '10px 14px', background: '#FAFBFC', border: `1px solid ${(errors[`inst${i}.pct`] || errors[`inst${i}.cond`]) ? '#F3554F' : '#D0D6DF'}`, borderRadius: 10 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                  <FormGroup error={errors[`inst${i}.pct`]}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Input type="number" min="1" max="100" value={row.installmentPercent}
-                        onChange={e => updateInst(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
-                        style={{ textAlign: 'right', width: 56 }} error={errors[`inst${i}.pct`]} />
-                      <span style={{ color: '#586782', fontSize: 13, fontWeight: 600 }}>%</span>
-                    </div>
-                  </FormGroup>
-                  <FormGroup>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Input type="number" min="0" value={row.creditTermDays}
-                        onChange={e => updateInst(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : 0)}
-                        placeholder="0 = COD" style={{ width: 80, textAlign: 'right' }} />
-                      <span style={{ color: '#586782', fontSize: 12, whiteSpace: 'nowrap' }}>วัน</span>
-                      {numVal(row.creditTermDays) > 0 && (
-                        <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 600 }}>{formatCreditTerm(numVal(row.creditTermDays))}</span>
-                      )}
-                    </div>
-                  </FormGroup>
-                  <FormGroup error={errors[`inst${i}.cond`]}>
-                    <Select value={row.paymentCondition} onChange={e => updateInst(i, 'paymentCondition', e.target.value)} error={errors[`inst${i}.cond`]}>
-                      <option value="">— เงื่อนไข —</option>
-                      {(Object.entries(PAYMENT_CONDITION_LABELS) as [PaymentCondition, string][]).map(([k, v]) => (
-                        <option key={k} value={k}>{v}</option>
-                      ))}
-                    </Select>
-                  </FormGroup>
-                  {amount > 0 && (
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', whiteSpace: 'nowrap', paddingLeft: 4 }}>
-                      {formatCurrency(amount)}
-                    </div>
-                  )}
+                <div key={i} style={{ background: '#FAFBFC', border: `1px solid ${(errors[`inst${i}.pct`] || errors[`inst${i}.cond`]) ? '#F3554F' : '#D0D6DF'}`, borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '28px 80px 1fr 1fr auto', gap: '0 10px', alignItems: 'center', padding: '10px 14px' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+                    <FormGroup error={errors[`inst${i}.pct`]}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Input type="number" min="1" max="100" value={row.installmentPercent}
+                          onChange={e => updateInst(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
+                          style={{ textAlign: 'right', width: 56 }} error={errors[`inst${i}.pct`]} />
+                        <span style={{ color: '#586782', fontSize: 13, fontWeight: 600 }}>%</span>
+                      </div>
+                    </FormGroup>
+                    <FormGroup>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Input type="number" min="0" value={row.creditTermDays}
+                          onChange={e => updateInst(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : 0)}
+                          placeholder="0 = COD" style={{ width: 80, textAlign: 'right' }} />
+                        <span style={{ color: '#586782', fontSize: 12, whiteSpace: 'nowrap' }}>วัน</span>
+                        {numVal(row.creditTermDays) > 0 && (
+                          <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 600 }}>{formatCreditTerm(numVal(row.creditTermDays))}</span>
+                        )}
+                      </div>
+                    </FormGroup>
+                    <FormGroup error={errors[`inst${i}.cond`]}>
+                      <Select value={row.paymentCondition} onChange={e => updateInst(i, 'paymentCondition', e.target.value)} error={errors[`inst${i}.cond`]}>
+                        <option value="">— เงื่อนไข —</option>
+                        {(Object.entries(PAYMENT_CONDITION_LABELS) as [PaymentCondition, string][]).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
+                      </Select>
+                    </FormGroup>
+                    {amount > 0 && (
+                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', whiteSpace: 'nowrap', paddingLeft: 4 }}>
+                        {formatCurrency(amount)}
+                      </div>
+                    )}
+                  </div>
+                  {/* Preset % chips */}
+                  <div style={{ display: 'flex', gap: 6, padding: '6px 14px 10px', flexWrap: 'wrap' }}>
+                    {[10, 20, 25, 30, 40, 50, 60, 70, 75, 100].map(p => (
+                      <button key={p} type="button"
+                        onClick={() => updateInst(i, 'installmentPercent', p)}
+                        style={{
+                          padding: '2px 9px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.1s',
+                          border: `1px solid ${pct === p ? '#004081' : '#D0D6DF'}`,
+                          background: pct === p ? '#004081' : '#fff',
+                          color: pct === p ? '#fff' : '#586782',
+                        }}
+                      >{p}%</button>
+                    ))}
+                  </div>
                 </div>
               )
             })}
