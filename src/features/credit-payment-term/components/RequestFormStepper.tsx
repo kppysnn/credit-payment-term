@@ -364,8 +364,8 @@ export function RequestFormStepper({
 
         {/* Credit Term + Count */}
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <FormGroup label="Credit Term" required error={errors[ctErrKey]} style={{ width: 168 }}>
-            <div style={{ position: 'relative', width: 168 }}
+          <FormGroup label="Credit Term" required error={errors[ctErrKey]} style={{ width: 200 }}>
+            <div style={{ position: 'relative', width: 200 }}
               onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setCtDropOpen(false) }}
             >
               <Input
@@ -386,7 +386,7 @@ export function RequestFormStepper({
                 style={{ position: 'absolute', top: 1, right: 1, width: 36, height: 36, border: 'none', borderLeft: '1px solid #E2E8F0', borderRadius: '0 7px 7px 0', background: '#fff', color: '#4A5568', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
                 aria-label="เลือก Credit Term">˅</button>
               {ctDropOpen && (
-                <div style={{ position: 'absolute', zIndex: 5, top: 42, left: 0, width: 168, maxHeight: 220, overflowY: 'auto', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 8px 20px rgba(0,64,129,0.14)' }}>
+                <div style={{ position: 'absolute', zIndex: 5, top: 42, left: 0, width: 200, maxHeight: 220, overflowY: 'auto', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 8px 20px rgba(0,64,129,0.14)' }}>
                   {CREDIT_TERM_PRESETS.map(days => (
                     <button key={days} type="button"
                       onMouseDown={e => e.preventDefault()}
@@ -411,12 +411,20 @@ export function RequestFormStepper({
 
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#586782', marginBottom: 5 }}>จำนวนงวด</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '38px 88px 38px', alignItems: 'center', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', background: '#fff', height: 38, width: 164, boxSizing: 'border-box' }}>
-              <button type="button" disabled={instCount <= 1} onClick={() => changeCount(instCount - 1)}
-                style={{ height: 38, border: 'none', borderRight: '1px solid #D0D6DF', background: instCount <= 1 ? '#F8F9FA' : '#fff', color: instCount <= 1 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: instCount <= 1 ? 'default' : 'pointer' }}>−</button>
-              <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#001122' }}>{instCount} งวด</div>
-              <button type="button" disabled={instCount >= 4} onClick={() => changeCount(instCount + 1)}
-                style={{ height: 38, border: 'none', borderLeft: '1px solid #D0D6DF', background: instCount >= 4 ? '#F8F9FA' : '#fff', color: instCount >= 4 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: instCount >= 4 ? 'default' : 'pointer' }}>+</button>
+            <div style={{ display: 'flex', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', height: 38 }}>
+              {[1, 2, 3, 4].map(n => (
+                <button key={n} type="button" onClick={() => changeCount(n)}
+                  style={{
+                    width: 44, height: 38, border: 'none',
+                    borderRight: n < 4 ? '1px solid #D0D6DF' : 'none',
+                    background: instCount === n ? 'linear-gradient(135deg, #EBF9F9 0%, #E8F2FC 100%)' : '#fff',
+                    color: instCount === n ? '#004081' : '#929EB4',
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                    transition: 'background 0.15s, color 0.15s',
+                  }}>
+                  {n}
+                </button>
+              ))}
             </div>
           </div>
         </div>
