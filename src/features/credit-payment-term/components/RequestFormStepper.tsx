@@ -32,9 +32,7 @@ const CUSTOMER_TYPES: CustomerType[] = ['new', 'existing', 'reseller']
 const CREDIT_TERM_PRESETS = [7, 15, 30, 60, 90, 120]
 const INSTALLMENT_PERCENT_PRESETS = [10, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100]
 const INSTALLMENT_PRESETS: Record<number, Array<{ label: string; percents: number[] }>> = {
-  1: [
-    { label: '100', percents: [100] },
-  ],
+  1: [{ label: '100', percents: [100] }],
   2: [
     { label: '50 / 50', percents: [50, 50] },
     { label: '30 / 70', percents: [30, 70] },
@@ -57,6 +55,21 @@ const INSTALLMENT_PRESETS: Record<number, Array<{ label: string; percents: numbe
 
 function numVal(v: unknown): number { return Number(v) || 0 }
 
+/* ── Pill button styles ── */
+function pillBtn(active: boolean): React.CSSProperties {
+  return {
+    padding: '7px 18px',
+    borderRadius: 9999,
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+    border: active ? '1.5px solid #66C5C5' : '1.5px solid #D0D6DF',
+    background: '#fff',
+    color: active ? '#004081' : '#929EB4',
+    transition: 'border-color 0.15s, color 0.15s',
+  }
+}
+
 export function RequestFormStepper({
   initialRequest, currentUser, onSaveDraft, onSubmit, onResubmit, isResubmit = false,
 }: Props) {
@@ -68,13 +81,11 @@ export function RequestFormStepper({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [confirmed, setConfirmed] = useState(false)
 
-  // Customer combobox state
   const [existingDropdownOpen, setExistingDropdownOpen] = useState(false)
   const [existingResults, setExistingResults] = useState<Customer[]>([])
   const [resellerDropdownOpen, setResellerDropdownOpen] = useState(false)
   const [resellerResults, setResellerResults] = useState<Customer[]>([])
 
-  // Submit state
   const [draftLoading, setDraftLoading] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -83,9 +94,7 @@ export function RequestFormStepper({
   const [hwCreditTermDays, setHwCreditTermDays] = useState<number | ''>(
     req?.installments[0]?.creditTermDays ?? 0
   )
-  const [hwInstallmentCount, setHwInstallmentCount] = useState<number>(
-    req?.installmentCount ?? 1
-  )
+  const [hwInstallmentCount, setHwInstallmentCount] = useState<number>(req?.installmentCount ?? 1)
   const [hwInstallments, setHwInstallments] = useState<InstRow[]>(
     req?.installments?.map(i => ({
       installmentPercent: i.installmentPercent,
@@ -101,9 +110,7 @@ export function RequestFormStepper({
   const [swCreditTermDays, setSwCreditTermDays] = useState<number | ''>(
     req?.swInstallments?.[0]?.creditTermDays ?? 0
   )
-  const [swInstallmentCount, setSwInstallmentCount] = useState<number>(
-    req?.swInstallmentCount ?? 1
-  )
+  const [swInstallmentCount, setSwInstallmentCount] = useState<number>(req?.swInstallmentCount ?? 1)
   const [swInstallments, setSwInstallments] = useState<InstRow[]>(
     req?.swInstallments?.map(i => ({
       installmentPercent: i.installmentPercent,
@@ -124,29 +131,25 @@ export function RequestFormStepper({
   const rs = (fd.reseller as Record<string, string>) ?? {}
   const proposalNo = String(fd.proposalNo || '')
   const hwQuotationNo = proposalNo ? `${proposalNo}-1` : 'Quotation-1'
-  const swQuotationNo = proposalNo ? `${proposalNo}-2` : 'Quotation-2'
+  // single mode: both blocks share -1; split mode: sw gets -2
+  const swQuotationNo = separateQuotation
+    ? (proposalNo ? `${proposalNo}-2` : 'Quotation-2')
+    : hwQuotationNo
 
-  /* Sync hw installment rows when count changes */
   useEffect(() => {
     const current = [...hwInstallments]
-    while (current.length < hwInstallmentCount) {
-      current.push({ installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' })
-    }
+    while (current.length < hwInstallmentCount) current.push({ installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' })
     setHwInstallments(current.slice(0, hwInstallmentCount))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hwInstallmentCount])
 
-  /* Sync sw installment rows when count changes */
   useEffect(() => {
     const current = [...swInstallments]
-    while (current.length < swInstallmentCount) {
-      current.push({ installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' })
-    }
+    while (current.length < swInstallmentCount) current.push({ installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' })
     setSwInstallments(current.slice(0, swInstallmentCount))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [swInstallmentCount])
 
-  /* Totals */
   const hwSelling   = numVal(fd.hardwareSellingPrice)
   const hwCost      = numVal(fd.hardwareCost)
   const swSelling   = numVal(fd.softwareSellingPrice)
@@ -154,74 +157,47 @@ export function RequestFormStepper({
   const instSelling = numVal(fd.installationSellingPrice)
   const instCost    = numVal(fd.installationCost)
   const serviceSelling = swSelling + instSelling
-  const serviceCost = swCost + instCost
-  const totalSelling = hwSelling + serviceSelling
-  const totalCost = hwCost + serviceCost
+  const serviceCost    = swCost + instCost
+  const totalSelling   = hwSelling + serviceSelling
+  const totalCost      = hwCost + serviceCost
 
   function update(patch: Record<string, unknown>) {
     setFormData(prev => ({ ...prev, ...patch }))
   }
 
-  /* ── Existing-customer combobox ── */
   async function openExistingDropdown(query = '') {
-    const res = await searchCustomers(query)
-    setExistingResults(res)
-    setExistingDropdownOpen(true)
+    const res = await searchCustomers(query); setExistingResults(res); setExistingDropdownOpen(true)
   }
   async function onExistingType(q: string) {
     update({ existingCustomer: { ...ec, companyName: q }, existingCustomerId: '' })
-    const res = await searchCustomers(q)
-    setExistingResults(res)
-    setExistingDropdownOpen(true)
+    const res = await searchCustomers(q); setExistingResults(res); setExistingDropdownOpen(true)
   }
   function selectExisting(c: Customer) {
-    update({
-      existingCustomerId: c.id,
-      existingCustomer: { companyName: c.companyName, taxId: c.taxId ?? '', defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: c.contactPerson ?? '', contactPhone: c.contactPhone ?? '' },
-    })
-    setHwCreditTermDays(c.defaultCreditTerm ?? 0)
-    setHwCustomCreditTerm(false)
-    setExistingDropdownOpen(false)
-    setExistingResults([])
+    update({ existingCustomerId: c.id, existingCustomer: { companyName: c.companyName, taxId: c.taxId ?? '', defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: c.contactPerson ?? '', contactPhone: c.contactPhone ?? '' } })
+    setHwCreditTermDays(c.defaultCreditTerm ?? 0); setHwCustomCreditTerm(false)
+    setExistingDropdownOpen(false); setExistingResults([])
   }
 
-  /* ── Reseller combobox ── */
   async function openResellerDropdown(query = '') {
-    const res = await searchCustomers(query)
-    setResellerResults(res)
-    setResellerDropdownOpen(true)
+    const res = await searchCustomers(query); setResellerResults(res); setResellerDropdownOpen(true)
   }
   async function onResellerType(q: string) {
     update({ reseller: { ...rs, resellerCompanyName: q, resellerId: '' } })
-    const res = await searchCustomers(q)
-    setResellerResults(res)
-    setResellerDropdownOpen(true)
+    const res = await searchCustomers(q); setResellerResults(res); setResellerDropdownOpen(true)
   }
   function selectReseller(c: Customer) {
-    update({
-      reseller: { ...rs, resellerId: c.id, resellerCompanyName: c.companyName, defaultCreditTerm: c.defaultCreditTerm ?? 0 },
-    })
-    setHwCreditTermDays(c.defaultCreditTerm ?? 0)
-    setHwCustomCreditTerm(false)
-    setResellerDropdownOpen(false)
-    setResellerResults([])
+    update({ reseller: { ...rs, resellerId: c.id, resellerCompanyName: c.companyName, defaultCreditTerm: c.defaultCreditTerm ?? 0 } })
+    setHwCreditTermDays(c.defaultCreditTerm ?? 0); setHwCustomCreditTerm(false)
+    setResellerDropdownOpen(false); setResellerResults([])
   }
 
   function collectData(): Record<string, unknown> {
-    return {
-      ...formData,
-      hwCreditTermDays,
-      hwInstallmentCount,
-      hwInstallments,
-      swCreditTermDays,
-      swInstallmentCount,
-      swInstallments,
-    }
+    return { ...formData, hwCreditTermDays, hwInstallmentCount, hwInstallments, swCreditTermDays, swInstallmentCount, swInstallments }
   }
 
   function validate(): boolean {
     const e: Record<string, string> = {}
-    if (!String(fd.proposalNo || '').trim()) e.proposalNo = 'กรุณาระบุ'
+    if (!proposalNo.trim()) e.proposalNo = 'กรุณาระบุ'
     if (!saleType) e.saleType = 'กรุณาเลือก'
     if (!customerType) e.customerType = 'กรุณาเลือก'
     if (customerType === 'new' && !nc?.companyName?.trim()) e['new.companyName'] = 'กรุณาระบุชื่อบริษัท'
@@ -230,22 +206,16 @@ export function RequestFormStepper({
       if (!rs?.resellerCompanyName?.trim()) e['res.resellerCompanyName'] = 'กรุณาระบุหรือค้นหา Reseller'
       if (!rs?.endCustomerCompanyName?.trim()) e['res.endCustomerCompanyName'] = 'กรุณาระบุลูกค้าปลายทาง'
     }
-    if (numVal(fd.hardwareSellingPrice) <= 0) e.hwSell = 'กรุณาระบุราคาขาย Hardware'
+    if (hwSelling <= 0) e.hwSell = 'กรุณาระบุราคาขาย Hardware'
     if (hwCreditTermDays === '' || numVal(hwCreditTermDays) < 0) e.hwCreditTermDays = 'กรุณาระบุ Credit Term'
     const hwTotalPct = calcTotalInstallmentPercent(hwInstallments.slice(0, hwInstallmentCount))
-    hwInstallments.slice(0, hwInstallmentCount).forEach((row, i) => {
-      if (!row.installmentPercent) e[`hwInst${i}.pct`] = 'ระบุ%'
-    })
+    hwInstallments.slice(0, hwInstallmentCount).forEach((row, i) => { if (!row.installmentPercent) e[`hwInst${i}.pct`] = 'ระบุ%' })
     if (Math.abs(hwTotalPct - 100) >= 0.01 && hwInstallmentCount > 0) e.hwTotalPct = `รวม ${hwTotalPct.toFixed(1)}% ≠ 100%`
 
-    if (separateQuotation) {
-      if (swCreditTermDays === '' || numVal(swCreditTermDays) < 0) e.swCreditTermDays = 'กรุณาระบุ Credit Term SW'
-      const swTotalPct = calcTotalInstallmentPercent(swInstallments.slice(0, swInstallmentCount))
-      swInstallments.slice(0, swInstallmentCount).forEach((row, i) => {
-        if (!row.installmentPercent) e[`swInst${i}.pct`] = 'ระบุ%'
-      })
-      if (Math.abs(swTotalPct - 100) >= 0.01 && swInstallmentCount > 0) e.swTotalPct = `รวม ${swTotalPct.toFixed(1)}% ≠ 100%`
-    }
+    if (swCreditTermDays === '' || numVal(swCreditTermDays) < 0) e.swCreditTermDays = 'กรุณาระบุ Credit Term'
+    const swTotalPct = calcTotalInstallmentPercent(swInstallments.slice(0, swInstallmentCount))
+    swInstallments.slice(0, swInstallmentCount).forEach((row, i) => { if (!row.installmentPercent) e[`swInst${i}.pct`] = 'ระบุ%' })
+    if (Math.abs(swTotalPct - 100) >= 0.01 && swInstallmentCount > 0) e.swTotalPct = `รวม ${swTotalPct.toFixed(1)}% ≠ 100%`
 
     setErrors(e)
     return Object.keys(e).length === 0
@@ -253,7 +223,7 @@ export function RequestFormStepper({
 
   async function handleDraft() {
     setDraftLoading(true); setSubmitError('')
-    try { await onSaveDraft(collectData()) } catch (e: unknown) { setSubmitError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด') }
+    try { await onSaveDraft(collectData()) } catch (err: unknown) { setSubmitError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด') }
     finally { setDraftLoading(false) }
   }
 
@@ -263,39 +233,37 @@ export function RequestFormStepper({
     try {
       if (isResubmit && onResubmit) await onResubmit(collectData())
       else await onSubmit(collectData())
-    } catch (e: unknown) { setSubmitError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด') }
+    } catch (err: unknown) { setSubmitError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด') }
     finally { setSubmitLoading(false) }
   }
 
-  /* ── Shared style helpers ── */
-  const comboDropdown = (
-    results: Customer[],
-    visible: boolean,
-    onSelect: (c: Customer) => void,
-  ) => visible && (
-    <div style={{ position: 'relative', zIndex: 1, width: '100%', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 4px 14px rgba(0,64,129,0.12)', overflowY: 'auto', maxHeight: 220, marginTop: 6 }}>
-      {results.length > 0 ? results.map(c => (
-        <button key={c.id}
-          onMouseDown={e => { e.preventDefault(); onSelect(c) }}
-          style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '1px solid #F2F6F8', fontSize: 13 }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F2F6F8' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
-        >
-          <div style={{ fontWeight: 600, color: '#001122' }}>{c.companyName}</div>
-          <div style={{ color: '#929EB4', fontSize: 12, marginTop: 2 }}>Net {c.defaultCreditTerm ?? 0} วัน · {c.contactPerson}</div>
-        </button>
-      )) : (
-        <div style={{ padding: '10px 14px', color: '#929EB4', fontSize: 13 }}>ไม่พบข้อมูลลูกค้า</div>
-      )}
-    </div>
-  )
+  /* ── Shared helpers ── */
+  const selectStyle: React.CSSProperties = { width: '100%', height: 38 }
+
+  const comboDropdown = (results: Customer[], visible: boolean, onSelect: (c: Customer) => void) =>
+    visible && (
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 4px 14px rgba(0,64,129,0.10)', overflowY: 'auto', maxHeight: 220, marginTop: 6 }}>
+        {results.length > 0 ? results.map(c => (
+          <button key={c.id}
+            onMouseDown={e => { e.preventDefault(); onSelect(c) }}
+            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '1px solid #F2F6F8', fontSize: 13 }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F2F6F8' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+          >
+            <div style={{ fontWeight: 600, color: '#001122' }}>{c.companyName}</div>
+            <div style={{ color: '#929EB4', fontSize: 12, marginTop: 2 }}>Net {c.defaultCreditTerm ?? 0} วัน · {c.contactPerson}</div>
+          </button>
+        )) : (
+          <div style={{ padding: '10px 14px', color: '#929EB4', fontSize: 13 }}>ไม่พบข้อมูลลูกค้า</div>
+        )}
+      </div>
+    )
 
   const priceRow = (label: string, spKey: string, costKey: string) => (
-    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #F2F6F8' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '12px 0' }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: '#001122' }}>{label}</div>
       <FormGroup label="ราคาขาย (THB)" error={spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined}>
-        <Input
-          type="number" min="0" step="1000"
+        <Input type="number" min="0" step="1000"
           value={String(fd[spKey] ?? '')}
           onChange={e => update({ [spKey]: e.target.value ? Number(e.target.value) : '' })}
           style={{ textAlign: 'right' }}
@@ -303,8 +271,7 @@ export function RequestFormStepper({
         />
       </FormGroup>
       <FormGroup label="ราคาทุน (THB)">
-        <Input
-          type="number" min="0" step="1000"
+        <Input type="number" min="0" step="1000"
           value={String(fd[costKey] ?? '')}
           onChange={e => update({ [costKey]: e.target.value ? Number(e.target.value) : 0 })}
           style={{ textAlign: 'right' }}
@@ -319,8 +286,6 @@ export function RequestFormStepper({
     </span>
   )
 
-  const selectStyle: React.CSSProperties = { width: '100%', height: 38 }
-
   const summaryAmount = (value: number, color = '#001122') => (
     <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color }}>
       {formatCurrency(value)}
@@ -328,37 +293,36 @@ export function RequestFormStepper({
   )
 
   const quotationHeader = (quotationNo: string, groupLabel: string, color: string) => (
-    <div style={{ background: color, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 15, fontWeight: 800, color: '#fff' }}>
+    <div style={{ background: color, padding: '11px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 800, color: '#fff' }}>
         {quotationNo}
       </span>
-      <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.78)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         {groupLabel}
       </span>
     </div>
   )
 
-  /* ── renderPaymentBlock: closure over component state ── */
+  /* ── Payment block (closure over component state) ── */
   function renderPaymentBlock(prefix: 'hw' | 'sw', sellingTotal: number) {
-    // Read state by prefix
-    const ctDays = prefix === 'hw' ? hwCreditTermDays : swCreditTermDays
-    const setCtDays = prefix === 'hw' ? setHwCreditTermDays : setSwCreditTermDays
-    const instCount = prefix === 'hw' ? hwInstallmentCount : swInstallmentCount
-    const setInstCount = prefix === 'hw' ? setHwInstallmentCount : setSwInstallmentCount
-    const insts = prefix === 'hw' ? hwInstallments : swInstallments
-    const setInsts = prefix === 'hw' ? setHwInstallments : setSwInstallments
-    const isCustomCT = prefix === 'hw' ? hwCustomCreditTerm : swCustomCreditTerm
-    const setIsCustomCT = prefix === 'hw' ? setHwCustomCreditTerm : setSwCustomCreditTerm
-    const ctDropOpen = prefix === 'hw' ? hwCreditTermDropdownOpen : swCreditTermDropdownOpen
-    const setCtDropOpen = prefix === 'hw' ? setHwCreditTermDropdownOpen : setSwCreditTermDropdownOpen
-    const customPctRows = prefix === 'hw' ? hwCustomPercentRows : swCustomPercentRows
+    const ctDays       = prefix === 'hw' ? hwCreditTermDays       : swCreditTermDays
+    const setCtDays    = prefix === 'hw' ? setHwCreditTermDays    : setSwCreditTermDays
+    const instCount    = prefix === 'hw' ? hwInstallmentCount      : swInstallmentCount
+    const setInstCount = prefix === 'hw' ? setHwInstallmentCount   : setSwInstallmentCount
+    const insts        = prefix === 'hw' ? hwInstallments          : swInstallments
+    const setInsts     = prefix === 'hw' ? setHwInstallments       : setSwInstallments
+    const isCustomCT   = prefix === 'hw' ? hwCustomCreditTerm      : swCustomCreditTerm
+    const setIsCustomCT= prefix === 'hw' ? setHwCustomCreditTerm   : setSwCustomCreditTerm
+    const ctDropOpen   = prefix === 'hw' ? hwCreditTermDropdownOpen : swCreditTermDropdownOpen
+    const setCtDropOpen= prefix === 'hw' ? setHwCreditTermDropdownOpen : setSwCreditTermDropdownOpen
+    const customPctRows    = prefix === 'hw' ? hwCustomPercentRows    : swCustomPercentRows
     const setCustomPctRows = prefix === 'hw' ? setHwCustomPercentRows : setSwCustomPercentRows
 
     const creditTermIsCustom = isCustomCT || (ctDays !== '' && !CREDIT_TERM_PRESETS.includes(numVal(ctDays)))
     const totalPct = calcTotalInstallmentPercent(insts.slice(0, instCount))
-    const pctOk = Math.abs(totalPct - 100) < 0.01
-    const ctErrKey = prefix === 'hw' ? 'hwCreditTermDays' : 'swCreditTermDays'
-    const pctErrKey = prefix === 'hw' ? 'hwTotalPct' : 'swTotalPct'
+    const pctOk    = Math.abs(totalPct - 100) < 0.01
+    const ctErrKey  = prefix === 'hw' ? 'hwCreditTermDays' : 'swCreditTermDays'
+    const pctErrKey = prefix === 'hw' ? 'hwTotalPct'       : 'swTotalPct'
 
     function updateInstRow(i: number, field: keyof InstRow, value: unknown) {
       const updated = [...insts]
@@ -372,9 +336,7 @@ export function RequestFormStepper({
         ...(insts[idx] || { creditTermDays: 0, paymentCondition: 'on_delivery' as PaymentCondition }),
         installmentPercent: percent,
       }))
-      setCustomPctRows({})
-      setInstCount(percents.length)
-      setInsts(updated)
+      setCustomPctRows({}); setInstCount(percents.length); setInsts(updated)
     }
 
     function applyCustom() {
@@ -389,74 +351,51 @@ export function RequestFormStepper({
     function changeCount(next: number) {
       const clamped = Math.max(1, Math.min(4, next))
       const preset = INSTALLMENT_PRESETS[clamped]?.[0]?.percents ?? []
-      if (preset.length) {
-        applyPreset(preset)
-        return
-      }
+      if (preset.length) { applyPreset(preset); return }
       setCustomPctRows(prev => Object.fromEntries(Object.entries(prev).filter(([idx]) => Number(idx) < clamped)))
       setInstCount(clamped)
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '14px 14px 14px 14px', borderTop: '1px solid #E2E8F0' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 16px 20px' }}>
+
+        {/* Credit Term + Count */}
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <FormGroup label="Credit Term" required error={errors[ctErrKey]} style={{ width: 168 }}>
-            <div
-              style={{ position: 'relative', width: 168 }}
-              onBlur={e => {
-                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setCtDropOpen(false)
-              }}
+            <div style={{ position: 'relative', width: 168 }}
+              onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setCtDropOpen(false) }}
             >
               <Input
-                type="text"
-                inputMode="numeric"
+                type="text" inputMode="numeric"
                 value={String(ctDays ?? '')}
                 onFocus={() => setCtDropOpen(true)}
                 onChange={e => {
-                  const nextValue = e.target.value.replace(/\D/g, '')
-                  const nextDays = nextValue === '' ? '' : Number(nextValue)
-                  setIsCustomCT(nextDays === '' || !CREDIT_TERM_PRESETS.includes(numVal(nextDays)))
-                  setCtDays(nextDays)
+                  const v = e.target.value.replace(/\D/g, '')
+                  const d = v === '' ? '' : Number(v)
+                  setIsCustomCT(d === '' || !CREDIT_TERM_PRESETS.includes(numVal(d)))
+                  setCtDays(d)
                 }}
                 placeholder={creditTermIsCustom ? 'ระบุเอง' : 'เลือกวัน'}
                 error={errors[ctErrKey]}
                 style={{ paddingRight: 38 }}
               />
-              <button
-                type="button"
-                onClick={() => setCtDropOpen(open => !open)}
+              <button type="button" onClick={() => setCtDropOpen(o => !o)}
                 style={{ position: 'absolute', top: 1, right: 1, width: 36, height: 36, border: 'none', borderLeft: '1px solid #E2E8F0', borderRadius: '0 7px 7px 0', background: '#fff', color: '#4A5568', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
-                aria-label="เลือก Credit Term"
-              >
-                ˅
-              </button>
+                aria-label="เลือก Credit Term">˅</button>
               {ctDropOpen && (
-                <div style={{ position: 'absolute', zIndex: 5, top: 42, left: 0, width: 168, maxHeight: 220, overflowY: 'auto', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 8px 20px rgba(0, 64, 129, 0.14)' }}>
+                <div style={{ position: 'absolute', zIndex: 5, top: 42, left: 0, width: 168, maxHeight: 220, overflowY: 'auto', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 8px 20px rgba(0,64,129,0.14)' }}>
                   {CREDIT_TERM_PRESETS.map(days => (
-                    <button
-                      key={days}
-                      type="button"
+                    <button key={days} type="button"
                       onMouseDown={e => e.preventDefault()}
-                      onClick={() => {
-                        setIsCustomCT(false)
-                        setCtDays(days)
-                        setCtDropOpen(false)
-                      }}
-                      style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', borderBottom: '1px solid #F2F6F8', background: numVal(ctDays) === days ? '#F2F8FF' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-                    >
+                      onClick={() => { setIsCustomCT(false); setCtDays(days); setCtDropOpen(false) }}
+                      style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', borderBottom: '1px solid #F2F6F8', background: numVal(ctDays) === days ? '#EEF8F8' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                       {days} วัน
                     </button>
                   ))}
-                  <button
-                    type="button"
+                  <button type="button"
                     onMouseDown={e => e.preventDefault()}
-                    onClick={() => {
-                      setIsCustomCT(true)
-                      setCtDays('')
-                      setCtDropOpen(false)
-                    }}
-                    style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', background: creditTermIsCustom ? '#F2F8FF' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-                  >
+                    onClick={() => { setIsCustomCT(true); setCtDays(''); setCtDropOpen(false) }}
+                    style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', background: creditTermIsCustom ? '#EEF8F8' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                     ระบุเอง
                   </button>
                 </div>
@@ -468,61 +407,44 @@ export function RequestFormStepper({
           </FormGroup>
 
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#001122', marginBottom: 5 }}>จำนวนงวด</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '38px 92px 38px', alignItems: 'center', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', background: '#fff', height: 38, width: 168, boxSizing: 'border-box' }}>
-              <button
-                type="button"
-                disabled={instCount <= 1}
-                onClick={() => changeCount(instCount - 1)}
-                style={{ height: 38, border: 'none', borderRight: '1px solid #D0D6DF', background: instCount <= 1 ? '#F2F6F8' : '#fff', color: instCount <= 1 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: instCount <= 1 ? 'default' : 'pointer' }}
-              >
-                -
-              </button>
-              <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#001122' }}>
-                {instCount} งวด
-              </div>
-              <button
-                type="button"
-                disabled={instCount >= 4}
-                onClick={() => changeCount(instCount + 1)}
-                style={{ height: 38, border: 'none', borderLeft: '1px solid #D0D6DF', background: instCount >= 4 ? '#F2F6F8' : '#fff', color: instCount >= 4 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: instCount >= 4 ? 'default' : 'pointer' }}
-              >
-                +
-              </button>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#586782', marginBottom: 5 }}>จำนวนงวด</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '38px 88px 38px', alignItems: 'center', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', background: '#fff', height: 38, width: 164, boxSizing: 'border-box' }}>
+              <button type="button" disabled={instCount <= 1} onClick={() => changeCount(instCount - 1)}
+                style={{ height: 38, border: 'none', borderRight: '1px solid #D0D6DF', background: instCount <= 1 ? '#F8F9FA' : '#fff', color: instCount <= 1 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: instCount <= 1 ? 'default' : 'pointer' }}>−</button>
+              <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#001122' }}>{instCount} งวด</div>
+              <button type="button" disabled={instCount >= 4} onClick={() => changeCount(instCount + 1)}
+                style={{ height: 38, border: 'none', borderLeft: '1px solid #D0D6DF', background: instCount >= 4 ? '#F8F9FA' : '#fff', color: instCount >= 4 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: instCount >= 4 ? 'default' : 'pointer' }}>+</button>
             </div>
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
-          <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>สัดส่วนงวดที่แนะนำ</div>
+        {/* Preset buttons */}
+        <div>
+          <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>สัดส่วนที่แนะนำ</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {(INSTALLMENT_PRESETS[instCount] ?? []).slice(0, 4).map(preset => {
-              const active = preset.percents.every((percent, idx) => numVal(insts[idx]?.installmentPercent) === percent)
+              const active = preset.percents.every((p, idx) => numVal(insts[idx]?.installmentPercent) === p)
               return (
                 <button key={preset.label} type="button" onClick={() => applyPreset(preset.percents)}
-                  style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                    border: `1.5px solid ${active ? '#004081' : '#D0D6DF'}`,
-                    background: active ? '#004081' : '#fff',
-                    color: active ? '#fff' : '#586782' }}
-                >
+                  style={{ padding: '5px 12px', borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    border: active ? '1.5px solid #66C5C5' : '1.5px solid #D0D6DF',
+                    background: '#fff', color: active ? '#004081' : '#929EB4' }}>
                   {preset.label}
                 </button>
               )
             })}
-            <button type="button"
-              onClick={applyCustom}
-              style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                border: '1.5px dashed #586782',
-                background: Object.values(customPctRows).some(Boolean) ? '#586782' : '#fff',
-                color: Object.values(customPctRows).some(Boolean) ? '#fff' : '#586782' }}
-            >
+            <button type="button" onClick={applyCustom}
+              style={{ padding: '5px 12px', borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                border: Object.values(customPctRows).some(Boolean) ? '1.5px solid #66C5C5' : '1.5px dashed #C7CEDA',
+                background: '#fff', color: Object.values(customPctRows).some(Boolean) ? '#004081' : '#929EB4' }}>
               ระบุเอง
             </button>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>รายละเอียดงวด</div>
+        {/* Installment cards */}
+        <div>
+          <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>รายละเอียดงวด</div>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${instCount}, minmax(0, 1fr))`, gap: 8 }}>
             {insts.slice(0, instCount).map((row, i) => {
               const pct = numVal(row.installmentPercent)
@@ -532,14 +454,20 @@ export function RequestFormStepper({
               const totalAmt = sellingTotal > 0 && pct > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
               const pctErrRowKey = `${prefix}Inst${i}.pct`
               return (
-                <div key={i} style={{ background: '#FAFBFC', border: `1px solid ${errors[pctErrRowKey] ? '#F3554F' : '#D0D6DF'}`, borderRadius: 8, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div key={i} style={{
+                  background: errors[pctErrRowKey] ? '#FEF2F2' : '#F2F6F8',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                  ...(errors[pctErrRowKey] ? { outline: '1.5px solid #F3554F' } : {}),
+                }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
                     <span style={{ fontSize: 11, color: '#929EB4', fontWeight: 600 }}>งวดที่ {i + 1}</span>
                   </div>
                   <FormGroup error={errors[pctErrRowKey]}>
                     {pctIsCustom ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
                         <Input type="number" min="1" max="100" value={row.installmentPercent}
                           onChange={e => updateInstRow(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
                           placeholder={`แนะนำ ${suggestedPct}%`}
@@ -548,30 +476,25 @@ export function RequestFormStepper({
                       </div>
                     ) : (
                       <>
-                        <Select
-                          value={pctSelectValue}
+                        <Select value={pctSelectValue}
                           onChange={e => {
                             const isCustom = e.target.value === 'custom'
                             setCustomPctRows(prev => ({ ...prev, [i]: isCustom }))
                             updateInstRow(i, 'installmentPercent', isCustom || e.target.value === '' ? '' : Number(e.target.value))
                           }}
-                          error={errors[pctErrRowKey]}
-                          style={selectStyle}
-                        >
+                          error={errors[pctErrRowKey]} style={selectStyle}>
                           <option value="">— เลือก % —</option>
-                          {INSTALLMENT_PERCENT_PRESETS.map(percent => <option key={percent} value={percent}>{percent}%</option>)}
+                          {INSTALLMENT_PERCENT_PRESETS.map(p => <option key={p} value={p}>{p}%</option>)}
                           <option value="custom">ระบุเอง</option>
                         </Select>
                         {row.installmentPercent === '' && suggestedPct > 0 && (
-                          <div style={{ marginTop: 4, fontSize: 10, color: '#929EB4', fontWeight: 600 }}>
-                            แนะนำ {suggestedPct}%
-                          </div>
+                          <div style={{ marginTop: 3, fontSize: 10, color: '#929EB4', fontWeight: 600 }}>แนะนำ {suggestedPct}%</div>
                         )}
                       </>
                     )}
                   </FormGroup>
                   {totalAmt > 0 && (
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', paddingTop: 8, borderTop: '1px solid #E2E8F0', marginTop: 'auto' }}>
+                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto' }}>
                       {formatCurrency(totalAmt)}
                     </div>
                   )}
@@ -581,14 +504,13 @@ export function RequestFormStepper({
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
+        {/* Progress bar */}
+        <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>รวมสัดส่วนงวด</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: pctOk ? '#66C5C5' : '#F3554F' }}>
-              {totalPct.toFixed(0)}%
-            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: pctOk ? '#66C5C5' : '#F3554F' }}>{totalPct.toFixed(0)}%</span>
           </div>
-          <div style={{ height: 8, background: '#E2E8F0', borderRadius: 999, overflow: 'hidden' }}>
+          <div style={{ height: 6, background: '#E2E8F0', borderRadius: 999, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${Math.min(Math.max(totalPct, 0), 100)}%`, background: pctOk ? '#66C5C5' : '#F3554F', transition: 'width 0.2s' }} />
           </div>
         </div>
@@ -597,6 +519,14 @@ export function RequestFormStepper({
       </div>
     )
   }
+
+  /* ── Quotation card wrapper ── */
+  const quotationCard = (quotationNo: string, label: string, headerColor: string, body: React.ReactNode) => (
+    <div style={{ borderRadius: 14, overflow: 'hidden', background: '#fff', boxShadow: '0 2px 10px rgba(0,64,129,0.07)' }}>
+      {quotationHeader(quotationNo, label, headerColor)}
+      {body}
+    </div>
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 720, margin: '0 auto' }}>
@@ -610,115 +540,78 @@ export function RequestFormStepper({
         </Alert>
       )}
 
-      {/* ─── Section 1: ข้อมูลคำขอ ─── */}
+      {/* ─── 1. ข้อมูลคำขอ ─── */}
       <Card title="1. ข้อมูลคำขอ">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <FormGroup label="Proposal No." required error={errors.proposalNo}>
             <Input value={String(fd.proposalNo || '')} onChange={e => update({ proposalNo: e.target.value })} placeholder="PRO-2026-001" error={errors.proposalNo} />
           </FormGroup>
 
-          <FormGroup label="ประเภทการขาย" required error={errors.saleType}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#586782', marginBottom: 8 }}>
+              ประเภทการขาย <span style={{ color: '#F3554F' }}>*</span>
+            </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {SALE_TYPES.map(t => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => update({ saleType: t.value })}
-                  style={{
-                    padding: '7px 18px',
-                    borderRadius: 20,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    border: `1.5px solid ${saleType === t.value ? '#004081' : '#D0D6DF'}`,
-                    background: saleType === t.value ? '#004081' : '#fff',
-                    color: saleType === t.value ? '#fff' : '#586782',
-                    transition: 'all 0.15s',
-                  }}
-                >
+                <button key={t.value} type="button" onClick={() => update({ saleType: t.value })} style={pillBtn(saleType === t.value)}>
                   {t.label}
                 </button>
               ))}
             </div>
             {errors.saleType && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 4 }}>{errors.saleType}</div>}
-          </FormGroup>
+          </div>
         </div>
       </Card>
 
-      {/* ─── Section 2: ข้อมูลลูกค้า ─── */}
+      {/* ─── 2. ข้อมูลลูกค้า ─── */}
       <Card title="2. ข้อมูลลูกค้า">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {/* Customer type pill buttons */}
-          <FormGroup label="ประเภทลูกค้า" required error={errors.customerType}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#586782', marginBottom: 8 }}>
+              ประเภทลูกค้า <span style={{ color: '#F3554F' }}>*</span>
+            </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {CUSTOMER_TYPES.map(type => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => {
-                    update({ customerType: type })
-                    setExistingDropdownOpen(false)
-                    setResellerDropdownOpen(false)
-                  }}
-                  style={{
-                    padding: '7px 18px',
-                    borderRadius: 20,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    border: `1.5px solid ${customerType === type ? '#004081' : '#D0D6DF'}`,
-                    background: customerType === type ? '#004081' : '#fff',
-                    color: customerType === type ? '#fff' : '#586782',
-                    transition: 'all 0.15s',
-                  }}
-                >
+                <button key={type} type="button"
+                  onClick={() => { update({ customerType: type }); setExistingDropdownOpen(false); setResellerDropdownOpen(false) }}
+                  style={pillBtn(customerType === type)}>
                   {CUSTOMER_TYPE_LABELS[type]}
                 </button>
               ))}
             </div>
             {errors.customerType && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 4 }}>{errors.customerType}</div>}
-          </FormGroup>
+          </div>
 
-          {/* ลูกค้าใหม่ */}
           {customerType === 'new' && (
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>ข้อมูลลูกค้าใหม่</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
-                <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
-                  <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
-                </FormGroup>
-                <FormGroup label="ผู้ติดต่อ">
-                  <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
-                </FormGroup>
-                <FormGroup label="เบอร์โทร">
-                  <Input value={nc.contactPhone ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
-                </FormGroup>
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+              <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
+                <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
+              </FormGroup>
+              <FormGroup label="ผู้ติดต่อ">
+                <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+              </FormGroup>
+              <FormGroup label="เบอร์โทร">
+                <Input value={nc.contactPhone ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+              </FormGroup>
             </div>
           )}
 
-          {/* ลูกค้าเก่า — combobox */}
           {customerType === 'existing' && (
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>เลือกลูกค้าเก่า</div>
               <FormGroup label="ชื่อบริษัท" required error={errors.existingCompanyName}>
                 <div style={{ position: 'relative' }}>
                   <div style={{ position: 'relative' }}>
-                    <Input
-                      value={String(ec.companyName ?? '')}
+                    <Input value={String(ec.companyName ?? '')}
                       onChange={e => onExistingType(e.target.value)}
-                      onFocus={() => openExistingDropdown()}
-                      onClick={() => openExistingDropdown()}
+                      onFocus={() => openExistingDropdown()} onClick={() => openExistingDropdown()}
                       onBlur={() => setTimeout(() => setExistingDropdownOpen(false), 150)}
                       placeholder="เลือกลูกค้าจากรายการ หรือพิมพ์เพื่อกรอง"
                       error={errors.existingCompanyName}
                       style={{ paddingRight: ec.companyName ? 32 : undefined }}
                     />
                     {!!ec.companyName && (
-                      <button
-                        onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
-                        style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
-                      >
+                      <button onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
+                        style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}>
                         <X size={14} />
                       </button>
                     )}
@@ -727,7 +620,7 @@ export function RequestFormStepper({
                 </div>
               </FormGroup>
               {!!fd.existingCustomerId && (
-                <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: '#929EB4' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</div>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
                 <FormGroup label="ผู้ติดต่อ">
@@ -740,30 +633,24 @@ export function RequestFormStepper({
             </div>
           )}
 
-          {/* Reseller — combobox */}
           {customerType === 'reseller' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Reseller combobox */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#929EB4', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
                 <FormGroup error={errors['res.resellerCompanyName']}>
                   <div style={{ position: 'relative' }}>
                     <div style={{ position: 'relative' }}>
-                      <Input
-                        value={rs.resellerCompanyName ?? ''}
+                      <Input value={rs.resellerCompanyName ?? ''}
                         onChange={e => onResellerType(e.target.value)}
-                        onFocus={() => openResellerDropdown()}
-                        onClick={() => openResellerDropdown()}
+                        onFocus={() => openResellerDropdown()} onClick={() => openResellerDropdown()}
                         onBlur={() => setTimeout(() => setResellerDropdownOpen(false), 150)}
                         placeholder="เลือก Reseller จากรายการ หรือพิมพ์เพื่อกรอง"
                         error={errors['res.resellerCompanyName']}
                         style={{ paddingRight: rs.resellerCompanyName ? 32 : undefined }}
                       />
                       {rs.resellerCompanyName && (
-                        <button
-                          onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0 } })}
-                          style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
-                        >
+                        <button onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0 } })}
+                          style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}>
                           <X size={14} />
                         </button>
                       )}
@@ -772,21 +659,14 @@ export function RequestFormStepper({
                   </div>
                 </FormGroup>
                 {rs.resellerId && (
-                  <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#929EB4' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
                 )}
               </div>
-
-              {/* End Customer */}
-              <div style={{ borderTop: '1px solid #D0D6DF', paddingTop: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#929EB4', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
                   <FormGroup label="ชื่อบริษัทปลายทาง" required error={errors['res.endCustomerCompanyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
-                    <Input
-                      value={rs.endCustomerCompanyName ?? ''}
-                      onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })}
-                      placeholder="ใส่ชื่อบริษัทปลายทาง"
-                      error={errors['res.endCustomerCompanyName']}
-                    />
+                    <Input value={rs.endCustomerCompanyName ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })} placeholder="ใส่ชื่อบริษัทปลายทาง" error={errors['res.endCustomerCompanyName']} />
                   </FormGroup>
                   <FormGroup label="ผู้ติดต่อปลายทาง">
                     <Input value={rs.endCustomerContactPerson ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerContactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
@@ -801,96 +681,72 @@ export function RequestFormStepper({
         </div>
       </Card>
 
-      {/* ─── Section 3: Quotation cards with embedded payment ─── */}
-      {!separateQuotation ? (
-        /* Single mode */
-        <div style={{ border: '1px solid #D0D6DF', borderRadius: 14, overflow: 'hidden', background: '#fff' }}>
-          {quotationHeader(hwQuotationNo, 'Hardware & Software & Installation', '#002B5C')}
-          <div style={{ padding: '0 14px' }}>
+      {/* ─── Quotation cards (always 2 blocks) ─── */}
+      {quotationCard(hwQuotationNo, 'Hardware', '#002B5C', (
+        <>
+          <div style={{ padding: '4px 16px 0' }}>
             {priceRow('Hardware', 'hardwareSellingPrice', 'hardwareCost')}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 16px', fontSize: 13, background: '#F8F9FA' }}>
+            <span style={{ color: '#586782', fontWeight: 600 }}>รวม Hardware</span>
+            {plainAmount(hwSelling)}
+          </div>
+          {renderPaymentBlock('hw', hwSelling)}
+        </>
+      ))}
+
+      {quotationCard(swQuotationNo, 'Software & Installation', '#3D5580', (
+        <>
+          <div style={{ padding: '4px 16px 0' }}>
             {priceRow('Software', 'softwareSellingPrice', 'softwareCost')}
             {priceRow('Installation', 'installationSellingPrice', 'installationCost')}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 14px', fontSize: 13, background: '#FAFBFC', borderTop: '1px solid #E2E8F0' }}>
-            <span style={{ color: '#586782', fontWeight: 600 }}>รวมทั้งหมด</span>
-            {plainAmount(totalSelling)}
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 16px', fontSize: 13, background: '#F8F9FA' }}>
+            <span style={{ color: '#586782', fontWeight: 600 }}>รวม Software &amp; Installation</span>
+            {plainAmount(serviceSelling, '#3D5580')}
           </div>
-          {renderPaymentBlock('hw', totalSelling)}
-        </div>
-      ) : (
-        /* Split mode */
-        <>
-          {/* HW card */}
-          <div style={{ border: '1px solid #D0D6DF', borderRadius: 14, overflow: 'hidden', background: '#fff' }}>
-            {quotationHeader(hwQuotationNo, 'Hardware', '#002B5C')}
-            <div style={{ padding: '0 14px' }}>
-              {priceRow('Hardware', 'hardwareSellingPrice', 'hardwareCost')}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 14px', fontSize: 13, background: '#FAFBFC', borderTop: '1px solid #E2E8F0' }}>
-              <span style={{ color: '#586782', fontWeight: 600 }}>รวม Hardware</span>
-              {plainAmount(hwSelling)}
-            </div>
-            {renderPaymentBlock('hw', hwSelling)}
-          </div>
-
-          {/* SW card */}
-          <div style={{ border: '1px solid #D0D6DF', borderRadius: 14, overflow: 'hidden', background: '#fff' }}>
-            {quotationHeader(swQuotationNo, 'Software & Installation', '#3D5580')}
-            <div style={{ padding: '0 14px' }}>
-              {priceRow('Software', 'softwareSellingPrice', 'softwareCost')}
-              {priceRow('Installation', 'installationSellingPrice', 'installationCost')}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 14px', fontSize: 13, background: '#FAFBFC', borderTop: '1px solid #E2E8F0' }}>
-              <span style={{ color: '#586782', fontWeight: 600 }}>รวม Software &amp; Installation</span>
-              {plainAmount(serviceSelling, '#3D5580')}
-            </div>
-            {renderPaymentBlock('sw', serviceSelling)}
-          </div>
+          {renderPaymentBlock('sw', serviceSelling)}
         </>
-      )}
+      ))}
 
-      {/* ─── Section 4: สรุปรวมทั้งหมด ─── */}
-      <Card title="4. สรุปรวมทั้งหมด" noPad>
+      {/* ─── สรุปรวมทั้งหมด ─── */}
+      <Card title="สรุปรวมทั้งหมด" noPad>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
-              <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายการ</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาทุน</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายการ</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาทุน</th>
             </tr>
           </thead>
           <tbody>
-            {[
-              { label: `${hwQuotationNo} Hardware`, selling: hwSelling, cost: hwCost },
-              { label: `${separateQuotation ? swQuotationNo : hwQuotationNo} Software & Installation`, selling: serviceSelling, cost: serviceCost },
-            ].map(row => (
-              <tr key={row.label} style={{ borderBottom: '1px solid #F2F6F8' }}>
-                <td style={{ padding: '10px 12px', fontWeight: 600, color: '#001122' }}>{row.label}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right' }}>{summaryAmount(row.selling, '#004081')}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right' }}>{summaryAmount(row.cost, '#586782')}</td>
-              </tr>
-            ))}
+            <tr>
+              <td style={{ padding: '11px 14px', fontWeight: 500, color: '#505050' }}>{hwQuotationNo} — Hardware</td>
+              <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hwSelling, '#004081')}</td>
+              <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hwCost, '#929EB4')}</td>
+            </tr>
+            <tr>
+              <td style={{ padding: '11px 14px', fontWeight: 500, color: '#505050' }}>{swQuotationNo} — Software &amp; Installation</td>
+              <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081')}</td>
+              <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#929EB4')}</td>
+            </tr>
           </tbody>
           <tfoot>
-            <tr style={{ borderTop: '2px solid #D0D6DF', background: '#FAFBFC' }}>
-              <td style={{ padding: '11px 12px', fontWeight: 700, color: '#001122' }}>รวมทั้งหมด</td>
-              <td style={{ padding: '11px 12px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081')}</td>
-              <td style={{ padding: '11px 12px', textAlign: 'right' }}>{summaryAmount(totalCost, '#586782')}</td>
+            <tr style={{ borderTop: '1.5px solid #D0D6DF', background: '#F8F9FA' }}>
+              <td style={{ padding: '12px 14px', fontWeight: 700, color: '#001122' }}>รวมทั้งหมด</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081')}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalCost, '#929EB4')}</td>
             </tr>
           </tfoot>
         </table>
       </Card>
 
       {/* ─── Footer ─── */}
-      <div style={{ background: '#fff', border: '1px solid #D0D6DF', borderRadius: 14, padding: '20px 24px' }}>
+      <div style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,64,129,0.07)' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={confirmed}
-            onChange={e => setConfirmed(e.target.checked)}
-            style={{ width: 16, height: 16, accentColor: '#004081', cursor: 'pointer' }}
-          />
-          <span style={{ fontSize: 13, color: '#586782', fontWeight: 500 }}>
+          <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)}
+            style={{ width: 15, height: 15, accentColor: '#004081', cursor: 'pointer' }} />
+          <span style={{ fontSize: 13, color: '#586782', fontWeight: 500, lineHeight: 1.5 }}>
             ข้าพเจ้าขอยืนยันว่าข้อมูลข้างต้นถูกต้องและครบถ้วน
           </span>
         </label>
@@ -911,49 +767,39 @@ export function RequestFormStepper({
 
 function getDefaults(user: CurrentUser): Record<string, unknown> {
   return {
-    salesName: user.name,
-    salesEmail: user.email,
-    salesId: user.id,
-    proposalNo: '',
-    projectName: '',
+    salesName: user.name, salesEmail: user.email, salesId: user.id,
+    proposalNo: '', projectName: '',
     saleType: 'hardware',
     customerType: '',
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
     existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
     reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
-    hardwareSellingPrice: '',
-    hardwareCost: '',
-    softwareSellingPrice: '',
-    softwareCost: 0,
-    installationSellingPrice: '',
-    installationCost: 0,
+    hardwareSellingPrice: '', hardwareCost: '',
+    softwareSellingPrice: '', softwareCost: 0,
+    installationSellingPrice: '', installationCost: 0,
   }
 }
 
 function flattenRequest(req: Request): Record<string, unknown> {
-  const hw = req.quotationItems.filter(i => i.type === 'hardware')
-  const sw = req.quotationItems.find(i => i.type === 'software')
+  const hw   = req.quotationItems.filter(i => i.type === 'hardware')
+  const sw   = req.quotationItems.find(i => i.type === 'software')
   const inst = req.quotationItems.find(i => i.type === 'installation')
 
   const d: Record<string, unknown> = {
-    salesName: req.salesName,
-    salesEmail: req.salesEmail,
-    salesId: req.salesId,
-    proposalNo: req.proposalNo,
-    projectName: req.projectName,
-    saleType: req.saleType,
-    customerType: req.customerInfo.type,
+    salesName: req.salesName, salesEmail: req.salesEmail, salesId: req.salesId,
+    proposalNo: req.proposalNo, projectName: req.projectName,
+    saleType: req.saleType, customerType: req.customerInfo.type,
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
     existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
     reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
     hardwareSellingPrice: hw.reduce((s, i) => s + i.sellingPrice, 0),
-    hardwareCost: hw.reduce((s, i) => s + i.cost, 0),
+    hardwareCost:         hw.reduce((s, i) => s + i.cost, 0),
     softwareSellingPrice: sw?.sellingPrice ?? '',
-    softwareCost: sw?.cost ?? '',
+    softwareCost:         sw?.cost ?? '',
     installationSellingPrice: inst?.sellingPrice ?? '',
-    installationCost: inst?.cost ?? '',
+    installationCost:         inst?.cost ?? '',
   }
 
   const ci = req.customerInfo
@@ -961,7 +807,7 @@ function flattenRequest(req: Request): Record<string, unknown> {
     d.newCustomer = { companyName: ci.data.companyName, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
   } else if (ci.type === 'existing') {
     d.existingCustomerId = ci.data.customerId
-    d.existingCustomer = { companyName: ci.data.companyName, taxId: ci.data.taxId ?? '', defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
+    d.existingCustomer   = { companyName: ci.data.companyName, taxId: ci.data.taxId ?? '', defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
   } else if (ci.type === 'reseller') {
     d.reseller = { resellerId: ci.data.resellerId, resellerCompanyName: ci.data.resellerCompanyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, endCustomerCompanyName: ci.data.endCustomerCompanyName, endCustomerContactPerson: ci.data.endCustomerContactPerson ?? '', endCustomerPhone: ci.data.endCustomerPhone ?? '' }
   }
