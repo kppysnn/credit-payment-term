@@ -310,16 +310,15 @@ export function RequestFormStepper({
         </Alert>
       )}
 
-      {/* ─── Section 1: ข้อมูลคำขอ ─── */}
-      <Card title="ข้อมูลคำขอ">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <div style={{ maxWidth: 280 }}>
+      {/* ─── Section 1: ข้อมูลคำขอและลูกค้า ─── */}
+      <Card title="ข้อมูลคำขอและลูกค้า">
+        <div style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr)', gap: 28, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ข้อมูลคำขอ</div>
             <FormGroup label="Proposal No." required error={errors.proposalNo}>
               <Input value={String(fd.proposalNo || '')} onChange={e => update({ proposalNo: e.target.value })} placeholder="PRO-2026-001" error={errors.proposalNo} />
             </FormGroup>
-          </div>
 
-          <div style={{ maxWidth: 280 }}>
             <FormGroup label="ประเภทการขาย" required error={errors.saleType}>
               <Select value={saleType} onChange={e => update({ saleType: e.target.value })} error={errors.saleType}>
                 <option value="">— เลือกประเภท —</option>
@@ -328,14 +327,9 @@ export function RequestFormStepper({
             </FormGroup>
           </div>
 
-        </div>
-      </Card>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, borderLeft: '1px solid #D0D6DF', paddingLeft: 28, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ข้อมูลลูกค้า</div>
 
-      {/* ─── Section 2: ข้อมูลลูกค้า ─── */}
-      <Card title="ข้อมูลลูกค้า">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {/* Customer type selector */}
-          <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#586782', marginBottom: 8 }}>ประเภทลูกค้า <span style={{ color: '#F3554F' }}>*</span></div>
             <div style={{ display: 'flex', gap: 10 }}>
               {CUSTOMER_TYPES.map(type => (
@@ -350,133 +344,131 @@ export function RequestFormStepper({
               ))}
             </div>
             {errors.customerType && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 5 }}>{errors.customerType}</div>}
-          </div>
 
-          {/* ลูกค้าใหม่ */}
-          {customerType === 'new' && (
-            <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>ข้อมูลลูกค้าใหม่</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
-                <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
-                  <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
-                </FormGroup>
-                <FormGroup label="ผู้ติดต่อ">
-                  <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
-                </FormGroup>
-                <FormGroup label="เบอร์โทร">
-                  <Input value={nc.contactPhone ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
-                </FormGroup>
-              </div>
-            </div>
-          )}
-
-          {/* ลูกค้าเก่า — combobox */}
-          {customerType === 'existing' && (
-            <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>เลือกลูกค้าเก่า</div>
-              <FormGroup label="ชื่อบริษัท" required error={errors.existingCompanyName}>
-                <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'relative' }}>
-                    <Input
-                      value={String(ec.companyName ?? '')}
-                      onChange={e => onExistingType(e.target.value)}
-                      onFocus={() => openExistingDropdown()}
-                      onClick={() => openExistingDropdown()}
-                      onBlur={() => setTimeout(() => setExistingDropdownOpen(false), 150)}
-                      placeholder="เลือกลูกค้าจากรายการ หรือพิมพ์เพื่อกรอง"
-                      error={errors.existingCompanyName}
-                      style={{ paddingRight: ec.companyName ? 32 : undefined }}
-                    />
-                    {!!ec.companyName && (
-                      <button
-                        onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
-                        style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
-                  {comboDropdown(existingResults, existingDropdownOpen, selectExisting)}
+            {/* ลูกค้าใหม่ */}
+            {customerType === 'new' && (
+              <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>ข้อมูลลูกค้าใหม่</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+                  <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
+                    <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
+                  </FormGroup>
+                  <FormGroup label="ผู้ติดต่อ">
+                    <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+                  </FormGroup>
+                  <FormGroup label="เบอร์โทร">
+                    <Input value={nc.contactPhone ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                  </FormGroup>
                 </div>
-              </FormGroup>
-              {!!fd.existingCustomerId && (
-                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
-                  <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 700 }}>✓ เชื่อมกับฐานข้อมูล</span>
-                  <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</span>
-                </div>
-              )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
-                <FormGroup label="ผู้ติดต่อ">
-                  <Input value={String(ec.contactPerson ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
-                </FormGroup>
-                <FormGroup label="เบอร์โทร">
-                  <Input value={String(ec.contactPhone ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
-                </FormGroup>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Reseller — combobox */}
-          {customerType === 'reseller' && (
-            <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Reseller combobox */}
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
-                <FormGroup error={errors['res.resellerCompanyName']}>
+            {/* ลูกค้าเก่า — combobox */}
+            {customerType === 'existing' && (
+              <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>เลือกลูกค้าเก่า</div>
+                <FormGroup label="ชื่อบริษัท" required error={errors.existingCompanyName}>
                   <div style={{ position: 'relative' }}>
                     <div style={{ position: 'relative' }}>
                       <Input
-                        value={rs.resellerCompanyName ?? ''}
-                        onChange={e => onResellerType(e.target.value)}
-                        onFocus={() => openResellerDropdown()}
-                        onClick={() => openResellerDropdown()}
-                        onBlur={() => setTimeout(() => setResellerDropdownOpen(false), 150)}
-                        placeholder="เลือก Reseller จากรายการ หรือพิมพ์เพื่อกรอง"
-                        error={errors['res.resellerCompanyName']}
-                        style={{ paddingRight: rs.resellerCompanyName ? 32 : undefined }}
+                        value={String(ec.companyName ?? '')}
+                        onChange={e => onExistingType(e.target.value)}
+                        onFocus={() => openExistingDropdown()}
+                        onClick={() => openExistingDropdown()}
+                        onBlur={() => setTimeout(() => setExistingDropdownOpen(false), 150)}
+                        placeholder="เลือกลูกค้าจากรายการ หรือพิมพ์เพื่อกรอง"
+                        error={errors.existingCompanyName}
+                        style={{ paddingRight: ec.companyName ? 32 : undefined }}
                       />
-                      {rs.resellerCompanyName && (
+                      {!!ec.companyName && (
                         <button
-                          onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0 } })}
+                          onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
                           style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
                         >
                           <X size={14} />
                         </button>
                       )}
                     </div>
-                    {comboDropdown(resellerResults, resellerDropdownOpen, selectReseller)}
+                    {comboDropdown(existingResults, existingDropdownOpen, selectExisting)}
                   </div>
                 </FormGroup>
-                {rs.resellerId && (
-                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
-                    <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 700 }}>✓ เชื่อมกับฐานข้อมูล</span>
-                    <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</span>
+                {!!fd.existingCustomerId && (
+                  <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
+                    <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</span>
                   </div>
                 )}
-              </div>
-
-              {/* End Customer */}
-              <div style={{ borderTop: '1px solid #D0D6DF', paddingTop: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
-                  <FormGroup label="ชื่อบริษัทปลายทาง" required error={errors['res.endCustomerCompanyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
-                    <Input
-                      value={rs.endCustomerCompanyName ?? ''}
-                      onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })}
-                      placeholder="ชื่อบริษัทที่ Reseller จะนำสินค้าไปขายต่อ..."
-                      error={errors['res.endCustomerCompanyName']}
-                    />
-                  </FormGroup>
-                  <FormGroup label="ผู้ติดต่อปลายทาง">
-                    <Input value={rs.endCustomerContactPerson ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerContactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
+                  <FormGroup label="ผู้ติดต่อ">
+                    <Input value={String(ec.contactPerson ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
                   </FormGroup>
                   <FormGroup label="เบอร์โทร">
-                    <Input value={rs.endCustomerPhone ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                    <Input value={String(ec.contactPhone ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
                   </FormGroup>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Reseller — combobox */}
+            {customerType === 'reseller' && (
+              <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Reseller combobox */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
+                  <FormGroup error={errors['res.resellerCompanyName']}>
+                    <div style={{ position: 'relative' }}>
+                      <div style={{ position: 'relative' }}>
+                        <Input
+                          value={rs.resellerCompanyName ?? ''}
+                          onChange={e => onResellerType(e.target.value)}
+                          onFocus={() => openResellerDropdown()}
+                          onClick={() => openResellerDropdown()}
+                          onBlur={() => setTimeout(() => setResellerDropdownOpen(false), 150)}
+                          placeholder="เลือก Reseller จากรายการ หรือพิมพ์เพื่อกรอง"
+                          error={errors['res.resellerCompanyName']}
+                          style={{ paddingRight: rs.resellerCompanyName ? 32 : undefined }}
+                        />
+                        {rs.resellerCompanyName && (
+                          <button
+                            onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0 } })}
+                            style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+                      {comboDropdown(resellerResults, resellerDropdownOpen, selectReseller)}
+                    </div>
+                  </FormGroup>
+                  {rs.resellerId && (
+                    <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
+                      <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* End Customer */}
+                <div style={{ borderTop: '1px solid #D0D6DF', paddingTop: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+                    <FormGroup label="ชื่อบริษัทปลายทาง" required error={errors['res.endCustomerCompanyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
+                      <Input
+                        value={rs.endCustomerCompanyName ?? ''}
+                        onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })}
+                        placeholder="ชื่อบริษัทที่ Reseller จะนำสินค้าไปขายต่อ..."
+                        error={errors['res.endCustomerCompanyName']}
+                      />
+                    </FormGroup>
+                    <FormGroup label="ผู้ติดต่อปลายทาง">
+                      <Input value={rs.endCustomerContactPerson ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerContactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+                    </FormGroup>
+                    <FormGroup label="เบอร์โทร">
+                      <Input value={rs.endCustomerPhone ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                    </FormGroup>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </Card>
 
