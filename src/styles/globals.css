@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 @theme {
   /* EXZY CI — Primary */
   --color-navy:         #004081;
