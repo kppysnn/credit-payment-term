@@ -195,6 +195,12 @@ export function RequestFormStepper({
     update({ installments: updated })
   }
 
+  function changeInstallmentCount(next: number) {
+    const clamped = Math.max(1, Math.min(4, next))
+    setCustomPercentRows(prev => Object.fromEntries(Object.entries(prev).filter(([idx]) => Number(idx) < clamped)))
+    update({ installmentCount: clamped })
+  }
+
   function validate(): boolean {
     const e: Record<string, string> = {}
     if (!String(fd.proposalNo || '').trim()) e.proposalNo = 'กรุณาระบุ'
@@ -316,7 +322,7 @@ export function RequestFormStepper({
 
       {/* ─── Section 1: ข้อมูลคำขอและลูกค้า ─── */}
       <Card title="ข้อมูลคำขอและลูกค้า">
-        <div style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr)', gap: 28, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 28, alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ข้อมูลคำขอ</div>
             <FormGroup label="Proposal No." required error={errors.proposalNo}>
@@ -351,7 +357,7 @@ export function RequestFormStepper({
 
             {/* ลูกค้าใหม่ */}
             {customerType === 'new' && (
-              <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px' }}>
+              <div style={{ paddingTop: 2 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>ข้อมูลลูกค้าใหม่</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
                   <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
@@ -369,7 +375,7 @@ export function RequestFormStepper({
 
             {/* ลูกค้าเก่า — combobox */}
             {customerType === 'existing' && (
-              <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px' }}>
+              <div style={{ paddingTop: 2 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>เลือกลูกค้าเก่า</div>
                 <FormGroup label="ชื่อบริษัท" required error={errors.existingCompanyName}>
                   <div style={{ position: 'relative' }}>
@@ -397,9 +403,7 @@ export function RequestFormStepper({
                   </div>
                 </FormGroup>
                 {!!fd.existingCustomerId && (
-                  <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
-                    <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</span>
-                  </div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</div>
                 )}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
                   <FormGroup label="ผู้ติดต่อ">
@@ -414,7 +418,7 @@ export function RequestFormStepper({
 
             {/* Reseller — combobox */}
             {customerType === 'reseller' && (
-              <div style={{ background: '#FAFBFC', border: '1px solid #D0D6DF', borderRadius: 10, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 2 }}>
                 {/* Reseller combobox */}
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
@@ -444,9 +448,7 @@ export function RequestFormStepper({
                     </div>
                   </FormGroup>
                   {rs.resellerId && (
-                    <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(102,197,197,0.08)', border: '1px solid rgba(102,197,197,0.3)', borderRadius: 8 }}>
-                      <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</span>
-                    </div>
+                    <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
                   )}
                 </div>
 
@@ -511,7 +513,7 @@ export function RequestFormStepper({
       {/* ─── Section 4: งวดชำระ ─── */}
       <Card title="งวดชำระและ Credit Term">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ maxWidth: 220 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 18, alignItems: 'end' }}>
             <FormGroup label="Credit Term" required error={errors.creditTermDays}>
               {creditTermIsCustom ? (
                 <Input
@@ -542,20 +544,30 @@ export function RequestFormStepper({
                 <span style={{ fontSize: 11, color: '#66C5C5', marginTop: 2, fontWeight: 600 }}>{formatCreditTerm(creditTermDays)}</span>
               )}
             </FormGroup>
-          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#001122', whiteSpace: 'nowrap' }}>จำนวนงวด</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {[1, 2, 3, 4].map(n => (
-                <button key={n} onClick={() => update({ installmentCount: n })} style={{
-                  width: 38, height: 38, borderRadius: 8,
-                  border: `2px solid ${installmentCount === n ? '#004081' : '#D0D6DF'}`,
-                  background: installmentCount === n ? '#004081' : '#fff',
-                  color: installmentCount === n ? '#fff' : '#586782',
-                  fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'all 0.15s',
-                }}>{n}</button>
-              ))}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#001122', marginBottom: 5 }}>จำนวนงวด</div>
+              <div style={{ display: 'inline-grid', gridTemplateColumns: '38px 92px 38px', alignItems: 'center', border: '1px solid #D0D6DF', borderRadius: 8, overflow: 'hidden', background: '#fff', height: 38 }}>
+                <button
+                  type="button"
+                  disabled={installmentCount <= 1}
+                  onClick={() => changeInstallmentCount(installmentCount - 1)}
+                  style={{ height: 38, border: 'none', borderRight: '1px solid #D0D6DF', background: installmentCount <= 1 ? '#F2F6F8' : '#fff', color: installmentCount <= 1 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: installmentCount <= 1 ? 'default' : 'pointer' }}
+                >
+                  -
+                </button>
+                <div style={{ height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#001122' }}>
+                  {installmentCount} งวด
+                </div>
+                <button
+                  type="button"
+                  disabled={installmentCount >= 4}
+                  onClick={() => changeInstallmentCount(installmentCount + 1)}
+                  style={{ height: 38, border: 'none', borderLeft: '1px solid #D0D6DF', background: installmentCount >= 4 ? '#F2F6F8' : '#fff', color: installmentCount >= 4 ? '#C7CEDA' : '#004081', fontSize: 18, fontWeight: 700, cursor: installmentCount >= 4 ? 'default' : 'pointer' }}
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
 
