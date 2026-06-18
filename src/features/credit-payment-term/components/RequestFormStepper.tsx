@@ -78,6 +78,7 @@ export function RequestFormStepper({
   const [submitError, setSubmitError] = useState('')
   const [customPercentRows, setCustomPercentRows] = useState<Record<number, boolean>>({})
   const [customCreditTerm, setCustomCreditTerm] = useState(false)
+  const [creditTermDropdownOpen, setCreditTermDropdownOpen] = useState(false)
 
   const fd = formData
   const saleType = String(fd.saleType || '') as SaleType
@@ -118,7 +119,6 @@ export function RequestFormStepper({
   const pctOk = Math.abs(totalPct - 100) < 0.01
   const creditTermDays = numVal(fd.creditTermDays)
   const creditTermIsCustom = customCreditTerm || (fd.creditTermDays !== '' && !CREDIT_TERM_PRESETS.includes(creditTermDays))
-  const creditTermPresetValue = fd.creditTermDays === '' ? '' : (CREDIT_TERM_PRESETS.includes(creditTermDays) ? String(creditTermDays) : 'custom')
 
   function update(patch: Record<string, unknown>) {
     setFormData(prev => ({ ...prev, ...patch }))
@@ -513,32 +513,68 @@ export function RequestFormStepper({
       <Card title="งวดชำระและ Credit Term">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 18, alignItems: 'start' }}>
-            <FormGroup label="Credit Term" required error={errors.creditTermDays}>
-              {creditTermIsCustom ? (
+            <FormGroup label="Credit Term" required error={errors.creditTermDays} style={{ width: 168 }}>
+              <div
+                style={{ position: 'relative', width: 168 }}
+                onBlur={e => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setCreditTermDropdownOpen(false)
+                }}
+              >
                 <Input
-                  type="number"
-                  min="0"
+                  type="text"
+                  inputMode="numeric"
                   value={String(fd.creditTermDays ?? '')}
-                  onChange={e => update({ creditTermDays: e.target.value !== '' ? Number(e.target.value) : '' })}
-                  placeholder="ระบุเอง"
-                  error={errors.creditTermDays}
-                />
-              ) : (
-                <Select
-                  value={creditTermPresetValue}
+                  onFocus={() => setCreditTermDropdownOpen(true)}
                   onChange={e => {
-                    const isCustom = e.target.value === 'custom'
-                    setCustomCreditTerm(isCustom)
-                    update({ creditTermDays: isCustom || e.target.value === '' ? '' : Number(e.target.value) })
+                    const nextValue = e.target.value.replace(/\D/g, '')
+                    const nextDays = nextValue === '' ? '' : Number(nextValue)
+                    setCustomCreditTerm(nextDays === '' || !CREDIT_TERM_PRESETS.includes(nextDays))
+                    update({ creditTermDays: nextDays })
                   }}
+                  placeholder={creditTermIsCustom ? 'ระบุเอง' : 'เลือกวัน'}
                   error={errors.creditTermDays}
-                  style={selectStyle}
+                  style={{ paddingRight: 38 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setCreditTermDropdownOpen(open => !open)}
+                  style={{ position: 'absolute', top: 1, right: 1, width: 36, height: 36, border: 'none', borderLeft: '1px solid #E2E8F0', borderRadius: '0 7px 7px 0', background: '#fff', color: '#4A5568', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}
+                  aria-label="เลือก Credit Term"
                 >
-                  <option value="">— เลือกวัน —</option>
-                  {CREDIT_TERM_PRESETS.map(days => <option key={days} value={days}>{days} วัน</option>)}
-                  <option value="custom">ระบุเอง</option>
-                </Select>
-              )}
+                  ˅
+                </button>
+                {creditTermDropdownOpen && (
+                  <div style={{ position: 'absolute', zIndex: 5, top: 42, left: 0, width: 168, maxHeight: 220, overflowY: 'auto', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 8px 20px rgba(0, 64, 129, 0.14)' }}>
+                    {CREDIT_TERM_PRESETS.map(days => (
+                      <button
+                        key={days}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => {
+                          setCustomCreditTerm(false)
+                          update({ creditTermDays: days })
+                          setCreditTermDropdownOpen(false)
+                        }}
+                        style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', borderBottom: '1px solid #F2F6F8', background: Number(fd.creditTermDays) === days ? '#F2F8FF' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        {days} วัน
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => {
+                        setCustomCreditTerm(true)
+                        update({ creditTermDays: '' })
+                        setCreditTermDropdownOpen(false)
+                      }}
+                      style={{ display: 'block', width: '100%', padding: '9px 12px', border: 'none', background: creditTermIsCustom ? '#F2F8FF' : '#fff', color: '#1A202C', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      ระบุเอง
+                    </button>
+                  </div>
+                )}
+              </div>
               {fd.creditTermDays !== '' && fd.creditTermDays !== undefined && (
                 <span style={{ fontSize: 11, color: '#66C5C5', marginTop: 2, fontWeight: 600 }}>{formatCreditTerm(creditTermDays)}</span>
               )}
