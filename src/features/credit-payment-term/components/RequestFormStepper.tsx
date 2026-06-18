@@ -118,6 +118,29 @@ export function RequestFormStepper({
   const pctOk = Math.abs(totalPct - 100) < 0.01
   const creditTermDays = numVal(fd.creditTermDays)
   const creditTermIsCustom = customCreditTerm || (fd.creditTermDays !== '' && !CREDIT_TERM_PRESETS.includes(creditTermDays))
+  const requestMissing: string[] = []
+  if (!proposalNo.trim()) requestMissing.push('Proposal No.')
+  if (!saleType) requestMissing.push('ประเภทการขาย')
+  if (!customerType) requestMissing.push('ประเภทลูกค้า')
+  if (customerType === 'new' && !nc?.companyName?.trim()) requestMissing.push('ชื่อลูกค้า')
+  if (customerType === 'existing' && !String(ec.companyName || '').trim()) requestMissing.push('ชื่อลูกค้า')
+  if (customerType === 'reseller') {
+    if (!rs?.resellerCompanyName?.trim()) requestMissing.push('Reseller')
+    if (!rs?.endCustomerCompanyName?.trim()) requestMissing.push('ลูกค้าปลายทาง')
+  }
+  const quoteMissing = numVal(fd.hardwareSellingPrice) > 0 ? [] : ['ราคาขาย Hardware']
+  const paymentMissing: string[] = []
+  if (numVal(fd.creditTermDays) < 0 || fd.creditTermDays === '') paymentMissing.push('Credit Term')
+  if (installments.slice(0, installmentCount).some(row => !row.installmentPercent)) paymentMissing.push('สัดส่วนงวด')
+  if (!pctOk) paymentMissing.push('รวมสัดส่วน 100%')
+  const sectionStatuses = [
+    { no: 1, title: 'ข้อมูลคำขอและลูกค้า', missing: requestMissing },
+    { no: 2, title: 'ใบเสนอราคา', missing: quoteMissing },
+    { no: 3, title: 'งวดชำระและ Credit Term', missing: paymentMissing },
+    { no: 4, title: 'สรุปรวมทั้งหมด', missing: totalSelling > 0 ? [] : ['ยอดรวม'] },
+  ]
+  const completedSections = sectionStatuses.filter(section => section.missing.length === 0).length
+  const readyToSubmit = completedSections === sectionStatuses.length
 
   function update(patch: Record<string, unknown>) {
     setFormData(prev => ({ ...prev, ...patch }))
@@ -299,6 +322,7 @@ export function RequestFormStepper({
       {formatCurrency(value)}
     </span>
   )
+  const readinessText = (missing: string[]) => missing.length === 0 ? 'เรียบร้อย' : `ยังขาด: ${missing.join(', ')}`
   const quotationHeader = (quotationNo: string, groupLabel: string, color: string) => (
     <div style={{ background: color, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 15, fontWeight: 800, color: '#fff' }}>
@@ -323,7 +347,7 @@ export function RequestFormStepper({
       )}
 
       {/* ─── Section 1: ข้อมูลคำขอและลูกค้า ─── */}
-      <Card title="ข้อมูลคำขอและลูกค้า">
+      <Card title="1. ข้อมูลคำขอและลูกค้า">
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 28, alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em' }}>ข้อมูลคำขอ</div>
@@ -480,8 +504,8 @@ export function RequestFormStepper({
         </div>
       </Card>
 
-      {/* ─── Section 3: ราคา ─── */}
-      <Card title="ราคาขายและต้นทุน / ใบเสนอราคา">
+      {/* ─── Section 2: ราคา ─── */}
+      <Card title="2. ราคาขายและต้นทุน / ใบเสนอราคา">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           {/* Hardware group */}
@@ -512,8 +536,8 @@ export function RequestFormStepper({
         </div>
       </Card>
 
-      {/* ─── Section 4: งวดชำระ ─── */}
-      <Card title="งวดชำระและ Credit Term">
+      {/* ─── Section 3: งวดชำระ ─── */}
+      <Card title="3. งวดชำระและ Credit Term">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <FormGroup label="Credit Term" required error={errors.creditTermDays} style={{ width: 168 }}>
@@ -712,8 +736,8 @@ export function RequestFormStepper({
         </div>
       </Card>
 
-      {/* ─── Section 5: สรุปรวมทั้งหมด ─── */}
-      <Card title="สรุปรวมทั้งหมด" noPad>
+      {/* ─── Section 4: สรุปรวมทั้งหมด ─── */}
+      <Card title="4. สรุปรวมทั้งหมด" noPad>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
@@ -744,8 +768,37 @@ export function RequestFormStepper({
         </table>
       </Card>
 
-      {/* ─── ยืนยันและส่ง ─── */}
+      {/* ─── Section 5: ตรวจความพร้อมและส่ง ─── */}
       <div style={{ background: '#fff', border: '1px solid #D0D6DF', borderRadius: 14, padding: '20px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#001122' }}>5. ตรวจความพร้อมและส่ง</div>
+            <div style={{ marginTop: 4, fontSize: 12, color: '#586782' }}>
+              {readyToSubmit ? 'ข้อมูลหลักครบแล้ว พร้อมส่งขออนุมัติ' : `พร้อมแล้ว ${completedSections}/${sectionStatuses.length} ส่วน`}
+            </div>
+          </div>
+          <div style={{ minWidth: 86, textAlign: 'right', fontSize: 20, fontWeight: 800, color: readyToSubmit ? '#008A7A' : '#F3554F', fontFamily: 'JetBrains Mono, monospace' }}>
+            {completedSections}/{sectionStatuses.length}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginBottom: 14 }}>
+          {sectionStatuses.map(section => {
+            const done = section.missing.length === 0
+            return (
+              <div key={section.no} style={{ border: `1px solid ${done ? '#BFE7DF' : '#F6C3C0'}`, borderRadius: 8, padding: '9px 10px', background: done ? '#F2FBF8' : '#FFF8F7', minHeight: 74 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
+                  <span style={{ width: 20, height: 20, borderRadius: '50%', background: done ? '#66C5C5' : '#F3554F', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
+                    {section.no}
+                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#001122', lineHeight: 1.25 }}>{section.title}</span>
+                </div>
+                <div style={{ fontSize: 11, lineHeight: 1.35, color: done ? '#008A7A' : '#B8322C', fontWeight: 600 }}>
+                  {readinessText(section.missing)}
+                </div>
+              </div>
+            )
+          })}
+        </div>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
