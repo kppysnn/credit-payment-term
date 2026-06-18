@@ -159,7 +159,7 @@ export function PaymentCreditTermStep({ data, onChange, onNext, onBack }: Props)
                       min="0"
                       value={row.creditTermDays}
                       onChange={e => updateRow(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : '')}
-                      placeholder="0 = COD"
+                      placeholder="ระบุจำนวนวัน"
                       error={errors[`inst${i}.days`]}
                     />
                     {row.creditTermDays !== '' && (

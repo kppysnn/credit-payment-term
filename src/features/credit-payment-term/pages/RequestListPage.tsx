@@ -110,7 +110,7 @@ export function RequestListPage() {
                     </td>
                     <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#001122' }}>{formatCurrency(req.totalSelling)}</td>
                     <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: req.grossProfit < 0 ? '#F3554F' : '#001122' }}>{formatCurrency(req.grossProfit)}</td>
-                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap', color: '#505050' }}>{req.maxCreditTerm === 0 ? 'COD' : `Net ${req.maxCreditTerm}`}</td>
+                    <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap', color: '#505050' }}>Net {req.maxCreditTerm}</td>
                     <td style={{ padding: '11px 14px', verticalAlign: 'middle', textAlign: 'center', color: '#505050' }}>{req.installmentCount}</td>
                     <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}><StatusBadge status={req.status} size="sm" /></td>
                     <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontSize: 12, color: '#586782', whiteSpace: 'nowrap' }}>{req.salesName}</td>

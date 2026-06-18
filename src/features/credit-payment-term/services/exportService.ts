@@ -98,7 +98,7 @@ function buildPrintHTML(req: Request): string {
   <div class="section">
     <div class="section-title">4. ตาราง Payment Schedule</div>
     <div class="grid2" style="margin-bottom:8px">
-      <div><div class="field-label">Credit Term</div><div class="field-val">${creditTermDays === 0 ? 'COD' : `Net ${creditTermDays}`}</div></div>
+      <div><div class="field-label">Credit Term</div><div class="field-val">Net ${creditTermDays}</div></div>
       <div><div class="field-label">เงื่อนไขการชำระ</div><div class="field-val">${paymentCondition}</div></div>
     </div>
     <table>

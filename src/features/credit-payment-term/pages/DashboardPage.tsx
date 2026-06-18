@@ -219,7 +219,7 @@ export function DashboardPage() {
                     <td style={{ padding: '11px 14px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#505050' }}>{req.customerName}</td>
                     <td style={{ padding: '11px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#001122' }}>{formatCurrency(req.totalSelling)}</td>
                     <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', color: '#505050' }}>
-                      {req.maxCreditTerm === 0 ? 'COD' : `Net ${req.maxCreditTerm}`}
+                      Net {req.maxCreditTerm}
                     </td>
                     <td style={{ padding: '11px 14px' }}><StatusBadge status={req.status} size="sm" /></td>
                     <td style={{ padding: '11px 14px', color: '#929EB4', fontSize: 12, whiteSpace: 'nowrap' }}>{formatDate(req.updatedAt)}</td>

@@ -323,7 +323,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <Input type="number" min="0" value={row.creditTermDays}
                           onChange={e => updateInst(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : 0)}
-                          placeholder="0 = COD" style={{ width: 80, textAlign: 'right' }} />
+                          placeholder="วัน" style={{ width: 80, textAlign: 'right' }} />
                         <span style={{ color: '#586782', fontSize: 12, whiteSpace: 'nowrap' }}>วัน</span>
                         {numVal(row.creditTermDays) > 0 && (
                           <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 600 }}>{formatCreditTerm(numVal(row.creditTermDays))}</span>
