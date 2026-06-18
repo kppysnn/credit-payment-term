@@ -235,7 +235,7 @@ export function RequestFormStepper({
     visible: boolean,
     onSelect: (c: Customer) => void,
   ) => visible && (
-    <div style={{ position: 'absolute', zIndex: 30, width: '100%', top: '100%', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 4px 14px rgba(0,64,129,0.12)', overflow: 'hidden', marginTop: 2 }}>
+    <div style={{ position: 'relative', zIndex: 1, width: '100%', background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 4px 14px rgba(0,64,129,0.12)', overflowY: 'auto', maxHeight: 220, marginTop: 6 }}>
       {results.length > 0 ? results.map(c => (
         <button key={c.id}
           onMouseDown={e => { e.preventDefault(); onSelect(c) }}
@@ -321,12 +321,23 @@ export function RequestFormStepper({
 
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#586782', marginBottom: 8 }}>ประเภทการขาย <span style={{ color: '#F3554F' }}>*</span></div>
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'inline-grid', gridTemplateColumns: '1fr 1fr', gap: 2, padding: 3, border: '1px solid #D0D6DF', borderRadius: 10, background: '#F2F6F8' }}>
               {SALE_TYPES.map(t => (
-                <label key={t.value} style={{ flex: 1, ...radioCard(saleType === t.value) }}>
+                <label key={t.value} style={{
+                  minWidth: 128,
+                  padding: '8px 14px',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  background: saleType === t.value ? '#004081' : 'transparent',
+                  color: saleType === t.value ? '#fff' : '#586782',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  textAlign: 'center',
+                  transition: 'all 0.15s',
+                }}>
                   <input type="radio" name="saleType" value={t.value} checked={saleType === t.value}
-                    onChange={() => update({ saleType: t.value })} style={{ accentColor: '#004081', flexShrink: 0 }} />
-                  <span style={{ fontWeight: 600, fontSize: 13, color: saleType === t.value ? '#004081' : '#001122' }}>{t.label}</span>
+                    onChange={() => update({ saleType: t.value })} style={{ display: 'none' }} />
+                  {t.label}
                 </label>
               ))}
             </div>
@@ -581,6 +592,17 @@ export function RequestFormStepper({
                   </button>
                 )
               })}
+              <button type="button"
+                onClick={() => {
+                  setCustomPercentRows(Object.fromEntries(Array.from({ length: installmentCount }, (_, idx) => [idx, true])))
+                }}
+                style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  border: '1.5px dashed #586782',
+                  background: Object.values(customPercentRows).some(Boolean) ? '#586782' : '#fff',
+                  color: Object.values(customPercentRows).some(Boolean) ? '#fff' : '#586782' }}
+              >
+                ระบุเอง
+              </button>
             </div>
           </div>
 
