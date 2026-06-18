@@ -83,7 +83,6 @@ export function RequestFormStepper({
   const totalCost    = hwCost    + (showSw ? swCost    + instCost    : 0)
 
   const totalPct = calcTotalInstallmentPercent(installments.slice(0, installmentCount))
-  const maxCreditTerm = installments.slice(0, installmentCount).reduce((m, i) => Math.max(m, numVal(i.creditTermDays)), 0)
   const pctOk = Math.abs(totalPct - 100) < 0.01
 
   function update(patch: Record<string, unknown>) {
@@ -341,6 +340,14 @@ export function RequestFormStepper({
                   <span style={{ fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</span>
                 </div>
               )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
+                <FormGroup label="ผู้ติดต่อ">
+                  <Input value={String(ec.contactPerson ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+                </FormGroup>
+                <FormGroup label="เบอร์โทร">
+                  <Input value={String(ec.contactPhone ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                </FormGroup>
+              </div>
             </div>
           )}
 
@@ -476,9 +483,10 @@ export function RequestFormStepper({
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {installments.slice(0, installmentCount).map((row, i) => {
-              const amount = totalSelling > 0 && numVal(row.installmentPercent) > 0
-                ? calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)) : 0
               const pct = numVal(row.installmentPercent)
+              const q1Amt = hwSelling > 0 && pct > 0 ? calcInstallmentAmount(hwSelling, pct) : 0
+              const q2Amt = showSw && (swSelling + instSelling) > 0 && pct > 0 ? calcInstallmentAmount(swSelling + instSelling, pct) : 0
+              const totalAmt = q1Amt + q2Amt
               return (
                 <div key={i} style={{ background: '#FAFBFC', border: `1px solid ${(errors[`inst${i}.pct`] || errors[`inst${i}.cond`]) ? '#F3554F' : '#D0D6DF'}`, borderRadius: 10, overflow: 'hidden' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '28px 80px 1fr 1fr auto', gap: '0 10px', alignItems: 'center', padding: '10px 14px' }}>
@@ -510,11 +518,11 @@ export function RequestFormStepper({
                         ))}
                       </Select>
                     </FormGroup>
-                    {amount > 0 && (
-                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', whiteSpace: 'nowrap', paddingLeft: 4 }}>
-                        {formatCurrency(amount)}
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, minWidth: 100 }}>
+                      {showSw && q1Amt > 0 && <div style={{ fontSize: 11, color: '#586782' }}>Q1 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#004081' }}>{formatCurrency(q1Amt)}</span></div>}
+                      {showSw && q2Amt > 0 && <div style={{ fontSize: 11, color: '#586782' }}>Q2 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#004081' }}>{formatCurrency(q2Amt)}</span></div>}
+                      {totalAmt > 0 && <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: showSw ? 12 : 13, fontWeight: 700, color: '#004081', borderTop: showSw ? '1px solid #D0D6DF' : 'none', paddingTop: showSw ? 2 : 0 }}>{formatCurrency(totalAmt)}</div>}
+                    </div>
                   </div>
                   {/* Preset % chips */}
                   <div style={{ display: 'flex', gap: 6, padding: '6px 14px 10px', flexWrap: 'wrap' }}>
@@ -535,13 +543,30 @@ export function RequestFormStepper({
             })}
           </div>
 
-          <div style={{ display: 'flex', gap: 20, padding: '10px 14px', background: pctOk && installmentCount > 0 ? 'rgba(102,197,197,0.08)' : 'rgba(243,85,79,0.06)', border: `1px solid ${pctOk && installmentCount > 0 ? '#66C5C5' : '#F3554F'}`, borderRadius: 8, fontSize: 13 }}>
-            <span>รวม: <strong style={{ color: pctOk ? '#66C5C5' : '#F3554F' }}>{totalPct.toFixed(0)}%</strong>{pctOk ? ' ✓' : ' ⚠'}</span>
-            <span style={{ color: '#929EB4' }}>·</span>
-            <span>Max Credit Term: <strong>{formatCreditTerm(maxCreditTerm)}</strong></span>
-            {totalSelling > 0 && <><span style={{ color: '#929EB4' }}>·</span><span>Total: <strong>{formatCurrency(totalSelling)}</strong></span></>}
-          </div>
-          {errors.totalPct && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 4 }}>{errors.totalPct}</div>}
+          {/* Grand total summary — Q1/Q2 breakdown */}
+          {totalSelling > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: showSw ? '1fr 1fr 1fr' : '1fr', gap: 12, padding: '12px 14px', background: '#F2F6F8', borderRadius: 8, border: '1px solid #D0D6DF' }}>
+              {showSw && (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Q1 Hardware</div>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#004081', fontSize: 14 }}>{formatCurrency(hwSelling)}</div>
+                </div>
+              )}
+              {showSw && (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Q2 SW &amp; Inst</div>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#004081', fontSize: 14 }}>{formatCurrency(swSelling + instSelling)}</div>
+                </div>
+              )}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: '#586782', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>ยอดรวม</div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#004081', fontSize: showSw ? 16 : 14 }}>{formatCurrency(totalSelling)}</div>
+              </div>
+            </div>
+          )}
+          {!pctOk && installmentCount > 0 && (
+            <div style={{ fontSize: 12, color: '#F3554F' }}>⚠ รวม {totalPct.toFixed(1)}% ≠ 100% — กรุณาตรวจสอบ</div>
+          )}
         </div>
       </Card>
 
