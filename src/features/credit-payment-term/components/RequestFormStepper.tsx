@@ -55,10 +55,14 @@ const INSTALLMENT_PRESETS: Record<number, Array<{ label: string; percents: numbe
 
 function numVal(v: unknown): number { return Number(v) || 0 }
 
-/* ── Segment button styles (type selectors) ── */
+/* ── Radio selection card styles ── */
 function segBtn(active: boolean): React.CSSProperties {
   return {
-    padding: '8px 20px',
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '12px 16px',
     borderRadius: 8,
     fontSize: 13,
     fontWeight: 600,
@@ -69,8 +73,22 @@ function segBtn(active: boolean): React.CSSProperties {
       : '#fff',
     color: active ? '#004081' : '#929EB4',
     transition: 'border-color 0.15s, color 0.15s, background 0.15s',
-    boxShadow: active ? '0 1px 4px rgba(102,197,197,0.18)' : 'none',
+    boxShadow: active ? '0 1px 5px rgba(102,197,197,0.2)' : 'none',
+    textAlign: 'left',
   }
+}
+
+function RadioDot({ active }: { active: boolean }) {
+  return (
+    <span style={{
+      width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
+      border: active ? '2px solid #66C5C5' : '2px solid #C7CEDA',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      transition: 'border-color 0.15s',
+    }}>
+      {active && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#004081' }} />}
+    </span>
+  )
 }
 
 export function RequestFormStepper({
@@ -565,6 +583,7 @@ export function RequestFormStepper({
             <div style={{ display: 'flex', gap: 8 }}>
               {SALE_TYPES.map(t => (
                 <button key={t.value} type="button" onClick={() => update({ saleType: t.value })} style={segBtn(saleType === t.value)}>
+                  <RadioDot active={saleType === t.value} />
                   {t.label}
                 </button>
               ))}
@@ -586,6 +605,7 @@ export function RequestFormStepper({
                 <button key={type} type="button"
                   onClick={() => { update({ customerType: type }); setExistingDropdownOpen(false); setResellerDropdownOpen(false) }}
                   style={segBtn(customerType === type)}>
+                  <RadioDot active={customerType === type} />
                   {CUSTOMER_TYPE_LABELS[type]}
                 </button>
               ))}
