@@ -142,9 +142,6 @@ export function RequestFormStepper({
   const completedSections = sectionStatuses.filter(section => section.missing.length === 0).length
   const readyToSubmit = completedSections === sectionStatuses.length
   const readinessCompleted = readyToSubmit ? 5 : completedSections
-  const readinessMissingText = sectionStatuses
-    .flatMap(section => section.missing.map(item => `${section.no}.${item}`))
-    .join(', ')
 
   function update(patch: Record<string, unknown>) {
     setFormData(prev => ({ ...prev, ...patch }))
@@ -776,10 +773,7 @@ export function RequestFormStepper({
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <div style={{ fontSize: 11, color: readyToSubmit ? '#008A7A' : '#929EB4', lineHeight: 1.4, minWidth: 0 }}>
-            <span style={{ fontWeight: 800, fontFamily: 'JetBrains Mono, monospace' }}>5. พร้อม {readinessCompleted}/5</span>
-            {!readyToSubmit && readinessMissingText && (
-              <span style={{ color: '#B8322C' }}> · ขาด: {readinessMissingText}</span>
-            )}
+            <span style={{ fontWeight: 800, fontFamily: 'JetBrains Mono, monospace' }}>5. {readinessCompleted}/5</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
           <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
