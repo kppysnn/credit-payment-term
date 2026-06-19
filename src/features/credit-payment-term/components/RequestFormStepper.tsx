@@ -332,8 +332,8 @@ export function RequestFormStepper({
   const quotationHeader = (quotationNo: string, groupLabel: string, gradient: string) => (
     <div style={{ background: gradient, padding: '11px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
       <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>Quotation No.</span>
-        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.85)' }}>
+        <span style={{ fontSize: 12, fontWeight: 800, color: '#fff' }}>Quotation No.</span>
+        <span style={{ fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.85)' }}>
           {quotationNo}
         </span>
       </span>
