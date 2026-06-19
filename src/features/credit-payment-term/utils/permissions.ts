@@ -18,7 +18,7 @@ export function canViewRequest(user: CurrentUser, req: Request): boolean {
 export function canEditRequest(user: CurrentUser, req: Request): boolean {
   if (user.role !== 'sales') return false
   if (req.salesId !== user.id) return false
-  return req.status === 'draft' || req.status === 'rejected'
+  return req.status === 'draft' || req.status === 'rejected' || req.status === 'pending'
 }
 
 export function canSubmitRequest(user: CurrentUser, req: Request): boolean {
@@ -55,7 +55,7 @@ export function isReadOnly(user: CurrentUser, req: Request): boolean {
   if (user.role === 'accounting') return true
   if (user.role === 'approver') return true
   if (user.role === 'sales') {
-    const editableStatuses: RequestStatus[] = ['draft', 'rejected']
+    const editableStatuses: RequestStatus[] = ['draft', 'rejected', 'pending']
     return !editableStatuses.includes(req.status)
   }
   return true

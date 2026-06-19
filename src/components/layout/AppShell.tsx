@@ -3,7 +3,6 @@ import { Sidebar } from './Sidebar'
 import { RoleSwitcher } from './RoleSwitcher'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Dashboard',
   '/requests': 'รายการคำขอ',
   '/requests/new': 'สร้างคำขออนุมัติใหม่',
 }

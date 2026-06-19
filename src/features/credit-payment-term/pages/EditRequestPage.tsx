@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
-import { getRequestById, saveDraft, resubmitRequest, submitRequest } from '../services/creditTermService'
+import { getRequestById, saveDraft, resubmitRequest, submitRequest, updatePendingRequest } from '../services/creditTermService'
 import type { Request, QuotationItem, PaymentInstallment, SaleType } from '../types/request'
 import type { RequestCustomerInfo } from '../types/customer'
 import { RequestFormStepper } from '../components/RequestFormStepper'
@@ -103,6 +103,7 @@ export function EditRequestPage() {
   )
 
   const isResubmit = req.status === 'rejected'
+  const isPendingEdit = req.status === 'pending'
 
   async function handleSaveDraft(data: Record<string, unknown>) {
     if (!id) return
@@ -113,11 +114,12 @@ export function EditRequestPage() {
 
   async function handleSubmit(data: Record<string, unknown>) {
     if (!id) return
+    const patch = buildPatch(data, currentUser)
     if (isResubmit) {
-      const patch = buildPatch(data, currentUser)
       await resubmitRequest(id, patch, currentUser)
+    } else if (isPendingEdit) {
+      await updatePendingRequest(id, patch, currentUser)
     } else {
-      const patch = buildPatch(data, currentUser)
       await saveDraft(id, patch, currentUser)
       await submitRequest(id, currentUser)
     }
@@ -127,7 +129,7 @@ export function EditRequestPage() {
   return (
     <div>
       <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700 }}>
-        {isResubmit ? 'แก้ไขและส่งขออนุมัติอีกครั้ง' : 'แก้ไขคำขอ'} — {req.requestNo}
+        {isResubmit ? 'แก้ไขและส่งขออนุมัติอีกครั้ง' : isPendingEdit ? 'แก้ไขคำขอที่รออนุมัติ' : 'แก้ไขคำขอ'} — {req.requestNo}
       </h1>
       <RequestFormStepper
         initialRequest={req}
@@ -136,6 +138,7 @@ export function EditRequestPage() {
         onSubmit={handleSubmit}
         onResubmit={handleSubmit}
         isResubmit={isResubmit}
+        isPendingEdit={isPendingEdit}
       />
     </div>
   )

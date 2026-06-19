@@ -194,6 +194,36 @@ export async function resubmitRequest(id: string, data: Partial<Request>, actor:
   return updated
 }
 
+export async function updatePendingRequest(id: string, data: Partial<Request>, actor: CurrentUser): Promise<Request> {
+  await _delay()
+  const existing = getMockRequestById(id)
+  if (!existing) throw new Error('Request not found')
+  if (existing.status !== 'pending') throw new Error('Only pending requests can be updated this way')
+  const now = new Date().toISOString()
+  const newVersion = existing.version + 1
+  const entry: ApprovalHistoryEntry = {
+    historyId: generateId('h'),
+    requestId: id,
+    version: newVersion,
+    action: 'edited',
+    actorEmail: actor.email,
+    actorName: actor.name,
+    fromStatus: 'pending',
+    toStatus: 'pending',
+    createdAt: now,
+  }
+  const updated: Request = {
+    ...existing,
+    ...data,
+    status: 'pending',
+    version: newVersion,
+    updatedAt: now,
+    history: [...existing.history, entry],
+  }
+  saveMockRequest(updated)
+  return updated
+}
+
 export async function approveRequest(id: string, comment: string, actor: CurrentUser): Promise<Request> {
   await _delay()
   const existing = getMockRequestById(id)

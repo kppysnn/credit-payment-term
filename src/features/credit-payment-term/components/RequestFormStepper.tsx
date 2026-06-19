@@ -21,6 +21,7 @@ interface Props {
   onSubmit: (data: Record<string, unknown>) => Promise<void>
   onResubmit?: (data: Record<string, unknown>) => Promise<void>
   isResubmit?: boolean
+  isPendingEdit?: boolean
 }
 
 const SALE_TYPES = [
@@ -98,7 +99,7 @@ function RadioDot({ active }: { active: boolean }) {
 }
 
 export function RequestFormStepper({
-  initialRequest, currentUser, onSaveDraft, onSubmit, onResubmit, isResubmit = false,
+  initialRequest, currentUser, onSaveDraft, onSubmit, onResubmit, isResubmit = false, isPendingEdit = false,
 }: Props) {
   const req = initialRequest
 
@@ -293,8 +294,8 @@ export function RequestFormStepper({
       <thead>
         <tr>
           <th style={{ width: 120 }} />
-          <th style={{ padding: '0 16px 4px 0', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#586782' }}>ราคาขาย (THB)</th>
-          <th style={{ padding: '0 0 4px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#586782' }}>ราคาทุน (THB)</th>
+          <th style={{ padding: '0 16px 4px 0', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#586782' }}>ราคาทุน (THB)</th>
+          <th style={{ padding: '0 0 4px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#586782' }}>ราคาขาย (THB)</th>
         </tr>
       </thead>
       <tbody>
@@ -304,6 +305,17 @@ export function RequestFormStepper({
             <tr key={spKey}>
               <td style={{ padding: '8px 0', fontSize: 13, fontWeight: 600, color: '#001122' }}>{label}</td>
               <td style={{ padding: '8px 16px 8px 0', verticalAlign: 'top' }}>
+                <Input type="text" inputMode="numeric"
+                  value={formatThousands(fd[costKey])}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/\D/g, '')
+                    update({ [costKey]: digits ? Number(digits) : '' })
+                  }}
+                  placeholder="0"
+                  style={{ textAlign: 'right' }}
+                />
+              </td>
+              <td style={{ padding: '8px 0', verticalAlign: 'top' }}>
                 <Input type="text" inputMode="numeric"
                   value={formatThousands(fd[spKey])}
                   onChange={e => {
@@ -315,17 +327,6 @@ export function RequestFormStepper({
                   error={sellError}
                 />
                 {sellError && <div style={{ marginTop: 4, fontSize: 12, color: '#F3554F' }}>{sellError}</div>}
-              </td>
-              <td style={{ padding: '8px 0', verticalAlign: 'top' }}>
-                <Input type="text" inputMode="numeric"
-                  value={formatThousands(fd[costKey])}
-                  onChange={e => {
-                    const digits = e.target.value.replace(/\D/g, '')
-                    update({ [costKey]: digits ? Number(digits) : '' })
-                  }}
-                  placeholder="0"
-                  style={{ textAlign: 'right' }}
-                />
               </td>
             </tr>
           )
@@ -341,15 +342,12 @@ export function RequestFormStepper({
   )
 
   const quotationHeader = (quotationNo: string, groupLabel: string, gradient: string) => (
-    <div style={{ background: gradient, padding: '11px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-      <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span style={{ fontSize: 12, fontWeight: 500, color: '#fff' }}>Quotation No.</span>
-        <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.01em', color: 'rgba(255,255,255,0.85)' }}>
-          {quotationNo}
-        </span>
-      </span>
-      <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+    <div style={{ background: gradient, padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>
         {groupLabel}
+      </span>
+      <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>
+        {quotationNo}
       </span>
     </div>
   )
@@ -625,10 +623,10 @@ export function RequestFormStepper({
           <span style={{ fontSize: 13, color: '#586782', fontWeight: 700 }}>รวม {summaryLabel}</span>
           <span style={{ display: 'flex', gap: 24 }}>
             <span style={{ fontSize: 12, color: '#929EB4', fontWeight: 600 }}>
-              ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
+              ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 700, color: '#586782' }}>{formatCurrency(costTotal)}</span>
             </span>
             <span style={{ fontSize: 12, color: '#929EB4', fontWeight: 600 }}>
-              ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 700, color: '#586782' }}>{formatCurrency(costTotal)}</span>
+              ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
             </span>
           </span>
         </div>
@@ -826,8 +824,8 @@ export function RequestFormStepper({
           <thead>
             <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
               <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายการ</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย</th>
               <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาทุน</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย</th>
             </tr>
           </thead>
           <tbody>
@@ -836,23 +834,23 @@ export function RequestFormStepper({
                 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{hwQuotationNo}</span>
                 <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Hardware</span>
               </td>
-              <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hwSelling, '#004081')}</td>
               <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hwCost, '#929EB4')}</td>
+              <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hwSelling, '#004081')}</td>
             </tr>
             <tr>
               <td style={{ padding: '11px 14px' }}>
                 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{swQuotationNo}</span>
                 <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Software &amp; Installation</span>
               </td>
-              <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081')}</td>
               <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#929EB4')}</td>
+              <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081')}</td>
             </tr>
           </tbody>
           <tfoot>
             <tr style={{ borderTop: '1.5px solid #D0D6DF', background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
               <td style={{ padding: '12px 14px', fontWeight: 700, color: '#001122' }}>รวมทั้งหมด</td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081')}</td>
               <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalCost, '#929EB4')}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081')}</td>
             </tr>
           </tfoot>
         </table>
@@ -870,11 +868,13 @@ export function RequestFormStepper({
             </span>
           </label>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-            <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
-              บันทึกแบบร่าง
-            </Button>
+            {!isPendingEdit && (
+              <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
+                บันทึกแบบร่าง
+              </Button>
+            )}
             <Button icon={<Send size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading || !confirmed}>
-              {isResubmit ? 'ส่งขออนุมัติอีกครั้ง' : 'ส่งขออนุมัติ'}
+              {isPendingEdit ? 'บันทึกการแก้ไข' : isResubmit ? 'ส่งขออนุมัติอีกครั้ง' : 'ส่งขออนุมัติ'}
             </Button>
           </div>
         </div>

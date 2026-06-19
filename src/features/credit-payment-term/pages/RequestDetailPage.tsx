@@ -195,8 +195,8 @@ export function RequestDetailPage() {
                 <thead>
                   <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
                     <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายการ</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย</th>
                     <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาทุน</th>
+                    <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -205,23 +205,23 @@ export function RequestDetailPage() {
                       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{hardwareQuotationNo}</span>
                       <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Hardware</span>
                     </td>
-                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hardwareSelling, '#004081')}</td>
                     <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hardwareCost, '#929EB4')}</td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hardwareSelling, '#004081')}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '11px 14px' }}>
                       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{serviceQuotationNo}</span>
                       <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Software &amp; Installation</span>
                     </td>
-                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081')}</td>
                     <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#929EB4')}</td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081')}</td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr style={{ borderTop: '1.5px solid #D0D6DF', background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
                     <td style={{ padding: '12px 14px', fontWeight: 700, color: '#001122' }}>รวมทั้งหมด</td>
-                    <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081')}</td>
                     <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#929EB4')}</td>
+                    <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081')}</td>
                   </tr>
                 </tfoot>
               </table>
