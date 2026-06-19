@@ -19,8 +19,8 @@ function StatCard({ label, count, icon, color, bg }: { label: string; count: num
   return (
     <div style={{
       background: '#FFFFFF',
-      border: '4px solid #D0D6DF',
-      borderRadius: 14,
+      border: '1px solid #D0D6DF',
+      borderRadius: 4,
       padding: '18px 20px',
       display: 'flex',
       flexDirection: 'column',
@@ -175,7 +175,7 @@ export function RequestListPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: '#fff', border: '4px solid #D0D6DF', borderRadius: 14, overflow: 'hidden' }}>
+      <div style={{ background: '#fff', border: '1px solid #D0D6DF', borderRadius: 4, overflow: 'hidden' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '48px 0', color: '#A0AEC0' }}>กำลังโหลด...</div>
         ) : filtered.length === 0 ? (

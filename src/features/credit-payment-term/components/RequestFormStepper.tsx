@@ -638,7 +638,7 @@ export function RequestFormStepper({
 
   /* ── Quotation card wrapper ── */
   const quotationCard = (quotationNo: string, label: string, headerGradient: string, body: React.ReactNode) => (
-    <div style={{ borderRadius: 14, overflow: 'hidden', border: '4px solid #D0D6DF', background: 'linear-gradient(180deg, #ffffff 0%, #F7FBFE 100%)' }}>
+    <div style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #D0D6DF', background: 'linear-gradient(180deg, #ffffff 0%, #F7FBFE 100%)' }}>
       {quotationHeader(quotationNo, label, headerGradient)}
       {body}
     </div>
@@ -857,7 +857,7 @@ export function RequestFormStepper({
       </Card>
 
       {/* ─── Footer ─── */}
-      <div style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', border: '4px solid #D0D6DF' }}>
+      <div style={{ background: '#fff', borderRadius: 4, padding: '20px 24px', border: '1px solid #D0D6DF' }}>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>

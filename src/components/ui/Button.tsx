@@ -7,27 +7,27 @@ const VARIANT_BASE: Record<Variant, CSSProperties> = {
   primary: {
     background: 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)',
     color: '#F8F9FA',
-    border: '4px solid #004081',
+    border: 'none',
   },
   secondary: {
     background: 'linear-gradient(135deg, #EBF9F9 0%, #E8F2FC 100%)',
     color: '#004081',
-    border: '4px solid #66C5C5',
+    border: '1.5px solid #66C5C5',
   },
   danger: {
     background: 'linear-gradient(135deg, #FF8A80 0%, #D32F2F 100%)',
     color: '#FFFFFF',
-    border: '4px solid #D32F2F',
+    border: 'none',
   },
   ghost: {
     background: 'transparent',
     color: '#586782',
-    border: '4px solid transparent',
+    border: '1px solid transparent',
   },
   success: {
     background: 'linear-gradient(135deg, #A8DD8C 0%, #4F9A3A 100%)',
     color: '#FFFFFF',
-    border: '4px solid #4F9A3A',
+    border: 'none',
   },
 }
 
@@ -83,7 +83,7 @@ export function Button({
         padding: sz.padding as string,
         fontSize: sz.fontSize,
         fontWeight: 600,
-        borderRadius: 16,
+        borderRadius: 4,
         cursor: disabled || loading ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.45 : 1,
         transition: 'background 0.15s, box-shadow 0.15s, transform 0.12s, filter 0.15s, border-color 0.15s, color 0.15s',
