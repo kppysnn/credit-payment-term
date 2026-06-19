@@ -52,15 +52,15 @@ export function AppShell() {
           }}>
             {pageTitle}
           </h1>
+
+          <RoleSwitcher />
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px 100px' }}>
+        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
           <Outlet />
         </main>
       </div>
-
-      <RoleSwitcher />
     </div>
   )
 }

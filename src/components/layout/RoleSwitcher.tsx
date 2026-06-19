@@ -11,21 +11,15 @@ export function RoleSwitcher() {
     <div
       className="no-print"
       style={{
-        position: 'fixed',
-        bottom: 20,
-        right: 20,
-        zIndex: 50,
-        background: '#FFFFFF',
-        border: '1px solid #D0D6DF',
-        borderRadius: 12,
-        padding: '10px 14px',
-        boxShadow: '0 4px 14px rgba(0,64,129,0.10)',
-        fontSize: 12,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        flexShrink: 0,
       }}
     >
-      <div style={{ fontWeight: 700, color: '#929EB4', marginBottom: 8, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      <span style={{ fontWeight: 700, color: '#929EB4', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         DEV — Role
-      </div>
+      </span>
       <div style={{ display: 'flex', gap: 5 }}>
         {ROLES.map(role => (
           <button

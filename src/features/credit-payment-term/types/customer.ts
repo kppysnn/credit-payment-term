@@ -39,6 +39,8 @@ export interface ResellerInfo {
   resellerId: string
   resellerCompanyName: string
   defaultCreditTerm?: number
+  contactPerson?: string
+  contactPhone?: string
   endCustomerCompanyName: string
   endCustomerContactPerson?: string
   endCustomerPhone?: string

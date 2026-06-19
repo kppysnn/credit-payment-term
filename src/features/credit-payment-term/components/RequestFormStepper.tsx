@@ -194,8 +194,9 @@ export function RequestFormStepper({
     const res = await searchCustomers(q); setExistingResults(res); setExistingDropdownOpen(true)
   }
   function selectExisting(c: Customer) {
-    update({ existingCustomerId: c.id, existingCustomer: { companyName: c.companyName, taxId: c.taxId ?? '', defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: c.contactPerson ?? '', contactPhone: c.contactPhone ?? '' } })
+    update({ existingCustomerId: c.id, existingCustomer: { companyName: c.companyName, taxId: c.taxId ?? '', defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: '', contactPhone: '' } })
     setHwCreditTermDays(c.defaultCreditTerm ?? 0); setHwCustomCreditTerm(false)
+    setSwCreditTermDays(c.defaultCreditTerm ?? 0); setSwCustomCreditTerm(false)
     setExistingDropdownOpen(false); setExistingResults([])
   }
 
@@ -207,8 +208,9 @@ export function RequestFormStepper({
     const res = await searchCustomers(q); setResellerResults(res); setResellerDropdownOpen(true)
   }
   function selectReseller(c: Customer) {
-    update({ reseller: { ...rs, resellerId: c.id, resellerCompanyName: c.companyName, defaultCreditTerm: c.defaultCreditTerm ?? 0 } })
+    update({ reseller: { ...rs, resellerId: c.id, resellerCompanyName: c.companyName, defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: '', contactPhone: '' } })
     setHwCreditTermDays(c.defaultCreditTerm ?? 0); setHwCustomCreditTerm(false)
+    setSwCreditTermDays(c.defaultCreditTerm ?? 0); setSwCustomCreditTerm(false)
     setResellerDropdownOpen(false); setResellerResults([])
   }
 
@@ -680,7 +682,7 @@ export function RequestFormStepper({
                         style={{ paddingRight: rs.resellerCompanyName ? 32 : undefined }}
                       />
                       {rs.resellerCompanyName && (
-                        <button onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0 } })}
+                        <button onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' } })}
                           style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#929EB4', padding: 2, display: 'flex' }}>
                           <X size={14} />
                         </button>
@@ -692,6 +694,14 @@ export function RequestFormStepper({
                 {rs.resellerId && (
                   <div style={{ marginTop: 6, fontSize: 12, color: '#929EB4' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
                 )}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
+                  <FormGroup label="ผู้ติดต่อ">
+                    <Input value={rs.contactPerson ?? ''} onChange={e => update({ reseller: { ...rs, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+                  </FormGroup>
+                  <FormGroup label="เบอร์โทร">
+                    <Input value={rs.contactPhone ?? ''} onChange={e => update({ reseller: { ...rs, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                  </FormGroup>
+                </div>
               </div>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#929EB4', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
@@ -805,7 +815,7 @@ function getDefaults(user: CurrentUser): Record<string, unknown> {
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
     existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
-    reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
+    reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '', endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
     hardwareSellingPrice: '', hardwareCost: '',
     softwareSellingPrice: '', softwareCost: 0,
     installationSellingPrice: '', installationCost: 0,
@@ -824,7 +834,7 @@ function flattenRequest(req: Request): Record<string, unknown> {
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
     existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
-    reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
+    reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '', endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
     hardwareSellingPrice: hw.reduce((s, i) => s + i.sellingPrice, 0),
     hardwareCost:         hw.reduce((s, i) => s + i.cost, 0),
     softwareSellingPrice: sw?.sellingPrice ?? '',
@@ -840,7 +850,7 @@ function flattenRequest(req: Request): Record<string, unknown> {
     d.existingCustomerId = ci.data.customerId
     d.existingCustomer   = { companyName: ci.data.companyName, taxId: ci.data.taxId ?? '', defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
   } else if (ci.type === 'reseller') {
-    d.reseller = { resellerId: ci.data.resellerId, resellerCompanyName: ci.data.resellerCompanyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, endCustomerCompanyName: ci.data.endCustomerCompanyName, endCustomerContactPerson: ci.data.endCustomerContactPerson ?? '', endCustomerPhone: ci.data.endCustomerPhone ?? '' }
+    d.reseller = { resellerId: ci.data.resellerId, resellerCompanyName: ci.data.resellerCompanyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '', endCustomerCompanyName: ci.data.endCustomerCompanyName, endCustomerContactPerson: ci.data.endCustomerContactPerson ?? '', endCustomerPhone: ci.data.endCustomerPhone ?? '' }
   }
 
   return d
