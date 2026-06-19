@@ -129,10 +129,12 @@ export function EditRequestPage() {
 
   return (
     <div>
-      <BackButton />
-      <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700 }}>
-        {isResubmit ? 'แก้ไขและส่งขออนุมัติอีกครั้ง' : isPendingEdit ? 'แก้ไขคำขอที่รออนุมัติ' : 'แก้ไขคำขอ'} — {req.requestNo}
-      </h1>
+      <div style={{ maxWidth: 760, margin: '0 auto 0' }}>
+        <BackButton />
+        <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700 }}>
+          {isResubmit ? 'แก้ไขและส่งขออนุมัติอีกครั้ง' : isPendingEdit ? 'แก้ไขคำขอที่รออนุมัติ' : 'แก้ไขคำขอ'} — {req.requestNo}
+        </h1>
+      </div>
       <RequestFormStepper
         initialRequest={req}
         currentUser={currentUser}

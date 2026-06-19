@@ -117,8 +117,10 @@ export function CreateRequestPage() {
 
   return (
     <div>
-      <BackButton />
-      <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700 }}>สร้างคำขออนุมัติใหม่</h1>
+      <div style={{ maxWidth: 760, margin: '0 auto 0' }}>
+        <BackButton />
+        <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700 }}>สร้างคำขออนุมัติใหม่</h1>
+      </div>
       <RequestFormStepper
         currentUser={currentUser}
         onSaveDraft={handleSaveDraft}
