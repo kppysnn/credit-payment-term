@@ -56,6 +56,12 @@ const INSTALLMENT_PRESETS: Record<number, Array<{ label: string; percents: numbe
 
 function numVal(v: unknown): number { return Number(v) || 0 }
 
+function formatThousands(v: unknown): string {
+  if (v === '' || v === undefined || v === null) return ''
+  const n = Number(v)
+  return Number.isNaN(n) ? '' : n.toLocaleString('en-US')
+}
+
 /* ── Radio selection card styles ── */
 function segBtn(active: boolean): React.CSSProperties {
   return {
@@ -287,17 +293,23 @@ export function RequestFormStepper({
     <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '12px 0' }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: '#001122' }}>{label}</div>
       <FormGroup label="ราคาขาย (THB)" error={spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined}>
-        <Input type="number" min="0" step="1000"
-          value={String(fd[spKey] ?? '')}
-          onChange={e => update({ [spKey]: e.target.value ? Number(e.target.value) : '' })}
+        <Input type="text" inputMode="numeric"
+          value={formatThousands(fd[spKey])}
+          onChange={e => {
+            const digits = e.target.value.replace(/\D/g, '')
+            update({ [spKey]: digits ? Number(digits) : '' })
+          }}
           style={{ textAlign: 'right' }}
           error={spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined}
         />
       </FormGroup>
       <FormGroup label="ราคาทุน (THB)">
-        <Input type="number" min="0" step="1000"
-          value={String(fd[costKey] ?? '')}
-          onChange={e => update({ [costKey]: e.target.value ? Number(e.target.value) : 0 })}
+        <Input type="text" inputMode="numeric"
+          value={formatThousands(fd[costKey])}
+          onChange={e => {
+            const digits = e.target.value.replace(/\D/g, '')
+            update({ [costKey]: digits ? Number(digits) : 0 })
+          }}
           style={{ textAlign: 'right' }}
         />
       </FormGroup>
