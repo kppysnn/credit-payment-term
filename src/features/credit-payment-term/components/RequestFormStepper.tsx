@@ -620,10 +620,10 @@ export function RequestFormStepper({
               <FormGroup label="ชื่อบริษัท" required error={errors['new.companyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
                 <Input value={nc.companyName ?? ''} onChange={e => update({ newCustomer: { ...nc, companyName: e.target.value } })} placeholder="บริษัท..." error={errors['new.companyName']} />
               </FormGroup>
-              <FormGroup label="ผู้ติดต่อ">
+              <FormGroup label="ชื่อผู้ติดต่อ">
                 <Input value={nc.contactPerson ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
               </FormGroup>
-              <FormGroup label="เบอร์โทร">
+              <FormGroup label="เบอร์ผู้ติดต่อ">
                 <Input value={nc.contactPhone ?? ''} onChange={e => update({ newCustomer: { ...nc, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
               </FormGroup>
             </div>
@@ -656,10 +656,10 @@ export function RequestFormStepper({
                 <div style={{ marginTop: 6, fontSize: 12, color: '#929EB4' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</div>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
-                <FormGroup label="ผู้ติดต่อ">
+                <FormGroup label="ชื่อผู้ติดต่อ">
                   <Input value={String(ec.contactPerson ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
                 </FormGroup>
-                <FormGroup label="เบอร์โทร">
+                <FormGroup label="เบอร์ผู้ติดต่อ">
                   <Input value={String(ec.contactPhone ?? '')} onChange={e => update({ existingCustomer: { ...ec, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
                 </FormGroup>
               </div>
@@ -694,28 +694,20 @@ export function RequestFormStepper({
                 {rs.resellerId && (
                   <div style={{ marginTop: 6, fontSize: 12, color: '#929EB4' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
-                  <FormGroup label="ผู้ติดต่อ">
-                    <Input value={rs.contactPerson ?? ''} onChange={e => update({ reseller: { ...rs, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
-                  </FormGroup>
-                  <FormGroup label="เบอร์โทร">
-                    <Input value={rs.contactPhone ?? ''} onChange={e => update({ reseller: { ...rs, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
-                  </FormGroup>
-                </div>
               </div>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#929EB4', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
-                  <FormGroup label="ชื่อบริษัทปลายทาง" required error={errors['res.endCustomerCompanyName']} style={{ gridColumn: 'span 2' } as React.CSSProperties}>
-                    <Input value={rs.endCustomerCompanyName ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })} placeholder="ใส่ชื่อบริษัทปลายทาง" error={errors['res.endCustomerCompanyName']} />
-                  </FormGroup>
-                  <FormGroup label="ผู้ติดต่อปลายทาง">
-                    <Input value={rs.endCustomerContactPerson ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerContactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
-                  </FormGroup>
-                  <FormGroup label="เบอร์โทร">
-                    <Input value={rs.endCustomerPhone ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
-                  </FormGroup>
-                </div>
+                <FormGroup label="ชื่อบริษัทปลายทาง" required error={errors['res.endCustomerCompanyName']}>
+                  <Input value={rs.endCustomerCompanyName ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })} placeholder="ใส่ชื่อบริษัทปลายทาง" error={errors['res.endCustomerCompanyName']} />
+                </FormGroup>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+                <FormGroup label="ชื่อผู้ติดต่อ">
+                  <Input value={rs.contactPerson ?? ''} onChange={e => update({ reseller: { ...rs, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
+                </FormGroup>
+                <FormGroup label="เบอร์ผู้ติดต่อ">
+                  <Input value={rs.contactPhone ?? ''} onChange={e => update({ reseller: { ...rs, contactPhone: e.target.value } })} placeholder="0x-xxxx-xxxx" />
+                </FormGroup>
               </div>
             </div>
           )}
@@ -815,7 +807,7 @@ function getDefaults(user: CurrentUser): Record<string, unknown> {
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
     existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
-    reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '', endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
+    reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '', endCustomerCompanyName: '' },
     hardwareSellingPrice: '', hardwareCost: '',
     softwareSellingPrice: '', softwareCost: 0,
     installationSellingPrice: '', installationCost: 0,
@@ -834,7 +826,7 @@ function flattenRequest(req: Request): Record<string, unknown> {
     newCustomer: { companyName: '', contactPerson: '', contactPhone: '' },
     existingCustomerId: '',
     existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
-    reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '', endCustomerCompanyName: '', endCustomerContactPerson: '', endCustomerPhone: '' },
+    reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '', endCustomerCompanyName: '' },
     hardwareSellingPrice: hw.reduce((s, i) => s + i.sellingPrice, 0),
     hardwareCost:         hw.reduce((s, i) => s + i.cost, 0),
     softwareSellingPrice: sw?.sellingPrice ?? '',
@@ -850,7 +842,7 @@ function flattenRequest(req: Request): Record<string, unknown> {
     d.existingCustomerId = ci.data.customerId
     d.existingCustomer   = { companyName: ci.data.companyName, taxId: ci.data.taxId ?? '', defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
   } else if (ci.type === 'reseller') {
-    d.reseller = { resellerId: ci.data.resellerId, resellerCompanyName: ci.data.resellerCompanyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '', endCustomerCompanyName: ci.data.endCustomerCompanyName, endCustomerContactPerson: ci.data.endCustomerContactPerson ?? '', endCustomerPhone: ci.data.endCustomerPhone ?? '' }
+    d.reseller = { resellerId: ci.data.resellerId, resellerCompanyName: ci.data.resellerCompanyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '', endCustomerCompanyName: ci.data.endCustomerCompanyName }
   }
 
   return d
