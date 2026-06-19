@@ -4,7 +4,7 @@ import { useCurrentUser } from '../../../app/UserContext'
 import { getRequestById, approveRequest, rejectRequest, cancelRequest, submitRequest } from '../services/creditTermService'
 import { exportPDF } from '../services/exportService'
 import type { Request } from '../types/request'
-import { SALE_TYPE_LABELS, PAYMENT_CONDITION_LABELS } from '../types/request'
+import { SALE_TYPE_LABELS } from '../types/request'
 import { CUSTOMER_TYPE_LABELS } from '../types/customer'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { StatusTimeline } from '../../../components/ui/StatusTimeline'
@@ -227,7 +227,7 @@ export function RequestDetailPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
-                    {['งวด', '%', 'จำนวนเงิน', 'เงื่อนไขการชำระเงิน'].map(h => (
+                    {['งวด', '%', 'จำนวนเงิน'].map(h => (
                       <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em', whiteSpace: 'nowrap' as const }}>{h}</th>
                     ))}
                   </tr>
@@ -238,7 +238,6 @@ export function RequestDetailPage() {
                       <td style={{ padding: '10px 12px', fontWeight: 700 }}>{inst.installmentNo}</td>
                       <td style={{ padding: '10px 12px' }}>{inst.installmentPercent}%</td>
                       <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(inst.installmentAmount)}</td>
-                      <td style={{ padding: '10px 12px', fontSize: 12, color: '#586782' }}>{PAYMENT_CONDITION_LABELS[inst.paymentCondition]}</td>
                     </tr>
                   ))}
                 </tbody>
