@@ -289,8 +289,11 @@ export function RequestFormStepper({
     )
 
   const priceRow = (label: string, spKey: string, costKey: string) => (
-    <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '12px 0' }}>
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#001122' }}>{label}</div>
+    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: '0 16px', alignItems: 'end', padding: '12px 0' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span style={{ fontSize: 12, visibility: 'hidden' }}>&nbsp;</span>
+        <span style={{ height: 38, display: 'flex', alignItems: 'center', fontSize: 13, fontWeight: 600, color: '#001122' }}>{label}</span>
+      </div>
       <FormGroup label="ราคาขาย (THB)" error={spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined}>
         <Input type="text" inputMode="numeric"
           value={formatThousands(fd[spKey])}
