@@ -333,7 +333,7 @@ export function RequestFormStepper({
     <div style={{ background: gradient, padding: '11px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
       <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>Quotation No.</span>
-        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 800, color: '#fff' }}>
+        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 800, color: 'rgba(255,255,255,0.85)' }}>
           {quotationNo}
         </span>
       </span>
@@ -782,7 +782,7 @@ export function RequestFormStepper({
           <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '8px 16px', fontSize: 13, background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
             <span style={{ color: '#586782', fontWeight: 600 }}>รวม Hardware</span>
             <span style={{ textAlign: 'right' }}>{plainAmount(hwSelling)}</span>
-            <span style={{ textAlign: 'right' }}>{plainAmount(hwCost, '#929EB4')}</span>
+            <span style={{ textAlign: 'right' }}>{plainAmount(hwCost)}</span>
           </div>
           {renderPaymentBlock('hw', hwSelling)}
         </>
@@ -797,7 +797,7 @@ export function RequestFormStepper({
           <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '8px 16px', fontSize: 13, background: 'linear-gradient(90deg, #EEF3FB 0%, #EEF6FA 100%)' }}>
             <span style={{ color: '#586782', fontWeight: 600 }}>รวม Software &amp; Installation</span>
             <span style={{ textAlign: 'right' }}>{plainAmount(serviceSelling, '#3D5580')}</span>
-            <span style={{ textAlign: 'right' }}>{plainAmount(serviceCost, '#929EB4')}</span>
+            <span style={{ textAlign: 'right' }}>{plainAmount(serviceCost, '#3D5580')}</span>
           </div>
           {renderPaymentBlock('sw', serviceSelling)}
         </>
