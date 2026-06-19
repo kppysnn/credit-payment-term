@@ -18,33 +18,33 @@ colors:
   white: "#FFFFFF"
 typography:
   display:
-    fontFamily: "'Noto Sans Thai', 'Poppins', system-ui, sans-serif"
+    fontFamily: "'Poppins', 'Noto Sans Thai', system-ui, sans-serif"
     fontSize: "clamp(2.125rem, 4.8vw, 3.5rem)"
     fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "-0.02em"
   headline:
-    fontFamily: "'Noto Sans Thai', 'Poppins', system-ui, sans-serif"
+    fontFamily: "'Poppins', 'Noto Sans Thai', system-ui, sans-serif"
     fontSize: "clamp(1.875rem, 4vw, 2.75rem)"
     fontWeight: 700
     lineHeight: 1.25
   title:
-    fontFamily: "'Noto Sans Thai', 'Poppins', system-ui, sans-serif"
+    fontFamily: "'Poppins', 'Noto Sans Thai', system-ui, sans-serif"
     fontSize: "1.25rem"
     fontWeight: 700
     lineHeight: 1.4
   body:
-    fontFamily: "'Noto Sans Thai', 'Poppins', system-ui, sans-serif"
+    fontFamily: "'Poppins', 'Noto Sans Thai', system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.75
   small:
-    fontFamily: "'Noto Sans Thai', 'Poppins', system-ui, sans-serif"
+    fontFamily: "'Poppins', 'Noto Sans Thai', system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.6
   label:
-    fontFamily: "'Noto Sans Thai', 'Poppins', system-ui, sans-serif"
+    fontFamily: "'Poppins', 'Noto Sans Thai', system-ui, sans-serif"
     fontSize: "0.6875rem"
     fontWeight: 700
     letterSpacing: "0.07em"
@@ -152,11 +152,13 @@ A two-color signal system on a clean light ground. Teal signals; Navy anchors. E
 
 **The Navy Shadow Rule.** No generic black box-shadows (`rgba(0,0,0,0.x)`). Every shadow uses navy tint: small `0 1px 2px rgba(0,64,129,0.04)`, medium `0 4px 14px rgba(0,64,129,0.07)`, large `0 16px 34px rgba(0,64,129,0.10)`.
 
-## 3. Typography: Thai-First Clarity
+## 3. Typography: Dual-Script by Design
 
-**Primary Font:** Noto Sans Thai (with Poppins, system-ui as fallback)
+**Stack:** `'Poppins', 'Noto Sans Thai', system-ui, sans-serif` — defined once as `--font-sans` in `globals.css`. Every component inherits it; no component should set its own `fontFamily` literal for body text.
 
-**Character:** A single-family system that prioritizes Thai readability above all else. Noto Sans Thai carries generous x-height, clean strokes at 14px, and accurate tonal mark placement — qualities that body-copy Latin fonts sacrifice. Poppins steps in for Latin strings where Noto would be heavier than needed.
+**Character:** English copy renders in Poppins, Thai copy renders in Noto Sans Thai — automatically, per character, even within a single mixed-language string (e.g. "Quotation No. 1345678-1"). This works because of how the browser resolves font stacks: it doesn't pick a font for the whole text node, it walks the stack per character and uses the first font that has a glyph for it. Poppins is listed first and has zero Thai glyph coverage, so Thai characters (`U+0E01–0E5B`) fall straight through to Noto Sans Thai. Noto Sans Thai is listed second and has full Latin coverage as well as Thai, so it's a safe catch-all.
+
+**Do not reverse this order.** Putting Noto Sans Thai first breaks the split silently: Noto Sans Thai's own Latin glyphs would render English text too, and Poppins would never be reached for anything, since "Thai-first" only changes which font wins on contested Latin characters — Noto already covers Thai either way.
 
 Thai typography demands extra line-height care: vowel marks and tone marks stack above the base letterform, requiring a minimum 1.65 line-height for body text (1.75 preferred). This is not a preference — it is a legibility requirement.
 
