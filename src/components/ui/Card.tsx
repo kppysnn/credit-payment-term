@@ -12,7 +12,7 @@ export function Card({ title, children, style, actions, noPad }: CardProps) {
   return (
     <div style={{
       background: '#FFFFFF',
-      border: '1px solid #D0D6DF',
+      border: '4px solid #D0D6DF',
       borderRadius: 14,
       overflow: 'hidden',
       transition: 'box-shadow 0.15s, transform 0.12s, border-color 0.15s',
@@ -64,7 +64,7 @@ export function FieldDisplay({ label, value, mono, children }: FieldProps) {
         <div style={{
           fontSize: 14,
           color: '#001122',
-          fontFamily: mono ? 'JetBrains Mono, monospace' : undefined,
+          fontFamily: mono ? 'JetBrains Mono, Noto Sans Thai, monospace' : undefined,
           lineHeight: 1.5,
         }}>
           {value ?? '—'}

@@ -57,7 +57,7 @@ export function RequestDetailPage() {
   const serviceCost = serviceItems.reduce((sum, item) => sum + item.cost, 0)
   const creditTermDays = req.installments[0]?.creditTermDays ?? req.financial.maxCreditTerm
   const summaryAmount = (value: number, color = '#001122') => (
-    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color }}>
+    <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontWeight: 700, color }}>
       {formatCurrency(value)}
     </span>
   )
@@ -99,7 +99,7 @@ export function RequestDetailPage() {
           <div>
             <BackButton />
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', color: '#001122' }}>{req.requestNo}</h1>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', color: '#001122' }}>{req.requestNo}</h1>
               <StatusBadge status={req.status} />
               {req.version > 1 && (
                 <span style={{ fontSize: 12, padding: '2px 8px', background: 'rgba(0,64,129,0.08)', color: '#004081', borderRadius: 6, fontWeight: 600 }}>v{req.version}</span>
@@ -201,7 +201,7 @@ export function RequestDetailPage() {
                 <tbody>
                   <tr>
                     <td style={{ padding: '11px 14px' }}>
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{hardwareQuotationNo}</span>
+                      <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontWeight: 700, color: '#001122' }}>{hardwareQuotationNo}</span>
                       <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Hardware</span>
                     </td>
                     <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hardwareCost, '#929EB4')}</td>
@@ -209,7 +209,7 @@ export function RequestDetailPage() {
                   </tr>
                   <tr>
                     <td style={{ padding: '11px 14px' }}>
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{serviceQuotationNo}</span>
+                      <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontWeight: 700, color: '#001122' }}>{serviceQuotationNo}</span>
                       <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Software &amp; Installation</span>
                     </td>
                     <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#929EB4')}</td>
@@ -246,7 +246,7 @@ export function RequestDetailPage() {
                     <tr key={inst.installmentNo} style={{ borderBottom: '1px solid #D0D6DF' }}>
                       <td style={{ padding: '10px 12px', fontWeight: 700 }}>{inst.installmentNo}</td>
                       <td style={{ padding: '10px 12px' }}>{inst.installmentPercent}%</td>
-                      <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(inst.installmentAmount)}</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 12 }}>{formatCurrency(inst.installmentAmount)}</td>
                     </tr>
                   ))}
                 </tbody>

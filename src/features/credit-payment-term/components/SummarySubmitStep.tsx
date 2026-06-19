@@ -86,7 +86,7 @@ export function SummarySubmitStep({ data, currentUser, onBack, onSaveDraft, onSu
     <td style={{ padding: '9px 12px', verticalAlign: 'middle', borderBottom: '1px solid #D0D6DF', fontSize: 13, ...style }}>{children}</td>
   )
   const mono = (v: string, danger?: boolean) => (
-    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 600, color: danger ? '#F3554F' : '#001122' }}>{v}</span>
+    <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 12, fontWeight: 600, color: danger ? '#F3554F' : '#001122' }}>{v}</span>
   )
 
   return (
@@ -118,7 +118,7 @@ export function SummarySubmitStep({ data, currentUser, onBack, onSaveDraft, onSu
           ].map(([k, v, mono_]) => (
             <div key={k as string}>
               <div style={{ fontSize: 11, color: '#586782', fontWeight: 700, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{k as string}</div>
-              <div style={{ fontFamily: mono_ ? 'JetBrains Mono, monospace' : undefined, color: '#001122' }}>{v as string}</div>
+              <div style={{ fontFamily: mono_ ? 'JetBrains Mono, Noto Sans Thai, monospace' : undefined, color: '#001122' }}>{v as string}</div>
             </div>
           ))}
         </div>
@@ -194,7 +194,7 @@ export function SummarySubmitStep({ data, currentUser, onBack, onSaveDraft, onSu
         ].map(f => (
           <div key={f.label} style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 10, color: '#929EB4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{f.label}</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: f.color, fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: f.color, fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>{f.value}</div>
           </div>
         ))}
       </div>

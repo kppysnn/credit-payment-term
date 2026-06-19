@@ -51,7 +51,7 @@ export function ApproveModal({ open, request, onClose, onApprove }: Props) {
     >
       {request && (
         <div style={{ marginBottom: 16, padding: '12px 14px', background: '#FAFBFC', borderRadius: 10, border: '1px solid #D0D6DF' }}>
-          <div style={{ fontWeight: 700, fontSize: 14, fontFamily: 'JetBrains Mono, monospace', color: '#004081' }}>{request.requestNo}</div>
+          <div style={{ fontWeight: 700, fontSize: 14, fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', color: '#004081' }}>{request.requestNo}</div>
           <div style={{ fontSize: 13, color: '#586782', marginTop: 3 }}>{request.projectName}</div>
         </div>
       )}

@@ -38,7 +38,10 @@
      characters automatically cascade to Noto Sans Thai per-character,
      even within mixed Thai/English text. Do not reverse this order. */
   --font-sans: 'Poppins', 'Noto Sans Thai', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Noto Sans Thai fallback covers the ฿ glyph (U+0E3F), which JetBrains
+     Mono lacks — without it the browser substitutes an OS-default
+     monospace font per machine, causing inconsistent ฿ baseline alignment. */
+  --font-mono: 'JetBrains Mono', 'Noto Sans Thai', monospace;
 
   /* Radius */
   --radius-sm:   6px;

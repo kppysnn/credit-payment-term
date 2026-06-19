@@ -107,7 +107,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
   const qBadge = (no: string) => (
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0,64,129,0.07)', borderRadius: 6, border: '1px solid rgba(0,64,129,0.14)', marginBottom: 10 }}>
       <span style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Quotation No.</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: '#004081', fontFamily: 'JetBrains Mono, monospace' }}>{no}</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: '#004081', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>{no}</span>
     </div>
   )
 
@@ -153,7 +153,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
                         { textAlign: 'right' as const },
                       )}
                       {TD(
-                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: gp < 0 ? '#F3554F' : '#001122', fontWeight: 600 }}>
+                        <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 12, color: gp < 0 ? '#F3554F' : '#001122', fontWeight: 600 }}>
                           {numVal(item.sellingPrice) > 0 ? formatCurrency(gp) : '—'}
                         </span>,
                         { textAlign: 'right' as const },
@@ -173,13 +173,13 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
                   <td style={{ padding: '8px 10px' }}>
                     <Button variant="ghost" size="sm" icon={<Plus size={12} />} onClick={addHw}>เพิ่มรายการ</Button>
                   </td>
-                  <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#001122' }}>
+                  <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#001122' }}>
                     {hwSelling > 0 ? formatCurrency(hwSelling) : '—'}
                   </td>
-                  <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#586782' }}>
+                  <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#586782' }}>
                     {hwCost > 0 ? formatCurrency(hwCost) : '—'}
                   </td>
-                  <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: (hwSelling - hwCost) < 0 ? '#F3554F' : '#001122' }}>
+                  <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: (hwSelling - hwCost) < 0 ? '#F3554F' : '#001122' }}>
                     {hwSelling > 0 ? formatCurrency(hwSelling - hwCost) : '—'}
                   </td>
                   <td />
@@ -219,7 +219,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
                       { textAlign: 'right' as const },
                     )}
                     {TD(
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: (swSelling - swCost) < 0 ? '#F3554F' : '#001122', fontWeight: 600 }}>
+                      <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 12, color: (swSelling - swCost) < 0 ? '#F3554F' : '#001122', fontWeight: 600 }}>
                         {swSelling > 0 ? formatCurrency(swSelling - swCost) : '—'}
                       </span>,
                       { textAlign: 'right' as const },
@@ -240,7 +240,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
                       { textAlign: 'right' as const },
                     )}
                     {TD(
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: (instSelling - instCost) < 0 ? '#F3554F' : '#001122', fontWeight: 600 }}>
+                      <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 12, color: (instSelling - instCost) < 0 ? '#F3554F' : '#001122', fontWeight: 600 }}>
                         {instSelling > 0 ? formatCurrency(instSelling - instCost) : '—'}
                       </span>,
                       { textAlign: 'right' as const },
@@ -250,13 +250,13 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
                 <tfoot>
                   <tr style={{ background: '#FAFBFC', borderTop: '2px solid #D0D6DF' }}>
                     <td style={{ padding: '8px 10px', fontSize: 12, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.05em' }}>รวม Q2</td>
-                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#001122' }}>
+                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#001122' }}>
                       {q2Selling > 0 ? formatCurrency(q2Selling) : '—'}
                     </td>
-                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#586782' }}>
+                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#586782' }}>
                       {q2Cost > 0 ? formatCurrency(q2Cost) : '—'}
                     </td>
-                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: (q2Selling - q2Cost) < 0 ? '#F3554F' : '#001122' }}>
+                    <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: (q2Selling - q2Cost) < 0 ? '#F3554F' : '#001122' }}>
                       {q2Selling > 0 ? formatCurrency(q2Selling - q2Cost) : '—'}
                     </td>
                   </tr>
@@ -276,7 +276,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
             ].map(f => (
               <div key={f.label} style={{ background: '#FAFBFC', padding: '14px 20px', textAlign: 'center' as const }}>
                 <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{f.label}</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: f.color, fontFamily: 'JetBrains Mono, monospace' }}>{f.value}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: f.color, fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>{f.value}</div>
               </div>
             ))}
           </div>
@@ -340,7 +340,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
                     </Select>
                   </FormGroup>
                   {amount > 0 && (
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', whiteSpace: 'nowrap', paddingLeft: 4 }}>
+                    <div style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#004081', whiteSpace: 'nowrap', paddingLeft: 4 }}>
                       {formatCurrency(amount)}
                     </div>
                   )}

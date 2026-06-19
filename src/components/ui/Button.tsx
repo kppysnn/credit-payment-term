@@ -7,27 +7,27 @@ const VARIANT_BASE: Record<Variant, CSSProperties> = {
   primary: {
     background: 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)',
     color: '#F8F9FA',
-    border: 'none',
+    border: '4px solid #004081',
   },
   secondary: {
     background: 'linear-gradient(135deg, #EBF9F9 0%, #E8F2FC 100%)',
     color: '#004081',
-    border: '1.5px solid #66C5C5',
+    border: '4px solid #66C5C5',
   },
   danger: {
     background: 'linear-gradient(135deg, #FF8A80 0%, #D32F2F 100%)',
     color: '#FFFFFF',
-    border: 'none',
+    border: '4px solid #D32F2F',
   },
   ghost: {
     background: 'transparent',
     color: '#586782',
-    border: '1px solid transparent',
+    border: '4px solid transparent',
   },
   success: {
     background: 'linear-gradient(135deg, #A8DD8C 0%, #4F9A3A 100%)',
     color: '#FFFFFF',
-    border: 'none',
+    border: '4px solid #4F9A3A',
   },
 }
 

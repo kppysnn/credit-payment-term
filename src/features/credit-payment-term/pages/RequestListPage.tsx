@@ -19,7 +19,7 @@ function StatCard({ label, count, icon, color, bg }: { label: string; count: num
   return (
     <div style={{
       background: '#FFFFFF',
-      border: '1px solid #D0D6DF',
+      border: '4px solid #D0D6DF',
       borderRadius: 14,
       padding: '18px 20px',
       display: 'flex',
@@ -50,7 +50,7 @@ function StatCard({ label, count, icon, color, bg }: { label: string; count: num
         {icon}
       </div>
       <div>
-        <div style={{ fontSize: 26, fontWeight: 700, color, lineHeight: 1, fontFamily: 'JetBrains Mono, monospace' }}>
+        <div style={{ fontSize: 26, fontWeight: 700, color, lineHeight: 1, fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>
           {count}
         </div>
         <div style={{ fontSize: 12, color: '#586782', marginTop: 5, fontWeight: 500 }}>{label}</div>
@@ -175,7 +175,7 @@ export function RequestListPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: '#fff', border: '1px solid #D0D6DF', borderRadius: 14, overflow: 'hidden' }}>
+      <div style={{ background: '#fff', border: '4px solid #D0D6DF', borderRadius: 14, overflow: 'hidden' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '48px 0', color: '#A0AEC0' }}>กำลังโหลด...</div>
         ) : filtered.length === 0 ? (
@@ -197,10 +197,10 @@ export function RequestListPage() {
                   className="data-row"
                   style={{ borderBottom: '1px solid #D0D6DF', background: '#fff', transition: 'background 0.1s', cursor: 'pointer' }}
                 >
-                  <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#004081', fontWeight: 600, whiteSpace: 'nowrap' }}>{req.requestNo}</td>
-                  <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#505050' }}>{req.proposalNo}</td>
+                  <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 12, color: '#004081', fontWeight: 600, whiteSpace: 'nowrap' }}>{req.requestNo}</td>
+                  <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 12, color: '#505050' }}>{req.proposalNo}</td>
                   <td style={{ padding: '11px 14px', verticalAlign: 'middle', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#505050' }}>{req.customerName}</td>
-                  <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#001122' }}>{formatCurrency(req.totalSelling)}</td>
+                  <td style={{ padding: '11px 14px', verticalAlign: 'middle', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 12, color: '#001122' }}>{formatCurrency(req.totalSelling)}</td>
                   <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}><StatusBadge status={req.status} size="sm" /></td>
                   <td style={{ padding: '11px 14px', verticalAlign: 'middle', color: '#929EB4', fontSize: 12, whiteSpace: 'nowrap' }}>{formatDate(req.updatedAt)}</td>
                   <td style={{ padding: '11px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>

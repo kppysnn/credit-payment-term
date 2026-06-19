@@ -47,7 +47,7 @@ export function StickyRequestSummary({ data, currentStep }: Props) {
   ]
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #D0D6DF', borderRadius: 14, boxShadow: '0 2px 8px rgba(0,64,129,0.06)', overflow: 'hidden' }}>
+    <div style={{ background: '#fff', border: '4px solid #D0D6DF', borderRadius: 14, boxShadow: '0 2px 8px rgba(0,64,129,0.06)', overflow: 'hidden' }}>
       <div style={{ padding: '14px 16px', background: '#004081', borderBottom: '1px solid rgba(0,0,0,0.12)' }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           สรุปคำขอ
@@ -66,7 +66,7 @@ export function StickyRequestSummary({ data, currentStep }: Props) {
             <span style={{
               fontSize: 12, fontWeight: row.bold ? 700 : 500, textAlign: 'right',
               color: row.danger ? '#F3554F' : '#001122',
-              fontFamily: row.mono ? 'JetBrains Mono, monospace' : undefined,
+              fontFamily: row.mono ? 'JetBrains Mono, Noto Sans Thai, monospace' : undefined,
               wordBreak: 'break-all',
             }}>
               {row.value}

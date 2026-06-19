@@ -336,7 +336,7 @@ export function RequestFormStepper({
   )
 
   const summaryAmount = (value: number, color = '#001122') => (
-    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color }}>
+    <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontWeight: 700, color }}>
       {formatCurrency(value)}
     </span>
   )
@@ -347,7 +347,7 @@ export function RequestFormStepper({
         {groupLabel}
       </span>
       <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>
-        {quotationNo}
+        Quotation No. {quotationNo}
       </span>
     </div>
   )
@@ -593,7 +593,7 @@ export function RequestFormStepper({
                     )}
                   </FormGroup>
                   {totalAmt > 0 && (
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto' }}>
+                    <div style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto' }}>
                       {formatCurrency(totalAmt)}
                     </div>
                   )}
@@ -623,10 +623,10 @@ export function RequestFormStepper({
           <span style={{ fontSize: 13, color: '#586782', fontWeight: 700 }}>รวม {summaryLabel}</span>
           <span style={{ display: 'flex', gap: 24 }}>
             <span style={{ fontSize: 12, color: '#929EB4', fontWeight: 600 }}>
-              ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 700, color: '#586782' }}>{formatCurrency(costTotal)}</span>
+              ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#586782' }}>{formatCurrency(costTotal)}</span>
             </span>
             <span style={{ fontSize: 12, color: '#929EB4', fontWeight: 600 }}>
-              ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
+              ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
             </span>
           </span>
         </div>
@@ -638,7 +638,7 @@ export function RequestFormStepper({
 
   /* ── Quotation card wrapper ── */
   const quotationCard = (quotationNo: string, label: string, headerGradient: string, body: React.ReactNode) => (
-    <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid #D0D6DF', background: 'linear-gradient(180deg, #ffffff 0%, #F7FBFE 100%)' }}>
+    <div style={{ borderRadius: 14, overflow: 'hidden', border: '4px solid #D0D6DF', background: 'linear-gradient(180deg, #ffffff 0%, #F7FBFE 100%)' }}>
       {quotationHeader(quotationNo, label, headerGradient)}
       {body}
     </div>
@@ -831,7 +831,7 @@ export function RequestFormStepper({
           <tbody>
             <tr>
               <td style={{ padding: '11px 14px' }}>
-                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{hwQuotationNo}</span>
+                <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontWeight: 700, color: '#001122' }}>{hwQuotationNo}</span>
                 <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Hardware</span>
               </td>
               <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hwCost, '#929EB4')}</td>
@@ -839,7 +839,7 @@ export function RequestFormStepper({
             </tr>
             <tr>
               <td style={{ padding: '11px 14px' }}>
-                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{swQuotationNo}</span>
+                <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontWeight: 700, color: '#001122' }}>{swQuotationNo}</span>
                 <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Software &amp; Installation</span>
               </td>
               <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#929EB4')}</td>
@@ -857,7 +857,7 @@ export function RequestFormStepper({
       </Card>
 
       {/* ─── Footer ─── */}
-      <div style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', border: '1px solid #D0D6DF' }}>
+      <div style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', border: '4px solid #D0D6DF' }}>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
