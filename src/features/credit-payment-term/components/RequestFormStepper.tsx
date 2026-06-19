@@ -293,8 +293,8 @@ export function RequestFormStepper({
       <thead>
         <tr>
           <th style={{ width: 120 }} />
-          <th style={{ padding: '0 16px 8px 0', textAlign: 'left', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย (THB)</th>
-          <th style={{ padding: '0 0 8px', textAlign: 'left', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาทุน (THB)</th>
+          <th style={{ padding: '0 16px 10px 0', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย (THB)</th>
+          <th style={{ padding: '0 0 10px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาทุน (THB)</th>
         </tr>
       </thead>
       <tbody>
@@ -801,7 +801,7 @@ export function RequestFormStepper({
       {/* ─── Quotation cards (always 2 blocks) ─── */}
       {quotationCard(hwQuotationNo, 'Hardware', 'linear-gradient(135deg, #001D3D 0%, #004081 100%)', (
         <>
-          <div style={{ padding: '4px 16px 0' }}>
+          <div style={{ padding: '18px 16px 0' }}>
             {priceTable([{ label: 'Hardware', spKey: 'hardwareSellingPrice', costKey: 'hardwareCost' }])}
           </div>
           {renderPaymentBlock('hw', hwSelling, hwCost, 'Hardware')}
@@ -810,7 +810,7 @@ export function RequestFormStepper({
 
       {quotationCard(swQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #2B3D5C 0%, #4A6490 100%)', (
         <>
-          <div style={{ padding: '4px 16px 0' }}>
+          <div style={{ padding: '18px 16px 0' }}>
             {priceTable([
               { label: 'Software', spKey: 'softwareSellingPrice', costKey: 'softwareCost' },
               { label: 'Installation', spKey: 'installationSellingPrice', costKey: 'installationCost' },
