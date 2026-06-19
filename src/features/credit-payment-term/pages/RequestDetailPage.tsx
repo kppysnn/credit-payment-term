@@ -52,7 +52,14 @@ export function RequestDetailPage() {
   const serviceItems = req.quotationItems.filter(item => item.type === 'software' || item.type === 'installation')
   const hardwareSelling = hardwareItems.reduce((sum, item) => sum + item.sellingPrice, 0)
   const serviceSelling = serviceItems.reduce((sum, item) => sum + item.sellingPrice, 0)
+  const hardwareCost = hardwareItems.reduce((sum, item) => sum + item.cost, 0)
+  const serviceCost = serviceItems.reduce((sum, item) => sum + item.cost, 0)
   const creditTermDays = req.installments[0]?.creditTermDays ?? req.financial.maxCreditTerm
+  const summaryAmount = (value: number, color = '#001122') => (
+    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color }}>
+      {formatCurrency(value)}
+    </span>
+  )
 
   async function handleApprove(comment: string) {
     if (!id) return
@@ -182,39 +189,42 @@ export function RequestDetailPage() {
               </FieldGrid>
             </Card>
 
-            {/* Quotation Items */}
-            <Card title="รายการสินค้า / ใบเสนอราคา">
-              {[
-                { no: hardwareQuotationNo, title: 'Hardware', items: hardwareItems, total: hardwareSelling, color: '#002B5C' },
-                { no: serviceQuotationNo, title: 'Software & Installation', items: serviceItems, total: serviceSelling, color: '#3D5580' },
-              ].map(group => (
-                <div key={`${group.no}-${group.title}`} style={{ marginBottom: 18, border: '1px solid #D0D6DF', borderRadius: 10, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '10px 14px', background: group.color }}>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: '#fff', fontFamily: 'JetBrains Mono, monospace' }}>{group.no}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.78)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{group.title}</span>
-                  </div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <tbody>
-                      {group.items.map(item => (
-                        <tr key={item.itemId} style={{ borderBottom: '1px solid #F2F6F8' }}>
-                          <td style={{ padding: '10px 12px', fontWeight: 500 }}>{item.name}</td>
-                          <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{formatCurrency(item.sellingPrice)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr>
-                        <td style={{ padding: '10px 12px', fontWeight: 700, color: '#586782' }}>รวม</td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081' }}>{formatCurrency(group.total)}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              ))}
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 10, borderTop: '2px solid #D0D6DF' }}>
-                <span style={{ fontWeight: 700, color: '#001122' }}>สรุปรวม</span>
-                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 15, fontWeight: 700, color: '#004081' }}>{formatCurrency(req.financial.totalSelling)}</span>
-              </div>
+            {/* Quotation Summary */}
+            <Card title="สรุปใบเสนอราคา" noPad>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
+                    <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายการ</th>
+                    <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย</th>
+                    <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาทุน</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: '11px 14px' }}>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{hardwareQuotationNo}</span>
+                      <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Hardware</span>
+                    </td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hardwareSelling, '#004081')}</td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(hardwareCost, '#929EB4')}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '11px 14px' }}>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#001122' }}>{serviceQuotationNo}</span>
+                      <span style={{ color: '#929EB4', fontWeight: 500, marginLeft: 8 }}>Software &amp; Installation</span>
+                    </td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081')}</td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#929EB4')}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr style={{ borderTop: '1.5px solid #D0D6DF', background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
+                    <td style={{ padding: '12px 14px', fontWeight: 700, color: '#001122' }}>รวมทั้งหมด</td>
+                    <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081')}</td>
+                    <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#929EB4')}</td>
+                  </tr>
+                </tfoot>
+              </table>
             </Card>
 
             {/* Payment Schedule */}
