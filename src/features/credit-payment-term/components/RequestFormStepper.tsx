@@ -8,7 +8,7 @@ import { Card } from '../../../components/ui/Card'
 import { Button } from '../../../components/ui/Button'
 import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { Alert } from '../../../components/ui/Alert'
-import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
+import { formatCurrency, calcTotalInstallmentPercent } from '../utils/calculations'
 import { searchCustomers } from '../services/customerService'
 import { Save, Send, X, ChevronDown, Check } from 'lucide-react'
 
@@ -317,12 +317,6 @@ export function RequestFormStepper({
     </div>
   )
 
-  const plainAmount = (value: number, color = '#004081') => (
-    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color }}>
-      {value > 0 ? formatCurrency(value) : '—'}
-    </span>
-  )
-
   const summaryAmount = (value: number, color = '#001122') => (
     <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color }}>
       {formatCurrency(value)}
@@ -344,7 +338,7 @@ export function RequestFormStepper({
   )
 
   /* ── Payment block (closure over component state) ── */
-  function renderPaymentBlock(prefix: 'hw' | 'sw', sellingTotal: number, costTotal: number) {
+  function renderPaymentBlock(prefix: 'hw' | 'sw', sellingTotal: number, costTotal: number, summaryLabel: string) {
     const ctDays       = prefix === 'hw' ? hwCreditTermDays       : swCreditTermDays
     const setCtDays    = prefix === 'hw' ? setHwCreditTermDays    : setSwCreditTermDays
     const instCount    = prefix === 'hw' ? hwInstallmentCount      : swInstallmentCount
@@ -363,9 +357,6 @@ export function RequestFormStepper({
     const pctOk    = Math.abs(totalPct - 100) < 0.01
     const ctErrKey  = prefix === 'hw' ? 'hwCreditTermDays' : 'swCreditTermDays'
     const pctErrKey = prefix === 'hw' ? 'hwTotalPct'       : 'swTotalPct'
-    const filledInsts = insts.slice(0, instCount)
-      .map((row, i) => ({ row, i, pct: numVal(row.installmentPercent) }))
-      .filter(({ pct }) => pct > 0)
 
     function updateInstRow(i: number, field: keyof InstRow, value: unknown) {
       const updated = [...insts]
@@ -602,26 +593,18 @@ export function RequestFormStepper({
           </div>
         </div>
 
-        {/* Per-installment selling/cost breakdown */}
-        {filledInsts.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7, paddingTop: 4, borderTop: '1px solid #EEF1F5' }}>
-            {filledInsts.map(({ i, pct }) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 12 }}>
-                <span style={{ color: '#586782', fontWeight: 600 }}>
-                  งวดที่ {i + 1} <span style={{ color: '#929EB4', fontWeight: 500 }}>({pct}%)</span>
-                </span>
-                <span style={{ display: 'flex', gap: 16 }}>
-                  <span style={{ color: '#929EB4' }}>
-                    ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#004081' }}>{formatCurrency(calcInstallmentAmount(sellingTotal, pct))}</span>
-                  </span>
-                  <span style={{ color: '#929EB4' }}>
-                    ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#586782' }}>{formatCurrency(calcInstallmentAmount(costTotal, pct))}</span>
-                  </span>
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Combined selling/cost summary, moved here from above the progress bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 4, borderTop: '1px solid #EEF1F5', fontSize: 13 }}>
+          <span style={{ color: '#586782', fontWeight: 600 }}>รวม {summaryLabel}</span>
+          <span style={{ display: 'flex', gap: 20 }}>
+            <span style={{ fontSize: 12, color: '#929EB4' }}>
+              ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
+            </span>
+            <span style={{ fontSize: 12, color: '#929EB4' }}>
+              ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#586782' }}>{formatCurrency(costTotal)}</span>
+            </span>
+          </span>
+        </div>
 
         {errors[pctErrKey] && <div style={{ fontSize: 12, color: '#F3554F' }}>{errors[pctErrKey]}</div>}
       </div>
@@ -794,12 +777,7 @@ export function RequestFormStepper({
           <div style={{ padding: '4px 16px 0' }}>
             {priceRow('Hardware', 'hardwareSellingPrice', 'hardwareCost')}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '8px 16px', fontSize: 13, background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
-            <span style={{ color: '#586782', fontWeight: 600 }}>รวม Hardware</span>
-            <span style={{ textAlign: 'right' }}>{plainAmount(hwSelling)}</span>
-            <span style={{ textAlign: 'right' }}>{plainAmount(hwCost)}</span>
-          </div>
-          {renderPaymentBlock('hw', hwSelling, hwCost)}
+          {renderPaymentBlock('hw', hwSelling, hwCost, 'Hardware')}
         </>
       ))}
 
@@ -809,12 +787,7 @@ export function RequestFormStepper({
             {priceRow('Software', 'softwareSellingPrice', 'softwareCost')}
             {priceRow('Installation', 'installationSellingPrice', 'installationCost')}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '8px 16px', fontSize: 13, background: 'linear-gradient(90deg, #EEF3FB 0%, #EEF6FA 100%)' }}>
-            <span style={{ color: '#586782', fontWeight: 600 }}>รวม Software &amp; Installation</span>
-            <span style={{ textAlign: 'right' }}>{plainAmount(serviceSelling, '#3D5580')}</span>
-            <span style={{ textAlign: 'right' }}>{plainAmount(serviceCost, '#3D5580')}</span>
-          </div>
-          {renderPaymentBlock('sw', serviceSelling, serviceCost)}
+          {renderPaymentBlock('sw', serviceSelling, serviceCost, 'Software & Installation')}
         </>
       ))}
 
