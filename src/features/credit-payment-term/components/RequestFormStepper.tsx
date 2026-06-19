@@ -9,7 +9,6 @@ import { Button } from '../../../components/ui/Button'
 import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { Alert } from '../../../components/ui/Alert'
 import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
-import { formatCreditTerm } from '../utils/formatters'
 import { searchCustomers } from '../services/customerService'
 import { Save, Send, X, ChevronDown, Check } from 'lucide-react'
 
@@ -332,8 +331,11 @@ export function RequestFormStepper({
 
   const quotationHeader = (quotationNo: string, groupLabel: string, gradient: string) => (
     <div style={{ background: gradient, padding: '11px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 800, color: '#fff' }}>
-        {quotationNo}
+      <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>Quotation No.</span>
+        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 800, color: '#fff' }}>
+          {quotationNo}
+        </span>
       </span>
       <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         {groupLabel}
@@ -478,9 +480,6 @@ export function RequestFormStepper({
                 </div>
               )}
             </div>
-            {ctDays !== '' && ctDays !== undefined && (
-              <span style={{ fontSize: 11, color: '#66C5C5', marginTop: 2, fontWeight: 600 }}>{formatCreditTerm(numVal(ctDays))}</span>
-            )}
           </FormGroup>
 
           <div>
@@ -532,6 +531,7 @@ export function RequestFormStepper({
           <div style={{ fontSize: 11, color: '#929EB4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>รายละเอียดงวด</div>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${instCount}, minmax(0, 1fr))`, gap: 8 }}>
             {insts.slice(0, instCount).map((row, i) => {
+              const hasAnyFilled = insts.slice(0, instCount).some(r => r.installmentPercent !== '')
               const pct = numVal(row.installmentPercent)
               const pctIsCustom = customPctRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
               const pctSelectValue = row.installmentPercent === '' ? (customPctRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
@@ -552,12 +552,17 @@ export function RequestFormStepper({
                   </div>
                   <FormGroup error={errors[pctErrRowKey]}>
                     {pctIsCustom ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                        <Input type="number" min="1" max="100" value={row.installmentPercent}
-                          onChange={e => updateInstRow(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
-                          placeholder={`แนะนำ ${suggestedPct}%`}
-                          style={{ textAlign: 'right', flex: 1 }} error={errors[pctErrRowKey]} />
-                        <span style={{ color: '#586782', fontSize: 12, fontWeight: 600 }}>%</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                          <Input type="number" min="1" max="100" value={row.installmentPercent}
+                            onChange={e => updateInstRow(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
+                            placeholder="0"
+                            style={{ textAlign: 'right', flex: 1 }} error={errors[pctErrRowKey]} />
+                          <span style={{ color: '#586782', fontSize: 12, fontWeight: 600 }}>%</span>
+                        </div>
+                        {row.installmentPercent === '' && hasAnyFilled && suggestedPct > 0 && (
+                          <div style={{ fontSize: 10, color: '#929EB4', fontWeight: 600 }}>แนะนำ {suggestedPct}%</div>
+                        )}
                       </div>
                     ) : (
                       <>
@@ -572,7 +577,7 @@ export function RequestFormStepper({
                           {INSTALLMENT_PERCENT_PRESETS.map(p => <option key={p} value={p}>{p}%</option>)}
                           <option value="custom">ระบุเอง</option>
                         </Select>
-                        {row.installmentPercent === '' && suggestedPct > 0 && (
+                        {row.installmentPercent === '' && hasAnyFilled && suggestedPct > 0 && (
                           <div style={{ marginTop: 3, fontSize: 10, color: '#929EB4', fontWeight: 600 }}>แนะนำ {suggestedPct}%</div>
                         )}
                       </>
@@ -774,9 +779,10 @@ export function RequestFormStepper({
           <div style={{ padding: '4px 16px 0' }}>
             {priceRow('Hardware', 'hardwareSellingPrice', 'hardwareCost')}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 16px', fontSize: 13, background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '8px 16px', fontSize: 13, background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
             <span style={{ color: '#586782', fontWeight: 600 }}>รวม Hardware</span>
-            {plainAmount(hwSelling)}
+            <span style={{ textAlign: 'right' }}>{plainAmount(hwSelling)}</span>
+            <span style={{ textAlign: 'right' }}>{plainAmount(hwCost, '#929EB4')}</span>
           </div>
           {renderPaymentBlock('hw', hwSelling)}
         </>
@@ -788,9 +794,10 @@ export function RequestFormStepper({
             {priceRow('Software', 'softwareSellingPrice', 'softwareCost')}
             {priceRow('Installation', 'installationSellingPrice', 'installationCost')}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 16px', fontSize: 13, background: 'linear-gradient(90deg, #EEF3FB 0%, #EEF6FA 100%)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 1fr', gap: '0 16px', alignItems: 'center', padding: '8px 16px', fontSize: 13, background: 'linear-gradient(90deg, #EEF3FB 0%, #EEF6FA 100%)' }}>
             <span style={{ color: '#586782', fontWeight: 600 }}>รวม Software &amp; Installation</span>
-            {plainAmount(serviceSelling, '#3D5580')}
+            <span style={{ textAlign: 'right' }}>{plainAmount(serviceSelling, '#3D5580')}</span>
+            <span style={{ textAlign: 'right' }}>{plainAmount(serviceCost, '#929EB4')}</span>
           </div>
           {renderPaymentBlock('sw', serviceSelling)}
         </>
