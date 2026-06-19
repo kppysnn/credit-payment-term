@@ -299,6 +299,7 @@ export function RequestFormStepper({
             const digits = e.target.value.replace(/\D/g, '')
             update({ [spKey]: digits ? Number(digits) : '' })
           }}
+          placeholder="0"
           style={{ textAlign: 'right' }}
           error={spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined}
         />
@@ -308,8 +309,9 @@ export function RequestFormStepper({
           value={formatThousands(fd[costKey])}
           onChange={e => {
             const digits = e.target.value.replace(/\D/g, '')
-            update({ [costKey]: digits ? Number(digits) : 0 })
+            update({ [costKey]: digits ? Number(digits) : '' })
           }}
+          placeholder="0"
           style={{ textAlign: 'right' }}
         />
       </FormGroup>
@@ -861,8 +863,8 @@ function getDefaults(user: CurrentUser): Record<string, unknown> {
     existingCustomer: { companyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' },
     reseller: { resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '', endCustomerCompanyName: '' },
     hardwareSellingPrice: '', hardwareCost: '',
-    softwareSellingPrice: '', softwareCost: 0,
-    installationSellingPrice: '', installationCost: 0,
+    softwareSellingPrice: '', softwareCost: '',
+    installationSellingPrice: '', installationCost: '',
   }
 }
 
