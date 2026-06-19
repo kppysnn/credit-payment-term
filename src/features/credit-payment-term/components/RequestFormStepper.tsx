@@ -860,21 +860,23 @@ export function RequestFormStepper({
 
       {/* ─── Footer ─── */}
       <div style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', border: '1px solid #D0D6DF' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, cursor: 'pointer' }}>
-          <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)}
-            style={{ width: 15, height: 15, accentColor: '#004081', cursor: 'pointer' }} />
-          <span style={{ fontSize: 13, color: '#586782', fontWeight: 500, lineHeight: 1.5 }}>
-            ข้อมูลถูกต้อง
-          </span>
-        </label>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
-            บันทึกแบบร่าง
-          </Button>
-          <Button icon={<Send size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading || !confirmed}>
-            {isResubmit ? 'ส่งขออนุมัติอีกครั้ง' : 'ส่งขออนุมัติ'}
-          </Button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+            <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)}
+              style={{ width: 15, height: 15, accentColor: '#004081', cursor: 'pointer' }} />
+            <span style={{ fontSize: 13, color: '#586782', fontWeight: 500, lineHeight: 1.5 }}>
+              ตรวจสอบแล้ว ข้อมูลถูกต้องครบถ้วน
+            </span>
+          </label>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <Button variant="ghost" icon={<Save size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
+              บันทึกแบบร่าง
+            </Button>
+            <Button icon={<Send size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading || !confirmed}>
+              {isResubmit ? 'ส่งขออนุมัติอีกครั้ง' : 'ส่งขออนุมัติ'}
+            </Button>
+          </div>
         </div>
       </div>
 
