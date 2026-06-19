@@ -173,27 +173,25 @@ export function RequestDetailPage() {
                 {req.customerInfo.type === 'existing' && (
                   <>
                     <FieldDisplay label="ชื่อบริษัท" value={req.customerInfo.data.companyName} />
-                    <FieldDisplay label="Tax ID" value={req.customerInfo.data.taxId || '—'} mono />
                     <FieldDisplay label="Default Credit Term" value={`Net ${req.customerInfo.data.defaultCreditTerm ?? 0}`} />
                     <FieldDisplay label="ผู้ติดต่อ" value={req.customerInfo.data.contactPerson || '—'} />
-                    <FieldDisplay label="อีเมล" value={req.customerInfo.data.contactEmail || '—'} />
+                    <FieldDisplay label="โทรศัพท์" value={req.customerInfo.data.contactPhone || '—'} />
                   </>
                 )}
                 {req.customerInfo.type === 'new' && (
                   <>
                     <FieldDisplay label="ชื่อบริษัท" value={req.customerInfo.data.companyName} />
-                    <FieldDisplay label="Tax ID" value={req.customerInfo.data.taxId || '—'} mono />
                     <FieldDisplay label="ผู้ติดต่อ" value={req.customerInfo.data.contactPerson || '—'} />
-                    <FieldDisplay label="อีเมล" value={req.customerInfo.data.contactEmail || '—'} />
                     <FieldDisplay label="โทรศัพท์" value={req.customerInfo.data.contactPhone || '—'} />
                   </>
                 )}
                 {req.customerInfo.type === 'reseller' && (
                   <>
                     <FieldDisplay label="Reseller" value={req.customerInfo.data.resellerCompanyName} />
+                    <FieldDisplay label="Default Credit Term" value={`Net ${req.customerInfo.data.defaultCreditTerm ?? 0}`} />
+                    <FieldDisplay label="ผู้ติดต่อ" value={req.customerInfo.data.contactPerson || '—'} />
+                    <FieldDisplay label="โทรศัพท์" value={req.customerInfo.data.contactPhone || '—'} />
                     <FieldDisplay label="End Customer" value={req.customerInfo.data.endCustomerCompanyName} />
-                    <FieldDisplay label="Billing To" value={req.customerInfo.data.billingTo === 'reseller' ? 'Reseller' : 'End Customer'} />
-                    <FieldDisplay label="Credit Term Applies To" value={req.customerInfo.data.creditTermAppliesTo === 'reseller' ? 'Reseller' : 'End Customer'} />
                   </>
                 )}
               </FieldGrid>

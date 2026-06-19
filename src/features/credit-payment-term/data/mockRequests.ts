@@ -18,7 +18,6 @@ export const MOCK_REQUESTS: Request[] = [
       data: {
         customerId: 'c001',
         companyName: 'บริษัท ทีคิวเอ็ม จำกัด',
-        taxId: '0105556000012',
         defaultCreditTerm: 30,
         contactPerson: 'คุณมาลี จันทร์เพ็ญ',
         contactPhone: '02-123-4567',
@@ -257,11 +256,12 @@ export const MOCK_REQUESTS: Request[] = [
     customerInfo: {
       type: 'reseller',
       data: {
-        resellerId: 'c003',
+        resellerId: 'r001',
         resellerCompanyName: 'บริษัท ไอที พาร์ทเนอร์ จำกัด',
+        defaultCreditTerm: 30,
+        contactPerson: 'คุณธนกร ไอที',
+        contactPhone: '02-789-0123',
         endCustomerCompanyName: 'โรงพยาบาล เมดิซีน พลัส',
-        endCustomerContactPerson: 'คุณกนก พยาบาล',
-        endCustomerPhone: '02-333-4444',
       },
     },
     quotationItems: [
@@ -333,7 +333,6 @@ export const MOCK_REQUESTS: Request[] = [
       data: {
         customerId: 'c002',
         companyName: 'บริษัท สยามเทคโนโลยี จำกัด',
-        taxId: '0105549001234',
         defaultCreditTerm: 45,
         contactPerson: 'คุณสมชาย วิทยาการ',
         contactPhone: '02-234-5678',

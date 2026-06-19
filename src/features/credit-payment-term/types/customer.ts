@@ -19,20 +19,16 @@ export interface Customer {
 
 export interface NewCustomerInfo {
   companyName: string
-  taxId?: string
   contactPerson?: string
   contactPhone?: string
-  contactEmail?: string
 }
 
 export interface ExistingCustomerInfo {
   customerId: string
   companyName: string
-  taxId?: string
   defaultCreditTerm?: number
   contactPerson?: string
   contactPhone?: string
-  contactEmail?: string
 }
 
 export interface ResellerInfo {
@@ -42,10 +38,6 @@ export interface ResellerInfo {
   contactPerson?: string
   contactPhone?: string
   endCustomerCompanyName: string
-  endCustomerContactPerson?: string
-  endCustomerPhone?: string
-  billingTo?: 'reseller' | 'endCustomer'
-  creditTermAppliesTo?: 'reseller' | 'endCustomer'
 }
 
 export type RequestCustomerInfo =

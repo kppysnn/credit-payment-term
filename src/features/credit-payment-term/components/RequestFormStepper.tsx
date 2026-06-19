@@ -200,7 +200,7 @@ export function RequestFormStepper({
     const res = await searchCustomers(q); setExistingResults(res); setExistingDropdownOpen(true)
   }
   function selectExisting(c: Customer) {
-    update({ existingCustomerId: c.id, existingCustomer: { companyName: c.companyName, taxId: c.taxId ?? '', defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: '', contactPhone: '' } })
+    update({ existingCustomerId: c.id, existingCustomer: { companyName: c.companyName, defaultCreditTerm: c.defaultCreditTerm ?? 0, contactPerson: '', contactPhone: '' } })
     setHwCreditTermDays(c.defaultCreditTerm ?? 0); setHwCustomCreditTerm(false)
     setSwCreditTermDays(c.defaultCreditTerm ?? 0); setSwCustomCreditTerm(false)
     setExistingDropdownOpen(false); setExistingResults([])
@@ -344,7 +344,7 @@ export function RequestFormStepper({
   )
 
   /* ── Payment block (closure over component state) ── */
-  function renderPaymentBlock(prefix: 'hw' | 'sw', sellingTotal: number) {
+  function renderPaymentBlock(prefix: 'hw' | 'sw', sellingTotal: number, costTotal: number) {
     const ctDays       = prefix === 'hw' ? hwCreditTermDays       : swCreditTermDays
     const setCtDays    = prefix === 'hw' ? setHwCreditTermDays    : setSwCreditTermDays
     const instCount    = prefix === 'hw' ? hwInstallmentCount      : swInstallmentCount
@@ -363,6 +363,9 @@ export function RequestFormStepper({
     const pctOk    = Math.abs(totalPct - 100) < 0.01
     const ctErrKey  = prefix === 'hw' ? 'hwCreditTermDays' : 'swCreditTermDays'
     const pctErrKey = prefix === 'hw' ? 'hwTotalPct'       : 'swTotalPct'
+    const filledInsts = insts.slice(0, instCount)
+      .map((row, i) => ({ row, i, pct: numVal(row.installmentPercent) }))
+      .filter(({ pct }) => pct > 0)
 
     function updateInstRow(i: number, field: keyof InstRow, value: unknown) {
       const updated = [...insts]
@@ -536,7 +539,6 @@ export function RequestFormStepper({
               const pctIsCustom = customPctRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
               const pctSelectValue = row.installmentPercent === '' ? (customPctRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
               const suggestedPct = Math.max(0, Math.min(100, 100 - (totalPct - pct)))
-              const totalAmt = sellingTotal > 0 && pct > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
               const pctErrRowKey = `${prefix}Inst${i}.pct`
               return (
                 <div key={i} style={{
@@ -583,11 +585,6 @@ export function RequestFormStepper({
                       </>
                     )}
                   </FormGroup>
-                  {totalAmt > 0 && (
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto' }}>
-                      {formatCurrency(totalAmt)}
-                    </div>
-                  )}
                 </div>
               )
             })}
@@ -604,6 +601,27 @@ export function RequestFormStepper({
             <div style={{ height: '100%', width: `${Math.min(Math.max(totalPct, 0), 100)}%`, background: pctOk ? '#66C5C5' : '#F3554F', transition: 'width 0.2s' }} />
           </div>
         </div>
+
+        {/* Per-installment selling/cost breakdown */}
+        {filledInsts.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7, paddingTop: 4, borderTop: '1px solid #EEF1F5' }}>
+            {filledInsts.map(({ i, pct }) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 12 }}>
+                <span style={{ color: '#586782', fontWeight: 600 }}>
+                  งวดที่ {i + 1} <span style={{ color: '#929EB4', fontWeight: 500 }}>({pct}%)</span>
+                </span>
+                <span style={{ display: 'flex', gap: 16 }}>
+                  <span style={{ color: '#929EB4' }}>
+                    ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#004081' }}>{formatCurrency(calcInstallmentAmount(sellingTotal, pct))}</span>
+                  </span>
+                  <span style={{ color: '#929EB4' }}>
+                    ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#586782' }}>{formatCurrency(calcInstallmentAmount(costTotal, pct))}</span>
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {errors[pctErrKey] && <div style={{ fontSize: 12, color: '#F3554F' }}>{errors[pctErrKey]}</div>}
       </div>
@@ -754,12 +772,9 @@ export function RequestFormStepper({
                   <div style={{ marginTop: 6, fontSize: 12, color: '#929EB4' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
                 )}
               </div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#929EB4', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ลูกค้าปลายทาง (End Customer)</div>
-                <FormGroup label="ชื่อบริษัทปลายทาง" required error={errors['res.endCustomerCompanyName']}>
-                  <Input value={rs.endCustomerCompanyName ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })} placeholder="ใส่ชื่อบริษัทปลายทาง" error={errors['res.endCustomerCompanyName']} />
-                </FormGroup>
-              </div>
+              <FormGroup label="บริษัทลูกค้าปลายทาง (End Customer)" required error={errors['res.endCustomerCompanyName']}>
+                <Input value={rs.endCustomerCompanyName ?? ''} onChange={e => update({ reseller: { ...rs, endCustomerCompanyName: e.target.value } })} placeholder="ใส่ชื่อบริษัทปลายทาง" error={errors['res.endCustomerCompanyName']} />
+              </FormGroup>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
                 <FormGroup label="ชื่อผู้ติดต่อ">
                   <Input value={rs.contactPerson ?? ''} onChange={e => update({ reseller: { ...rs, contactPerson: e.target.value } })} placeholder="ชื่อ-นามสกุล" />
@@ -784,7 +799,7 @@ export function RequestFormStepper({
             <span style={{ textAlign: 'right' }}>{plainAmount(hwSelling)}</span>
             <span style={{ textAlign: 'right' }}>{plainAmount(hwCost)}</span>
           </div>
-          {renderPaymentBlock('hw', hwSelling)}
+          {renderPaymentBlock('hw', hwSelling, hwCost)}
         </>
       ))}
 
@@ -799,7 +814,7 @@ export function RequestFormStepper({
             <span style={{ textAlign: 'right' }}>{plainAmount(serviceSelling, '#3D5580')}</span>
             <span style={{ textAlign: 'right' }}>{plainAmount(serviceCost, '#3D5580')}</span>
           </div>
-          {renderPaymentBlock('sw', serviceSelling)}
+          {renderPaymentBlock('sw', serviceSelling, serviceCost)}
         </>
       ))}
 
@@ -907,7 +922,7 @@ function flattenRequest(req: Request): Record<string, unknown> {
     d.newCustomer = { companyName: ci.data.companyName, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
   } else if (ci.type === 'existing') {
     d.existingCustomerId = ci.data.customerId
-    d.existingCustomer   = { companyName: ci.data.companyName, taxId: ci.data.taxId ?? '', defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
+    d.existingCustomer   = { companyName: ci.data.companyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
   } else if (ci.type === 'reseller') {
     d.reseller = { resellerId: ci.data.resellerId, resellerCompanyName: ci.data.resellerCompanyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '', endCustomerCompanyName: ci.data.endCustomerCompanyName }
   }

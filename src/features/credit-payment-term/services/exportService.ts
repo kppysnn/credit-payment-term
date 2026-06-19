@@ -145,8 +145,8 @@ function buildCustomerSection(req: Request): string {
     return `<div class="grid2">
       <div><div class="field-label">ประเภทลูกค้า</div><div class="field-val">ลูกค้าใหม่</div></div>
       <div><div class="field-label">ชื่อบริษัท</div><div class="field-val">${d.companyName}</div></div>
-      ${d.taxId ? `<div><div class="field-label">Tax ID</div><div class="field-val mono">${d.taxId}</div></div>` : ''}
       ${d.contactPerson ? `<div><div class="field-label">ผู้ติดต่อ</div><div class="field-val">${d.contactPerson}</div></div>` : ''}
+      ${d.contactPhone ? `<div><div class="field-label">โทรศัพท์</div><div class="field-val">${d.contactPhone}</div></div>` : ''}
     </div>`
   }
   if (customerInfo.type === 'existing') {
@@ -154,16 +154,18 @@ function buildCustomerSection(req: Request): string {
     return `<div class="grid2">
       <div><div class="field-label">ประเภทลูกค้า</div><div class="field-val">ลูกค้าเก่า</div></div>
       <div><div class="field-label">ชื่อบริษัท</div><div class="field-val">${d.companyName}</div></div>
-      ${d.taxId ? `<div><div class="field-label">Tax ID</div><div class="field-val mono">${d.taxId}</div></div>` : ''}
       <div><div class="field-label">Default Credit Term</div><div class="field-val">${d.defaultCreditTerm ?? '—'} วัน</div></div>
+      ${d.contactPerson ? `<div><div class="field-label">ผู้ติดต่อ</div><div class="field-val">${d.contactPerson}</div></div>` : ''}
+      ${d.contactPhone ? `<div><div class="field-label">โทรศัพท์</div><div class="field-val">${d.contactPhone}</div></div>` : ''}
     </div>`
   }
   const d = customerInfo.data
   return `<div class="grid2">
     <div><div class="field-label">ประเภทลูกค้า</div><div class="field-val">Reseller</div></div>
     <div><div class="field-label">Reseller</div><div class="field-val">${d.resellerCompanyName}</div></div>
+    <div><div class="field-label">Default Credit Term</div><div class="field-val">${d.defaultCreditTerm ?? '—'} วัน</div></div>
+    ${d.contactPerson ? `<div><div class="field-label">ผู้ติดต่อ</div><div class="field-val">${d.contactPerson}</div></div>` : ''}
+    ${d.contactPhone ? `<div><div class="field-label">โทรศัพท์</div><div class="field-val">${d.contactPhone}</div></div>` : ''}
     <div><div class="field-label">End Customer</div><div class="field-val">${d.endCustomerCompanyName}</div></div>
-    <div><div class="field-label">Billing To</div><div class="field-val">${d.billingTo === 'reseller' ? 'Reseller' : 'End Customer'}</div></div>
-    <div><div class="field-label">Credit Term Applies To</div><div class="field-val">${d.creditTermAppliesTo === 'reseller' ? 'Reseller' : 'End Customer'}</div></div>
   </div>`
 }
