@@ -8,7 +8,7 @@ import { Card } from '../../../components/ui/Card'
 import { Button } from '../../../components/ui/Button'
 import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { Alert } from '../../../components/ui/Alert'
-import { formatCurrency, calcTotalInstallmentPercent } from '../utils/calculations'
+import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
 import { searchCustomers } from '../services/customerService'
 import { Save, Send, X, ChevronDown, Check } from 'lucide-react'
 
@@ -530,6 +530,7 @@ export function RequestFormStepper({
               const pctIsCustom = customPctRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
               const pctSelectValue = row.installmentPercent === '' ? (customPctRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
               const suggestedPct = Math.max(0, Math.min(100, 100 - (totalPct - pct)))
+              const totalAmt = sellingTotal > 0 && pct > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
               const pctErrRowKey = `${prefix}Inst${i}.pct`
               return (
                 <div key={i} style={{
@@ -576,6 +577,11 @@ export function RequestFormStepper({
                       </>
                     )}
                   </FormGroup>
+                  {totalAmt > 0 && (
+                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto' }}>
+                      {formatCurrency(totalAmt)}
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -593,15 +599,19 @@ export function RequestFormStepper({
           </div>
         </div>
 
-        {/* Combined selling/cost summary, moved here from above the progress bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 4, borderTop: '1px solid #EEF1F5', fontSize: 13 }}>
-          <span style={{ color: '#586782', fontWeight: 600 }}>รวม {summaryLabel}</span>
-          <span style={{ display: 'flex', gap: 20 }}>
-            <span style={{ fontSize: 12, color: '#929EB4' }}>
-              ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
+        {/* Combined selling/cost summary */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginTop: 6, padding: '12px 14px', borderRadius: 8,
+          background: prefix === 'hw' ? 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' : 'linear-gradient(90deg, #EEF3FB 0%, #EEF6FA 100%)',
+        }}>
+          <span style={{ fontSize: 13, color: '#586782', fontWeight: 700 }}>รวม {summaryLabel}</span>
+          <span style={{ display: 'flex', gap: 24 }}>
+            <span style={{ fontSize: 12, color: '#929EB4', fontWeight: 600 }}>
+              ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
             </span>
-            <span style={{ fontSize: 12, color: '#929EB4' }}>
-              ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: '#586782' }}>{formatCurrency(costTotal)}</span>
+            <span style={{ fontSize: 12, color: '#929EB4', fontWeight: 600 }}>
+              ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 700, color: '#586782' }}>{formatCurrency(costTotal)}</span>
             </span>
           </span>
         </div>
