@@ -64,6 +64,7 @@ export function Button({
   disabled,
   onMouseEnter,
   onMouseLeave,
+  onClick,
   ...rest
 }: Props) {
   const sz = SIZE_STYLES[size]
@@ -113,6 +114,25 @@ export function Button({
           })
         }
         onMouseLeave?.(e)
+      }}
+      onClick={e => {
+        onClick?.(e)
+        // Actions like window.print()/window.confirm() can block the event loop long
+        // enough that the browser drops the mouseleave event, leaving the hover style
+        // stuck until refresh. Re-check once the window regains focus.
+        const el = e.currentTarget
+        window.addEventListener('focus', () => {
+          if (!el.matches(':hover')) {
+            Object.assign(el.style, {
+              filter: '',
+              boxShadow: '',
+              transform: '',
+              background: (base.background as string) ?? '',
+              borderColor: '',
+              color: (base.color as string) ?? '',
+            })
+          }
+        }, { once: true })
       }}
     >
       {loading ? (

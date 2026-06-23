@@ -4,8 +4,8 @@
  * PDF uses browser print-to-PDF (window.print) as the primary method.
  * html2pdf.js can be wired in here if added to dependencies.
  */
-import type { Request } from '../types/request'
-import { SALE_TYPE_LABELS } from '../types/request'
+import type { Request, PaymentInstallment } from '../types/request'
+import { SALE_TYPE_LABELS, PAYMENT_CONDITION_LABELS } from '../types/request'
 
 export function printRequest(requestId: string): void {
   window.open(`/print/${requestId}`, '_blank')
@@ -33,7 +33,6 @@ function buildPrintHTML(req: Request): string {
   const serviceItems = req.quotationItems.filter(item => item.type === 'software' || item.type === 'installation')
   const hardwareSelling = hardwareItems.reduce((sum, item) => sum + item.sellingPrice, 0)
   const serviceSelling = serviceItems.reduce((sum, item) => sum + item.sellingPrice, 0)
-  const creditTermDays = req.installments[0]?.creditTermDays ?? req.financial.maxCreditTerm
   const projectName = req.projectName || req.proposalNo
 
   return `<!DOCTYPE html><html><head><title>${req.requestNo}</title>
@@ -47,7 +46,7 @@ function buildPrintHTML(req: Request): string {
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
   .field-label { font-size: 10px; color: #586782; font-weight: 600; }
   .field-val { font-size: 12px; color: #001122; margin-bottom: 6px; }
-  .quote-group { border:1px solid #D0D6DF; border-radius:6px; overflow:hidden; margin:12px 0; }
+  .quote-group { border:1px solid #D0D6DF; border-radius:4px; overflow:hidden; margin:12px 0; }
   .quote-head { display:flex; justify-content:space-between; align-items:baseline; background:#004081; padding:7px 10px; font-weight:700; color:#fff; }
   .quote-no { font-size:13px; }
   .quote-label { font-size:10px; color:rgba(255,255,255,0.78); text-transform:uppercase; letter-spacing:.06em; }
@@ -84,9 +83,9 @@ function buildPrintHTML(req: Request): string {
   </div>
 
   <div class="section">
-    <div class="section-title">3. สรุปใบเสนอราคา</div>
-    ${buildQuotationGroup(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareSelling)}
-    ${buildQuotationGroup(serviceQuotationNo, 'Software & Installation', serviceItems, serviceSelling)}
+    <div class="section-title">3. ใบเสนอราคาและ Payment Schedule</div>
+    ${hardwareItems.length > 0 ? buildQuotationGroup(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareSelling, req.installments) : ''}
+    ${serviceItems.length > 0 ? buildQuotationGroup(serviceQuotationNo, 'Software & Installation', serviceItems, serviceSelling, req.swInstallments ?? []) : ''}
     <table>
       <tr style="font-weight:700;background:#F2F6F8">
         <td>สรุปรวม</td>
@@ -95,23 +94,8 @@ function buildPrintHTML(req: Request): string {
     </table>
   </div>
 
-  <div class="section">
-    <div class="section-title">4. ตาราง Payment Schedule</div>
-    <div class="grid2" style="margin-bottom:8px">
-      <div><div class="field-label">Credit Term</div><div class="field-val">Net ${creditTermDays}</div></div>
-    </div>
-    <table>
-      <tr><th>งวด</th><th>%</th><th>จำนวนเงิน</th></tr>
-      ${req.installments.map(i => `<tr>
-        <td>${i.installmentNo}</td>
-        <td>${i.installmentPercent}%</td>
-        <td class="mono">${i.installmentAmount.toLocaleString()}</td>
-      </tr>`).join('')}
-    </table>
-  </div>
-
   ${req.approvalResult ? `<div class="section">
-    <div class="section-title">5. ผลการพิจารณา</div>
+    <div class="section-title">4. ผลการพิจารณา</div>
     <div class="grid2">
       <div><div class="field-label">ผลการพิจารณา</div><div class="field-val">${req.approvalResult.approvedAt ? 'อนุมัติ' : 'ไม่อนุมัติ'}</div></div>
       <div><div class="field-label">Approver</div><div class="field-val">${req.approvalResult.approverName}</div></div>
@@ -122,7 +106,7 @@ function buildPrintHTML(req: Request): string {
 </div></body></html>`
 }
 
-function buildQuotationGroup(no: string, title: string, items: Request['quotationItems'], total: number): string {
+function buildQuotationGroup(no: string, title: string, items: Request['quotationItems'], total: number, installments: PaymentInstallment[]): string {
   return `<div class="quote-group">
     <div class="quote-head"><span class="quote-no">${no}</span><span class="quote-label">${title}</span></div>
     <table>
@@ -135,6 +119,16 @@ function buildQuotationGroup(no: string, title: string, items: Request['quotatio
         <td class="mono" style="text-align:right">${total.toLocaleString()}</td>
       </tr>
     </table>
+    ${installments.length > 0 ? `<table>
+      <tr><th>งวด</th><th>%</th><th>Credit Term</th><th>เงื่อนไขชำระ</th><th style="text-align:right">จำนวนเงิน</th></tr>
+      ${installments.map(i => `<tr>
+        <td>${i.installmentNo}</td>
+        <td>${i.installmentPercent}%</td>
+        <td>Net ${i.creditTermDays}</td>
+        <td>${PAYMENT_CONDITION_LABELS[i.paymentCondition]}</td>
+        <td class="mono" style="text-align:right">${i.installmentAmount.toLocaleString()}</td>
+      </tr>`).join('')}
+    </table>` : ''}
   </div>`
 }
 

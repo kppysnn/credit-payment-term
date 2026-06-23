@@ -12,7 +12,6 @@ function numVal(v: unknown): number { return Number(v) || 0 }
 
 function buildRequestFromFormData(data: Record<string, unknown>, user: { id: string; name: string; email: string }): Omit<Request, 'id' | 'requestNo' | 'createdAt' | 'updatedAt' | 'history'> {
   const saleType = String(data.saleType || '') as SaleType
-  const separateQuotation = saleType === 'hardware_software_installation'
 
   const customerType = String(data.customerType || '') as 'new' | 'existing' | 'reseller'
   let customerInfo: RequestCustomerInfo
@@ -58,10 +57,11 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
     paymentCondition: (row.paymentCondition || 'on_delivery') as PaymentInstallment['paymentCondition'],
   }))
 
-  // SW installments (only if split mode)
+  // SW installments (whenever there's software/installation value to schedule —
+  // the form always shows this block, regardless of saleType)
   let swInstallments: PaymentInstallment[] | undefined
   let swInstallmentCount: number | undefined
-  if (separateQuotation) {
+  if (swSp > 0 || instSp > 0) {
     const swCreditTermDays = numVal(data.swCreditTermDays)
     const swCount = numVal(data.swInstallmentCount) || 1
     swInstallmentCount = swCount

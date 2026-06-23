@@ -160,27 +160,30 @@ export const MOCK_REQUESTS: Request[] = [
         marginPercent: 40.00,
       },
     ],
-    installmentCount: 3,
+    installmentCount: 1,
     installments: [
       {
         installmentNo: 1,
-        installmentPercent: 30,
+        installmentPercent: 100,
         installmentAmount: 300000,
-        creditTermDays: 0,
-        paymentCondition: 'on_po',
+        creditTermDays: 15,
+        paymentCondition: 'on_delivery',
       },
+    ],
+    swInstallmentCount: 2,
+    swInstallments: [
       {
-        installmentNo: 2,
-        installmentPercent: 40,
-        installmentAmount: 400000,
+        installmentNo: 1,
+        installmentPercent: 60,
+        installmentAmount: 420000,
         creditTermDays: 30,
         paymentCondition: 'on_installation',
       },
       {
-        installmentNo: 3,
-        installmentPercent: 30,
-        installmentAmount: 300000,
-        creditTermDays: 60,
+        installmentNo: 2,
+        installmentPercent: 40,
+        installmentAmount: 280000,
+        creditTermDays: 30,
         paymentCondition: 'on_acceptance',
       },
     ],
@@ -189,7 +192,7 @@ export const MOCK_REQUESTS: Request[] = [
       totalCost: 730000,
       grossProfit: 270000,
       marginPercent: 27.00,
-      maxCreditTerm: 60,
+      maxCreditTerm: 30,
     },
     status: 'pending',
     history: [
@@ -284,8 +287,10 @@ export const MOCK_REQUESTS: Request[] = [
         marginPercent: 50.00,
       },
     ],
-    installmentCount: 1,
-    installments: [
+    installmentCount: 0,
+    installments: [],
+    swInstallmentCount: 1,
+    swInstallments: [
       {
         installmentNo: 1,
         installmentPercent: 100,
@@ -358,8 +363,10 @@ export const MOCK_REQUESTS: Request[] = [
         marginPercent: 46.67,
       },
     ],
-    installmentCount: 2,
-    installments: [
+    installmentCount: 0,
+    installments: [],
+    swInstallmentCount: 2,
+    swInstallments: [
       {
         installmentNo: 1,
         installmentPercent: 60,
