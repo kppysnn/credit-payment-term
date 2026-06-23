@@ -61,8 +61,15 @@ export function RequestDetailPage() {
     </span>
   )
 
-  const itemsTable = (items: QuotationItem[], cost: number, selling: number) => (
+  const itemsTable = (items: QuotationItem[]) => (
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <thead>
+        <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
+          {['รายการ', 'ราคาทุน', 'ราคาขาย'].map(h => (
+            <th key={h} style={{ padding: '8px 14px', textAlign: h === 'รายการ' ? 'left' : 'right', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>{h}</th>
+          ))}
+        </tr>
+      </thead>
       <tbody>
         {items.map(item => (
           <tr key={item.itemId} style={{ borderBottom: '1px solid #D0D6DF' }}>
@@ -72,47 +79,63 @@ export function RequestDetailPage() {
           </tr>
         ))}
       </tbody>
-      <tfoot>
-        <tr style={{ background: '#F2F6F8', borderTop: '1.5px solid #D0D6DF' }}>
-          <td style={{ padding: '10px 14px', fontWeight: 700, color: '#001122' }}>รวม</td>
-          <td style={{ padding: '10px 14px', textAlign: 'right' }}>{summaryAmount(cost, '#929EB4')}</td>
-          <td style={{ padding: '10px 14px', textAlign: 'right' }}>{summaryAmount(selling, '#004081')}</td>
-        </tr>
-      </tfoot>
     </table>
+  )
+
+  const totalStrip = (label: string, cost: number, selling: number) => (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '12px 14px', background: '#F2F6F8', borderTop: '1.5px solid #D0D6DF', borderBottom: '1px solid #D0D6DF',
+    }}>
+      <span style={{ fontSize: 13, color: '#586782', fontWeight: 700 }}>รวม {label}</span>
+      <span style={{ display: 'flex', gap: 24 }}>
+        <span style={{ fontSize: 12, color: '#929EB4', fontWeight: 600 }}>
+          ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#586782' }}>{formatCurrency(cost)}</span>
+        </span>
+        <span style={{ fontSize: 12, color: '#929EB4', fontWeight: 600 }}>
+          ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(selling)}</span>
+        </span>
+      </span>
+    </div>
   )
 
   const installmentTable = (installments: PaymentInstallment[]) => (
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
       <thead>
-        <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
-          {['งวด', '%', 'Credit Term', 'จำนวนเงิน'].map(h => (
-            <th key={h} style={{ padding: '8px 12px', textAlign: h === 'จำนวนเงิน' ? 'right' : 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em', whiteSpace: 'nowrap' as const }}>{h}</th>
+        <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
+          {['งวด', '%', 'จำนวนเงิน'].map(h => (
+            <th key={h} style={{ padding: '6px 14px 8px', textAlign: h === 'จำนวนเงิน' ? 'right' : 'left', fontWeight: 700, color: '#929EB4', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em', whiteSpace: 'nowrap' as const }}>{h}</th>
           ))}
         </tr>
       </thead>
       <tbody>
         {installments.map(inst => (
-          <tr key={inst.installmentNo} style={{ borderBottom: '1px solid #D0D6DF' }}>
-            <td style={{ padding: '8px 12px', fontWeight: 700 }}>{inst.installmentNo}</td>
-            <td style={{ padding: '8px 12px' }}>{inst.installmentPercent}%</td>
-            <td style={{ padding: '8px 12px', color: '#586782' }}>{formatCreditTerm(inst.creditTermDays)}</td>
-            <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>{formatCurrency(inst.installmentAmount)}</td>
+          <tr key={inst.installmentNo} style={{ borderBottom: '1px solid #F2F6F8' }}>
+            <td style={{ padding: '8px 14px', fontWeight: 700 }}>{inst.installmentNo}</td>
+            <td style={{ padding: '8px 14px' }}>{inst.installmentPercent}%</td>
+            <td style={{ padding: '8px 14px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>{formatCurrency(inst.installmentAmount)}</td>
           </tr>
         ))}
       </tbody>
     </table>
   )
 
-  const quotationBlock = (quotationNo: string, label: string, items: QuotationItem[], cost: number, selling: number, installments: PaymentInstallment[]) => (
+  const quotationBlock = (quotationNo: string, label: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[]) => (
     <div style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #D0D6DF', background: '#FFFFFF' }}>
       <div style={{ background: 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>{label}</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{quotationNo}</span>
       </div>
-      {itemsTable(items, cost, selling)}
+      {itemsTable(items)}
+      {totalStrip(label, cost, selling)}
       {installments.length > 0 && (
-        <div style={{ borderTop: '1px solid #D0D6DF' }}>{installmentTable(installments)}</div>
+        <div style={{ padding: '12px 14px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#929EB4', textTransform: 'uppercase', letterSpacing: '0.06em' }}>งวดการชำระเงิน</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#004081' }}>Credit Term: {formatCreditTerm(creditTermDays)}</span>
+          </div>
+          {installmentTable(installments)}
+        </div>
       )}
     </div>
   )
@@ -246,10 +269,10 @@ export function RequestDetailPage() {
             </Card>
 
             {/* Hardware quotation: items + its own payment schedule */}
-            {hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareCost, hardwareSelling, req.installments)}
+            {hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments)}
 
             {/* Software & Installation quotation: items + its own payment schedule */}
-            {serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', serviceItems, serviceCost, serviceSelling, req.swInstallments ?? [])}
+            {serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [])}
 
             {/* Overall total */}
             <Card title="สรุปรวมทั้งหมด" noPad>

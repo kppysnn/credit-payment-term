@@ -119,12 +119,15 @@ function buildQuotationGroup(no: string, title: string, items: Request['quotatio
         <td class="mono" style="text-align:right">${total.toLocaleString()}</td>
       </tr>
     </table>
-    ${installments.length > 0 ? `<table>
-      <tr><th>งวด</th><th>%</th><th>Credit Term</th><th style="text-align:right">จำนวนเงิน</th></tr>
+    ${installments.length > 0 ? `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:8px 0 4px">
+      <span style="font-size:10px;font-weight:700;color:#586782;text-transform:uppercase;letter-spacing:.05em">งวดการชำระเงิน</span>
+      <span style="font-size:11px;font-weight:700;color:#004081">Credit Term: Net ${installments[0].creditTermDays}</span>
+    </div>
+    <table>
+      <tr><th>งวด</th><th>%</th><th style="text-align:right">จำนวนเงิน</th></tr>
       ${installments.map(i => `<tr>
         <td>${i.installmentNo}</td>
         <td>${i.installmentPercent}%</td>
-        <td>Net ${i.creditTermDays}</td>
         <td class="mono" style="text-align:right">${i.installmentAmount.toLocaleString()}</td>
       </tr>`).join('')}
     </table>` : ''}
