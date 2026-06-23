@@ -35,12 +35,12 @@ export function Card({ title, children, style, actions, noPad }: CardProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '12px 20px',
-          borderBottom: '1px solid rgba(0,64,129,0.18)',
-          background: 'linear-gradient(135deg, #001D3D 0%, #004081 100%)',
+          padding: '14px 20px',
+          borderBottom: '1px solid #D0D6DF',
+          background: '#F2F6F8',
         }}>
           {title && (
-            <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#FFFFFF', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#001122', letterSpacing: '-0.01em' }}>
               {title}
             </h3>
           )}
