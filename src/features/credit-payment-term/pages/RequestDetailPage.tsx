@@ -217,7 +217,7 @@ export function RequestDetailPage() {
                   </tr>
                 </tbody>
                 <tfoot>
-                  <tr style={{ borderTop: '1.5px solid #D0D6DF', background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
+                  <tr style={{ borderTop: '1.5px solid #D0D6DF', background: '#F2F6F8' }}>
                     <td style={{ padding: '12px 14px', fontWeight: 700, color: '#001122' }}>รวมทั้งหมด</td>
                     <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#929EB4')}</td>
                     <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081')}</td>

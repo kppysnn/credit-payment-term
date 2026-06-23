@@ -549,7 +549,7 @@ export function RequestFormStepper({
               const pctErrRowKey = `${prefix}Inst${i}.pct`
               return (
                 <div key={i} style={{
-                  background: errors[pctErrRowKey] ? '#FEF2F2' : 'linear-gradient(135deg, #EEF5FB 0%, #EFF9F9 100%)',
+                  background: errors[pctErrRowKey] ? '#FEF2F2' : '#F2F6F8',
                   borderRadius: 6,
                   padding: '10px 12px',
                   display: 'flex', flexDirection: 'column', gap: 8,
@@ -618,7 +618,7 @@ export function RequestFormStepper({
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           marginTop: 6, padding: '12px 14px', borderRadius: 6,
-          background: prefix === 'hw' ? 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' : 'linear-gradient(90deg, #EEF3FB 0%, #EEF6FA 100%)',
+          background: '#F2F6F8',
         }}>
           <span style={{ fontSize: 13, color: '#586782', fontWeight: 700 }}>รวม {summaryLabel}</span>
           <span style={{ display: 'flex', gap: 24 }}>
@@ -638,7 +638,7 @@ export function RequestFormStepper({
 
   /* ── Quotation card wrapper ── */
   const quotationCard = (quotationNo: string, label: string, headerGradient: string, body: React.ReactNode) => (
-    <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid #D0D6DF', background: 'linear-gradient(180deg, #ffffff 0%, #F7FBFE 100%)' }}>
+    <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid #D0D6DF', background: '#FFFFFF' }}>
       {quotationHeader(quotationNo, label, headerGradient)}
       {body}
     </div>
@@ -847,7 +847,7 @@ export function RequestFormStepper({
             </tr>
           </tbody>
           <tfoot>
-            <tr style={{ borderTop: '1.5px solid #D0D6DF', background: 'linear-gradient(90deg, #EEF5FB 0%, #EFF9F9 100%)' }}>
+            <tr style={{ borderTop: '1.5px solid #D0D6DF', background: '#F2F6F8' }}>
               <td style={{ padding: '12px 14px', fontWeight: 700, color: '#001122' }}>รวมทั้งหมด</td>
               <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalCost, '#929EB4')}</td>
               <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081')}</td>
