@@ -84,8 +84,8 @@ function buildPrintHTML(req: Request): string {
 
   <div class="section">
     <div class="section-title">3. ใบเสนอราคาและ Payment Schedule</div>
-    ${hardwareItems.length > 0 ? buildQuotationGroup(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareSelling, req.installments) : ''}
-    ${serviceItems.length > 0 ? buildQuotationGroup(serviceQuotationNo, 'Software & Installation', serviceItems, serviceSelling, req.swInstallments ?? []) : ''}
+    ${hardwareItems.length > 0 ? buildQuotationGroup(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareSelling, req.installments) : ''}
+    ${serviceItems.length > 0 ? buildQuotationGroup(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #004081 0%, #66C5C5 100%)', serviceItems, serviceSelling, req.swInstallments ?? []) : ''}
     <table>
       <tr style="font-weight:700;background:#F2F6F8">
         <td>สรุปรวม</td>
@@ -106,9 +106,9 @@ function buildPrintHTML(req: Request): string {
 </div></body></html>`
 }
 
-function buildQuotationGroup(no: string, title: string, items: Request['quotationItems'], total: number, installments: PaymentInstallment[]): string {
+function buildQuotationGroup(no: string, title: string, gradient: string, items: Request['quotationItems'], total: number, installments: PaymentInstallment[]): string {
   return `<div class="quote-group">
-    <div class="quote-head"><span class="quote-no">${no}</span><span class="quote-label">${title}</span></div>
+    <div class="quote-head" style="background:${gradient}"><span class="quote-no">${no}</span><span class="quote-label">${title}</span></div>
     <table>
       ${items.map(i => `<tr>
         <td>${i.name}</td>

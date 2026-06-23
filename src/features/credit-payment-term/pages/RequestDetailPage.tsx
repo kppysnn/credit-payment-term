@@ -130,9 +130,9 @@ export function RequestDetailPage() {
     </table>
   )
 
-  const quotationBlock = (quotationNo: string, label: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[]) => (
+  const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[]) => (
     <div style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #D0D6DF', background: '#FFFFFF' }}>
-      <div style={{ background: 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div style={{ background: gradient, padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>{label}</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{quotationNo}</span>
       </div>
@@ -276,10 +276,10 @@ export function RequestDetailPage() {
             </Card>
 
             {/* Hardware quotation: items + its own payment schedule */}
-            {hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments)}
+            {hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments)}
 
             {/* Software & Installation quotation: items + its own payment schedule */}
-            {serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [])}
+            {serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #004081 0%, #66C5C5 100%)', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [])}
 
             {/* Overall total */}
             <Card title="สรุปรวมทั้งหมด" noPad>

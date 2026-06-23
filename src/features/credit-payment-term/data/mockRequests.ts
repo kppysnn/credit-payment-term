@@ -27,20 +27,11 @@ export const MOCK_REQUESTS: Request[] = [
       {
         itemId: 'item001',
         type: 'hardware',
-        name: 'Cisco Switch 24-port',
-        sellingPrice: 150000,
-        cost: 110000,
-        grossProfit: 40000,
-        marginPercent: 26.67,
-      },
-      {
-        itemId: 'item002',
-        type: 'hardware',
-        name: 'Cisco Router 4400 Series',
-        sellingPrice: 250000,
-        cost: 190000,
-        grossProfit: 60000,
-        marginPercent: 24.00,
+        name: 'Hardware',
+        sellingPrice: 400000,
+        cost: 300000,
+        grossProfit: 100000,
+        marginPercent: 25.00,
       },
     ],
     installmentCount: 2,
@@ -135,7 +126,7 @@ export const MOCK_REQUESTS: Request[] = [
       {
         itemId: 'item003',
         type: 'hardware',
-        name: 'Server Dell PowerEdge R750',
+        name: 'Hardware',
         sellingPrice: 300000,
         cost: 230000,
         grossProfit: 70000,
@@ -144,7 +135,7 @@ export const MOCK_REQUESTS: Request[] = [
       {
         itemId: 'item004',
         type: 'software',
-        name: 'SAP Business One License',
+        name: 'Software',
         sellingPrice: 500000,
         cost: 380000,
         grossProfit: 120000,
@@ -153,7 +144,7 @@ export const MOCK_REQUESTS: Request[] = [
       {
         itemId: 'item005',
         type: 'installation',
-        name: 'SAP B1 Implementation',
+        name: 'Installation',
         sellingPrice: 200000,
         cost: 120000,
         grossProfit: 80000,
@@ -271,7 +262,7 @@ export const MOCK_REQUESTS: Request[] = [
       {
         itemId: 'item006',
         type: 'software',
-        name: 'Fortinet FortiGate License',
+        name: 'Software',
         sellingPrice: 350000,
         cost: 270000,
         grossProfit: 80000,
@@ -280,7 +271,7 @@ export const MOCK_REQUESTS: Request[] = [
       {
         itemId: 'item007',
         type: 'installation',
-        name: 'Security Configuration & Training',
+        name: 'Installation',
         sellingPrice: 80000,
         cost: 40000,
         grossProfit: 40000,
@@ -347,7 +338,7 @@ export const MOCK_REQUESTS: Request[] = [
       {
         itemId: 'item008',
         type: 'software',
-        name: 'Microsoft Azure 1-Year Subscription',
+        name: 'Software',
         sellingPrice: 600000,
         cost: 500000,
         grossProfit: 100000,
@@ -356,7 +347,7 @@ export const MOCK_REQUESTS: Request[] = [
       {
         itemId: 'item009',
         type: 'installation',
-        name: 'Cloud Migration Service',
+        name: 'Installation',
         sellingPrice: 150000,
         cost: 80000,
         grossProfit: 70000,
