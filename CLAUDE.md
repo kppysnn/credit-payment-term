@@ -262,19 +262,19 @@ import { StatusBadge } from '../../../components/ui/StatusBadge'
 <StatusBadge status="pending" size="sm" />
 ```
 
-Uses CSS classes `.badge` + `.badge-[status]` defined in `src/styles/globals.css`.
+**Squared off in favor of the WorkX host app's plain status convention (2026-06-24):** no background, no border, no badge pill — just a colored Lucide icon + label, matching how the WorkX shell (e.g. the transport-request module) renders terminal statuses as plain colored text+icon. Config lives in `getStatusConfig()` (`src/features/credit-payment-term/utils/status.ts`), which returns `{ label, color, icon }` per status.
 
-Status color reference:
-| Status | bg | text | border |
-|--------|----|------|--------|
-| draft | `#F7FAFC` | `#4A5568` | `#CBD5E0` |
-| pending | `#FFFBEB` | `#92400E` | `#FCD34D` |
-| approved | `#F0FDF4` | `#14532D` | `#86EFAC` |
-| rejected | `#FEF2F2` | `#7F1D1D` | `#FCA5A5` |
-| revised | `#EFF6FF` | `#1E40AF` | `#93C5FD` |
-| cancelled | `#F9FAFB` | `#6B7280` | `#D1D5DB` |
+Status color/icon reference:
+| Status | color | icon |
+|--------|-------|------|
+| draft | `#4A5568` | `FileText` |
+| pending | `#92400E` | `Hourglass` |
+| approved | `#14532D` | `CheckCircle` |
+| rejected | `#7F1D1D` | `XCircle` |
+| revised | `#1E40AF` | `RefreshCw` |
+| cancelled | `#6B7280` | `Ban` |
 
-Badge base: `11px / weight 700 / UPPERCASE / letter-spacing 0.03em / borderRadius 4px / padding 2px 10px`
+Badge base: `13px (12px for size="sm") / weight 700 / icon 14px (13px sm) / gap 5px / no uppercase, no background, no border`
 
 ---
 
@@ -329,7 +329,7 @@ The Sidebar (`src/components/layout/Sidebar.tsx`) is defined separately and not 
 
 ### Methodology
 - **Inline React styles** (`style={{ ... }}`) — used for all component-specific styles
-- **CSS classes** — only for: `.badge*`, `.data-row`, `.page-title`, `.divider`, `.font-mono`, `.no-print`
+- **CSS classes** — only for: `.data-row`, `.page-title`, `.divider`, `.font-mono`, `.no-print`
 - **NO Tailwind utility classes in components** — tokens are defined via `@theme {}` for the Tailwind engine but components do not use `className="text-navy"` etc.
 
 ### Typography
@@ -495,8 +495,7 @@ interface Request {
 - **Topbar accent:** `inset 0 3px 0 0 #66C5C5` in boxShadow.
 
 ### Status badges
-- Use CSS classes `.badge .badge-[status]`, not inline colors.
-- Badges always have a colored dot (`6px × 6px` circle) + uppercase text label.
+- Plain colored Lucide icon + label, no background, no border, no uppercase — config in `getStatusConfig()`.
 
 ### Forms
 - Label above input, 12px, `#586782`

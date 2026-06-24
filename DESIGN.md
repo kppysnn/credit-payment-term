@@ -64,14 +64,16 @@ These are the only brand colours. Do not invent new brand colours.
 
 ### 2.5 Status Badge Colours (exact values — do not approximate)
 
-| Status | Background | Text | Border |
-|--------|-----------|------|--------|
-| `draft` | `#F7FAFC` | `#4A5568` | `#CBD5E0` |
-| `pending` | `#FFFBEB` | `#92400E` | `#FCD34D` |
-| `approved` | `#F0FDF4` | `#14532D` | `#86EFAC` |
-| `rejected` | `#FEF2F2` | `#7F1D1D` | `#FCA5A5` |
-| `revised` | `#EFF6FF` | `#1E40AF` | `#93C5FD` |
-| `cancelled` | `#F9FAFB` | `#6B7280` | `#D1D5DB` |
+**Plain icon + colored label (2026-06-24) — no background, no border, no pill.** Squared off in favor of the WorkX host app's convention, where terminal statuses render as a colored Lucide icon + text with no badge container. Replaces the earlier bg/border/text three-column badge.
+
+| Status | Text/icon colour | Icon |
+|--------|------------------|------|
+| `draft` | `#4A5568` | `FileText` |
+| `pending` | `#92400E` | `Hourglass` |
+| `approved` | `#14532D` | `CheckCircle` |
+| `rejected` | `#7F1D1D` | `XCircle` |
+| `revised` | `#1E40AF` | `RefreshCw` |
+| `cancelled` | `#6B7280` | `Ban` |
 
 > `#1E40AF` and similar blues are **status-specific** badge colours. Do not use them as general UI blue.
 
@@ -135,12 +137,12 @@ Used in status timeline and result panels only:
 
 | Role | Size | Weight | Colour | Notes |
 |------|------|--------|--------|-------|
-| Page title | 22px | 700 | `#001122` | `<h1>` in page headers |
+| Page title | 22px | 700 | `#001122` | `<h1>` in page headers — `RequestListPage` overrides to **28px** inline to match the WorkX host page it sits beside in the nav; other pages keep 22px |
 | Card header | 14px | 700 | `#001122` | `letter-spacing: -0.01em` |
 | Section label | 11px | 700 | `#586782` | UPPERCASE, `letter-spacing: 0.06em` |
 | Body text | 14px | 400 | `#505050` | `line-height: 1.65` |
 | Form label | 12px | 600 | `#586782` | above each field |
-| Table header | 11px | 700 | `#586782` | UPPERCASE, `letter-spacing: 0.05em` |
+| Table header | 11px | 700 | `#586782` | UPPERCASE, `letter-spacing: 0.05em` — `RequestListPage` overrides to **12.5px / `#004081` / normal case, no letter-spacing** to match the WorkX host table header style; other tables (e.g. detail-page item/installment tables) keep the grey-uppercase default |
 | Hint / muted | 11–12px | 400 | `#929EB4` | timestamps, placeholders |
 | Topbar title | 18px | 600 | `#001122` | `letter-spacing: -0.01em` |
 | Mono reference | — | 700 | `#004081` (selling) / `#929EB4` (cost) | `font-family: --font-mono` |
@@ -251,7 +253,7 @@ Sizes: sm=30px / md=38px / lg=44px. Always squared (`borderRadius: 4`).
 
 ### Table
 
-- Header: bg `#F2F6F8`, `11px/700/#586782/UPPERCASE`
+- Header: bg `#F2F6F8`, `11px/700/#586782/UPPERCASE` (default); `RequestListPage` overrides header text to `12.5px/700/#004081`, normal case, to match the WorkX host table
 - Row separator: `1px solid #D0D6DF`
 - Count footer: bg `#F2F6F8`, `12px/#929EB4`
 
@@ -259,7 +261,7 @@ Sizes: sm=30px / md=38px / lg=44px. Always squared (`borderRadius: 4`).
 
 Always `<StatusBadge status="..." />`. Never build inline badge spans.
 
-Badge base: `11px/700/UPPERCASE/letter-spacing 0.03em/borderRadius 4px/padding 2px 10px`.
+**Plain icon + colored label, no background/border/pill (2026-06-24).** `13px/700` (`12px` for `size="sm"`), icon `14px`/`13px`, `gap: 5px`, no uppercase. Colours/icons per status in §2.5.
 
 ### Status Timeline
 

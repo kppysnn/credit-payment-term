@@ -8,21 +8,20 @@ interface Props {
 
 export function StatusBadge({ status, size = 'md' }: Props) {
   const cfg = getStatusConfig(status)
+  const Icon = cfg.icon
   return (
     <span
-      className={`badge ${cfg.badgeClass}`}
-      style={size === 'sm' ? { fontSize: 10, padding: '1px 6px' } : undefined}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        fontSize: size === 'sm' ? 12 : 13,
+        fontWeight: 700,
+        color: cfg.color,
+        whiteSpace: 'nowrap',
+      }}
     >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          background: cfg.dotColor,
-          display: 'inline-block',
-          flexShrink: 0,
-        }}
-      />
+      <Icon size={size === 'sm' ? 13 : 14} style={{ flexShrink: 0 }} />
       {cfg.label}
     </span>
   )

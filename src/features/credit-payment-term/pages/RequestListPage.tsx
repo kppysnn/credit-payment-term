@@ -68,7 +68,7 @@ export function RequestListPage() {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 className="page-title" style={{ fontSize: 22 }}>รายการคำขอ</h1>
+        <h1 className="page-title" style={{ fontSize: 28 }}>รายการคำขอ</h1>
         {currentUser.role === 'sales' && (
           <Link to="/requests/new"><Button icon={<Plus size={15} />}>สร้างคำขอใหม่</Button></Link>
         )}
@@ -114,7 +114,7 @@ export function RequestListPage() {
             <thead>
               <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
                 {['คำขอ', 'ลูกค้า / โปรเจกต์', 'มูลค่ารวม', 'สถานะ', 'อัปเดต', ''].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: h === 'มูลค่ารวม' ? 'right' : 'left', fontWeight: 700, color: '#586782', fontSize: 11, whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', textAlign: h === 'มูลค่ารวม' ? 'right' : 'left', fontWeight: 700, color: '#004081', fontSize: 12.5, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>

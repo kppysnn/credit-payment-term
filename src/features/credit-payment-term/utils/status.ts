@@ -1,42 +1,44 @@
+import type { LucideIcon } from 'lucide-react'
+import { FileText, Hourglass, CheckCircle, XCircle, RefreshCw, Ban } from 'lucide-react'
 import type { RequestStatus } from '../types/request'
 import { STATUS_LABELS } from '../types/request'
 
 export interface StatusConfig {
   label: string
-  badgeClass: string
-  dotColor: string
+  color: string
+  icon: LucideIcon
 }
 
 export const STATUS_CONFIG: Record<RequestStatus, StatusConfig> = {
   draft: {
     label: STATUS_LABELS.draft,
-    badgeClass: 'badge-draft',
-    dotColor: '#CBD5E0',
+    color: '#4A5568',
+    icon: FileText,
   },
   pending: {
     label: STATUS_LABELS.pending,
-    badgeClass: 'badge-pending',
-    dotColor: '#FBBF24',
+    color: '#92400E',
+    icon: Hourglass,
   },
   approved: {
     label: STATUS_LABELS.approved,
-    badgeClass: 'badge-approved',
-    dotColor: '#14532D',
+    color: '#14532D',
+    icon: CheckCircle,
   },
   rejected: {
     label: STATUS_LABELS.rejected,
-    badgeClass: 'badge-rejected',
-    dotColor: '#F3554F',
+    color: '#7F1D1D',
+    icon: XCircle,
   },
   revised: {
     label: STATUS_LABELS.revised,
-    badgeClass: 'badge-revised',
-    dotColor: '#1E40AF',
+    color: '#1E40AF',
+    icon: RefreshCw,
   },
   cancelled: {
     label: STATUS_LABELS.cancelled,
-    badgeClass: 'badge-cancelled',
-    dotColor: '#929EB4',
+    color: '#6B7280',
+    icon: Ban,
   },
 }
 
