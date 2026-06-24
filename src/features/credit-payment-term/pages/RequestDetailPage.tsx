@@ -19,7 +19,7 @@ import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest }
 import { formatCurrency } from '../utils/calculations'
 import { formatDate, formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
-import { Edit, RefreshCw, Printer, Send, Ban, CheckCircle, XCircle, Receipt, Calendar, MessageSquare } from 'lucide-react'
+import { Edit, RefreshCw, Printer, Send, Ban, CheckCircle, XCircle } from 'lucide-react'
 
 export function RequestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -73,17 +73,14 @@ export function RequestDetailPage() {
   // section-level notes; everyone else only sees what's already been written.
   const canComment = canApproveRequest(currentUser, req) || canRejectRequest(currentUser, req)
 
-  // Every named sub-section below (total, payment schedule, comment) is a
-  // peer: same icon + Card-title-weight label, same generous spacing. None
-  // of them should read as "just another row" next to the data table above it.
+  // Every named sub-section below (total, payment schedule, comment) is a peer:
+  // a thin rule above + bold Card-title-weight label, document/quotation style.
   // `framed` zones sit directly inside a borderless wrapper (quotationBlock) and need
   // their own 18px horizontal padding; non-framed zones already sit inside a Card
   // body that provides that padding, so they only need the top divider + vertical rhythm.
-  const labeledBand = (icon: React.ReactNode, label: string, right?: React.ReactNode, framed = true) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: framed ? '16px 18px 10px' : '16px 0 10px', borderTop: '1px solid #F2F6F8' }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: '#001122', letterSpacing: '-0.01em' }}>
-        {icon}{label}
-      </span>
+  const labeledBand = (label: string, right?: React.ReactNode, framed = true) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: framed ? '16px 18px 10px' : '16px 0 10px', borderTop: '1px solid #D0D6DF' }}>
+      <span style={{ fontSize: 14, fontWeight: 700, color: '#001122', letterSpacing: '-0.01em' }}>{label}</span>
       {right}
     </div>
   )
@@ -92,7 +89,7 @@ export function RequestDetailPage() {
     if (!editable && !value.trim()) return null
     return (
       <div>
-        {labeledBand(<MessageSquare size={16} color="#004081" />, label, undefined, framed)}
+        {labeledBand(label, undefined, framed)}
         <div style={{ padding: framed ? '0 18px 16px' : '0 0 4px' }}>
           {editable ? (
             <Textarea value={value} onChange={e => onChange?.(e.target.value)} rows={2} placeholder="เพิ่มรายละเอียดเพิ่มเติม (ถ้ามี)..." />
@@ -125,7 +122,7 @@ export function RequestDetailPage() {
     </table>
   )
 
-  const totalStrip = (label: string, cost: number, selling: number) => labeledBand(<Receipt size={16} color="#004081" />, `รวม ${label}`, (
+  const totalStrip = (label: string, cost: number, selling: number) => labeledBand(`รวม ${label}`, (
     <span style={{ display: 'flex', gap: 24 }}>
       <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
         ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#586782' }}>{formatCurrency(cost)}</span>
@@ -136,7 +133,7 @@ export function RequestDetailPage() {
     </span>
   ))
 
-  const installmentStrip = (creditTermDays: number) => labeledBand(<Calendar size={16} color="#004081" />, 'งวดการชำระเงิน', (
+  const installmentStrip = (creditTermDays: number) => labeledBand('งวดการชำระเงิน', (
     <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
       Credit Term <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCreditTerm(creditTermDays)}</span>
     </span>
