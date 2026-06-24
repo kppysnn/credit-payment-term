@@ -85,7 +85,7 @@ function buildPrintHTML(req: Request): string {
   <div class="section">
     <div class="section-title">3. ใบเสนอราคาและ Payment Schedule</div>
     ${hardwareItems.length > 0 ? buildQuotationGroup(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareSelling, req.installments) : ''}
-    ${serviceItems.length > 0 ? buildQuotationGroup(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #004081 0%, #66C5C5 100%)', serviceItems, serviceSelling, req.swInstallments ?? []) : ''}
+    ${serviceItems.length > 0 ? buildQuotationGroup(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', serviceItems, serviceSelling, req.swInstallments ?? []) : ''}
     <table>
       <tr style="font-weight:700;background:#F2F6F8">
         <td>สรุปรวม</td>
