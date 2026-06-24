@@ -78,8 +78,11 @@ export function RequestDetailPage() {
   // `framed` zones sit directly inside a borderless wrapper (quotationBlock) and need
   // their own 18px horizontal padding; non-framed zones already sit inside a Card
   // body that provides that padding, so they only need the top divider + vertical rhythm.
+  // One horizontal rhythm for everything inside a quotation block: 14px, matching
+  // the table cells below, so the header bar, section labels and table columns
+  // all share the same left edge instead of drifting onto their own grid.
   const labeledBand = (label: string, right?: React.ReactNode, framed = true) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: framed ? '16px 18px 10px' : '16px 0 10px', borderTop: '1px solid #D0D6DF' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: framed ? '16px 14px 10px' : '16px 0 10px', borderTop: '1px solid #D0D6DF' }}>
       <span style={{ fontSize: 14, fontWeight: 700, color: '#001122', letterSpacing: '-0.01em' }}>{label}</span>
       {right}
     </div>
@@ -90,7 +93,7 @@ export function RequestDetailPage() {
     return (
       <div>
         {labeledBand(label, undefined, framed)}
-        <div style={{ padding: framed ? '0 18px 16px' : '0 0 4px' }}>
+        <div style={{ padding: framed ? '0 14px 16px' : '0 0 4px' }}>
           {editable ? (
             <Textarea value={value} onChange={e => onChange?.(e.target.value)} rows={2} placeholder="เพิ่มรายละเอียดเพิ่มเติม (ถ้ามี)..." />
           ) : (
@@ -101,18 +104,22 @@ export function RequestDetailPage() {
     )
   }
 
+  // Column-header style is shared by every table on this page — same size, weight,
+  // color and underline — so "this is a header row" never has two different looks.
+  const tableHeaderCell: React.CSSProperties = { padding: '8px 14px', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }
+
   const itemsTable = (items: QuotationItem[]) => (
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
       <thead>
-        <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
+        <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
           {['รายการ', 'ราคาทุน', 'ราคาขาย'].map(h => (
-            <th key={h} style={{ padding: '8px 14px', textAlign: h === 'รายการ' ? 'left' : 'right', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>{h}</th>
+            <th key={h} style={{ ...tableHeaderCell, textAlign: h === 'รายการ' ? 'left' : 'right' }}>{h}</th>
           ))}
         </tr>
       </thead>
       <tbody>
-        {items.map(item => (
-          <tr key={item.itemId} style={{ borderBottom: '1px solid #F2F6F8' }}>
+        {items.map((item, idx) => (
+          <tr key={item.itemId} style={{ borderBottom: idx === items.length - 1 ? 'none' : '1px solid #F2F6F8' }}>
             <td style={{ padding: '10px 14px' }}>{item.name}</td>
             <td style={{ padding: '10px 14px', textAlign: 'right' }}>{summaryAmount(item.cost, '#586782')}</td>
             <td style={{ padding: '10px 14px', textAlign: 'right' }}>{summaryAmount(item.sellingPrice, '#004081')}</td>
@@ -140,20 +147,20 @@ export function RequestDetailPage() {
   ))
 
   const installmentTable = (installments: PaymentInstallment[]) => (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, margin: '6px 0 6px' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
       <thead>
-        <tr style={{ borderBottom: '1px solid #F2F6F8' }}>
+        <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
           {['งวด', '%', 'จำนวนเงิน'].map(h => (
-            <th key={h} style={{ padding: '0 14px 6px', textAlign: h === 'จำนวนเงิน' ? 'right' : 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.05em', whiteSpace: 'nowrap' as const }}>{h}</th>
+            <th key={h} style={{ ...tableHeaderCell, textAlign: h === 'จำนวนเงิน' ? 'right' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
           ))}
         </tr>
       </thead>
       <tbody>
-        {installments.map(inst => (
-          <tr key={inst.installmentNo} style={{ borderBottom: '1px solid #F2F6F8' }}>
-            <td style={{ padding: '7px 14px', fontWeight: 700 }}>{inst.installmentNo}</td>
-            <td style={{ padding: '7px 14px' }}>{inst.installmentPercent}%</td>
-            <td style={{ padding: '7px 14px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>{formatCurrency(inst.installmentAmount)}</td>
+        {installments.map((inst, idx) => (
+          <tr key={inst.installmentNo} style={{ borderBottom: idx === installments.length - 1 ? 'none' : '1px solid #F2F6F8' }}>
+            <td style={{ padding: '10px 14px' }}>{inst.installmentNo}</td>
+            <td style={{ padding: '10px 14px', color: '#505050' }}>{inst.installmentPercent}%</td>
+            <td style={{ padding: '10px 14px', textAlign: 'right' }}>{summaryAmount(inst.installmentAmount, '#004081')}</td>
           </tr>
         ))}
       </tbody>
@@ -162,7 +169,7 @@ export function RequestDetailPage() {
 
   const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], extra?: React.ReactNode) => (
     <div style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #D0D6DF', background: '#FFFFFF' }}>
-      <div style={{ background: gradient, padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div style={{ background: gradient, padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>{label}</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{quotationNo}</span>
       </div>
