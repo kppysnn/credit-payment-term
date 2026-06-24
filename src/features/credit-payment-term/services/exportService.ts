@@ -115,7 +115,7 @@ function buildQuotationGroup(no: string, title: string, gradient: string, items:
         <td class="mono" style="text-align:right">${i.sellingPrice.toLocaleString()}</td>
       </tr>`).join('')}
       <tr style="font-weight:700;background:#F2F6F8">
-        <td>รวมหมวด ${title}</td>
+        <td>รวม ${title}</td>
         <td class="mono" style="text-align:right">${total.toLocaleString()}</td>
       </tr>
     </table>

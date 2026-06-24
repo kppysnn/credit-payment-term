@@ -98,26 +98,31 @@ export function RequestDetailPage() {
   // prior round's rejection note is preserved on req.approvalResult — surface
   // it inline (only while the live field is still empty) so a reviewer doesn't
   // have to hunt through all 3 sections to find which one was flagged last time.
-  const sectionComment = (label: string, value: string, editable: boolean, onChange?: (v: string) => void, framed = true, priorComment?: string, placeholder = 'ระบุรายละเอียดเพิ่มเติม เช่น เหตุผล เงื่อนไข หรือข้อมูลประกอบการพิจารณา') => {
-    if (!editable && !value.trim() && !priorComment) return null
-    return (
-      <div>
-        {labeledBand(label, undefined, framed)}
-        <div style={{ padding: framed ? '0 14px 18px' : '0 0 4px' }}>
-          {priorComment && !value.trim() && (
-            <div style={{ marginBottom: 8, padding: '7px 10px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 4, fontSize: 12, color: '#7F1D1D' }}>
-              เคยถูกปฏิเสธไว้ว่า: <span style={{ fontStyle: 'italic' }}>"{priorComment}"</span>
-            </div>
-          )}
-          {editable ? (
-            <Textarea value={value} onChange={e => onChange?.(e.target.value)} rows={2} placeholder={placeholder} />
-          ) : value.trim() ? (
-            <div style={{ fontSize: 13, color: '#505050', lineHeight: 1.65, whiteSpace: 'pre-wrap' as const }}>{value}</div>
-          ) : null}
-        </div>
+  //
+  // Read-only viewers (sales/accounting, or anyone looking at a decided request)
+  // never see a textarea — only an Approver/Rejecter actively deciding a pending
+  // request gets the editable box. Read-only always shows the band, with either
+  // the saved note in a "this is recorded data" box or a polite empty state —
+  // never just disappears, and never looks like an empty field waiting for input.
+  const sectionComment = (label: string, value: string, editable: boolean, onChange?: (v: string) => void, framed = true, priorComment?: string, placeholder = 'ระบุรายละเอียดเพิ่มเติม เช่น เหตุผล เงื่อนไข หรือข้อมูลประกอบการพิจารณา', emptyStateText = 'ยังไม่มีหมายเหตุเพิ่มเติม') => (
+    <div>
+      {labeledBand(label, undefined, framed)}
+      <div style={{ padding: framed ? '0 14px 18px' : '0 0 4px' }}>
+        {priorComment && !value.trim() && (
+          <div style={{ marginBottom: 8, padding: '7px 10px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 4, fontSize: 12, color: '#7F1D1D' }}>
+            เคยถูกปฏิเสธไว้ว่า: <span style={{ fontStyle: 'italic' }}>"{priorComment}"</span>
+          </div>
+        )}
+        {editable ? (
+          <Textarea value={value} onChange={e => onChange?.(e.target.value)} rows={2} placeholder={placeholder} />
+        ) : value.trim() ? (
+          <div style={{ padding: '10px 12px', background: '#F8F9FA', border: '1px solid #F2F6F8', borderRadius: 4, fontSize: 13, color: '#505050', lineHeight: 1.65, whiteSpace: 'pre-wrap' as const }}>{value}</div>
+        ) : (
+          <div style={{ padding: '10px 12px', background: '#F8F9FA', border: '1px solid #F2F6F8', borderRadius: 4, fontSize: 13, color: '#586782', fontStyle: 'italic' }}>{emptyStateText}</div>
+        )}
       </div>
-    )
-  }
+    </div>
+  )
 
   // Column-header style is shared by every table on this page — same size, weight,
   // color and underline — so "this is a header row" never has two different looks.
@@ -149,13 +154,13 @@ export function RequestDetailPage() {
     </div>
   )
 
-  const totalStrip = (label: string, cost: number, selling: number) => labeledBand(`รวมหมวด ${label}`, (
+  const totalStrip = (label: string, cost: number, selling: number) => labeledBand(`รวม ${label}`, (
     <span style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
       <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
-        ราคาทุนรวม <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 600, color: '#586782' }}>{formatCurrency(cost)}</span>
+        ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 600, color: '#586782' }}>{formatCurrency(cost)}</span>
       </span>
       <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
-        ราคาขายรวม <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(selling)}</span>
+        ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(selling)}</span>
       </span>
     </span>
   ), true, true)
@@ -195,12 +200,12 @@ export function RequestDetailPage() {
   // as the loudest thing on the page.
   const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], extra?: React.ReactNode) => (
     <div style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #D0D6DF', background: '#FFFFFF' }}>
-      <div style={{ height: 4, background: gradient }} />
+      <div style={{ height: 3, background: gradient, opacity: 0.8 }} />
       <div style={{ background: '#F2F6F8', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px', borderBottom: '1px solid #D0D6DF' }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: '#001122', letterSpacing: '-0.01em' }}>{label}</span>
-        <span style={{ fontSize: 13, fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>
+        <span style={{ fontSize: 13 }}>
           <span style={{ fontWeight: 500, color: '#586782' }}>Quotation No. </span>
-          <span style={{ fontWeight: 700, color: '#586782' }}>{quotationNo}</span>
+          <span style={{ fontWeight: 600, color: '#586782' }}>{quotationNo}</span>
         </span>
       </div>
       {itemsTable(items)}
@@ -307,12 +312,12 @@ export function RequestDetailPage() {
             {/* Request Info */}
             <Card title="ข้อมูลคำขอ">
               <FieldGrid cols={3}>
-                <FieldDisplay label="Request No." value={req.requestNo} mono />
-                <FieldDisplay label="Proposal No." value={req.proposalNo} mono />
+                <FieldDisplay label="Request No." value={req.requestNo} mono preserveLabelCase valueWeight={600} />
+                <FieldDisplay label="Proposal No." value={req.proposalNo} mono preserveLabelCase valueWeight={600} />
                 <FieldDisplay label="ประเภทการขาย" value={SALE_TYPE_LABELS[req.saleType]} />
                 <FieldDisplay label="วันที่สร้าง" value={formatDateTime(req.createdAt)} />
                 <FieldDisplay label="อัปเดตล่าสุด" value={formatDateTime(req.updatedAt)} />
-                <FieldDisplay label="เวอร์ชัน" value={`v${req.version}`} />
+                <FieldDisplay label="Version" value={`v${req.version}`} preserveLabelCase />
               </FieldGrid>
             </Card>
 
@@ -354,11 +359,11 @@ export function RequestDetailPage() {
 
             {/* Hardware quotation: items + its own payment schedule */}
             {hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments,
-              sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, true, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
+              sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, true, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา', 'ยังไม่มีหมายเหตุสำหรับหมวดนี้'))}
 
             {/* Software & Installation quotation: items + its own payment schedule */}
             {serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [],
-              sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, true, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
+              sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, true, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา', 'ยังไม่มีหมายเหตุสำหรับหมวดนี้'))}
 
             {/* Overall total */}
             <Card title="สรุปยอดรวม" noPad>

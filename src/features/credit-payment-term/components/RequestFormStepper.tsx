@@ -350,14 +350,14 @@ export function RequestFormStepper({
 
   const quotationHeader = (quotationNo: string, groupLabel: string, gradient: string) => (
     <>
-      <div style={{ height: 4, background: gradient }} />
+      <div style={{ height: 3, background: gradient, opacity: 0.8 }} />
       <div style={{ background: '#F2F6F8', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px', borderBottom: '1px solid #D0D6DF' }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: '#001122', letterSpacing: '-0.01em' }}>
           {groupLabel}
         </span>
-        <span style={{ fontSize: 13, fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace' }}>
+        <span style={{ fontSize: 13 }}>
           <span style={{ fontWeight: 500, color: '#586782' }}>Quotation No. </span>
-          <span style={{ fontWeight: 700, color: '#586782' }}>{quotationNo}</span>
+          <span style={{ fontWeight: 600, color: '#586782' }}>{quotationNo}</span>
         </span>
       </div>
     </>
@@ -631,13 +631,13 @@ export function RequestFormStepper({
           marginTop: 6, padding: '12px 14px', borderRadius: 4,
           background: '#F2F6F8',
         }}>
-          <span style={{ fontSize: 13, color: '#586782', fontWeight: 700 }}>รวมหมวด {summaryLabel}</span>
+          <span style={{ fontSize: 13, color: '#586782', fontWeight: 700 }}>รวม {summaryLabel}</span>
           <span style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
-              ราคาทุนรวม <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 600, color: '#586782' }}>{formatCurrency(costTotal)}</span>
+              ราคาทุน <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 600, color: '#586782' }}>{formatCurrency(costTotal)}</span>
             </span>
             <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
-              ราคาขายรวม <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
+              ราคาขาย <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(sellingTotal)}</span>
             </span>
           </span>
         </div>

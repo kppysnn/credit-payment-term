@@ -22,7 +22,7 @@ export type SaleType = 'hardware' | 'hardware_software_installation'
 
 export const SALE_TYPE_LABELS: Record<SaleType, string> = {
   hardware: 'Quotation เดียว',
-  hardware_software_installation: 'แยก Quotation',
+  hardware_software_installation: 'แยกตาม Quotation',
 }
 
 export type PaymentCondition =

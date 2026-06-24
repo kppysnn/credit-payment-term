@@ -60,9 +60,12 @@ interface FieldProps {
   /** Business terms like "Default Credit Term" read better in their natural
    * Title Case than forced uppercase — opt out per-field, not globally. */
   preserveLabelCase?: boolean
+  /** Most values stay at normal weight; reserve a heavier weight for values
+   * that genuinely matter (reference numbers, key terms), per-field. */
+  valueWeight?: number
 }
 
-export function FieldDisplay({ label, value, mono, children, preserveLabelCase }: FieldProps) {
+export function FieldDisplay({ label, value, mono, children, preserveLabelCase, valueWeight }: FieldProps) {
   return (
     <div>
       <div style={{
@@ -79,6 +82,7 @@ export function FieldDisplay({ label, value, mono, children, preserveLabelCase }
         <div style={{
           fontSize: 14,
           color: '#001122',
+          fontWeight: valueWeight,
           fontFamily: mono ? 'JetBrains Mono, Noto Sans Thai, monospace' : undefined,
           lineHeight: 1.5,
         }}>
