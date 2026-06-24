@@ -64,6 +64,7 @@ export function Button({
   disabled,
   onMouseEnter,
   onMouseLeave,
+  onMouseUp,
   onClick,
   ...rest
 }: Props) {
@@ -114,6 +115,15 @@ export function Button({
           })
         }
         onMouseLeave?.(e)
+      }}
+      onMouseUp={e => {
+        // Blur on mouse release (not on click, which also fires for keyboard
+        // Enter/Space) so the :focus-visible ring clears after a mouse click —
+        // especially after a click that navigates via React Router, where the
+        // ring otherwise sticks on this node until a full page refresh — while
+        // keyboard users still see it.
+        e.currentTarget.blur()
+        onMouseUp?.(e)
       }}
       onClick={e => {
         onClick?.(e)
