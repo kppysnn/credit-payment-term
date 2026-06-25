@@ -104,7 +104,7 @@ export function Button({
             boxShadow: '',
             transform: '',
             background: (base.background as string) ?? '',
-            borderColor: '',
+            border: (base.border as string) ?? '',
             color: (base.color as string) ?? '',
           })
         }
