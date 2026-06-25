@@ -205,18 +205,13 @@ export function RequestDetailPage() {
     </div>
   )
 
-  // The gradient is a thin identity accent, not a hero band — the label below it
-  // carries the same weight as any other Card header (#001122/700/14px on
-  // #F2F6F8), so this block reads as a peer of "ข้อมูลคำขอ"/"ข้อมูลลูกค้า", not
-  // as the loudest thing on the page.
   const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], extra?: React.ReactNode) => (
     <div style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #D0D6DF', background: '#FFFFFF' }}>
-      <div style={{ height: 3, background: gradient, opacity: 0.8 }} />
-      <div style={{ background: '#F2F6F8', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px', borderBottom: '1px solid #D0D6DF' }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#001122', letterSpacing: '-0.01em' }}>{label}</span>
+      <div style={{ background: gradient, padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>{label}</span>
         <span style={{ fontSize: 13 }}>
-          <span style={{ fontWeight: 500, color: '#586782' }}>Quotation No. </span>
-          <span style={{ fontWeight: 600, color: '#586782' }}>{quotationNo}</span>
+          <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.78)' }}>Quotation No. </span>
+          <span style={{ fontWeight: 600, color: '#FFFFFF' }}>{quotationNo}</span>
         </span>
       </div>
       {itemsTable(items)}

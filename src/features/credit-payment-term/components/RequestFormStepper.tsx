@@ -350,18 +350,15 @@ export function RequestFormStepper({
   )
 
   const quotationHeader = (quotationNo: string, groupLabel: string, gradient: string) => (
-    <>
-      <div style={{ height: 3, background: gradient, opacity: 0.8 }} />
-      <div style={{ background: '#F2F6F8', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px', borderBottom: '1px solid #D0D6DF' }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#001122', letterSpacing: '-0.01em' }}>
-          {groupLabel}
-        </span>
-        <span style={{ fontSize: 13 }}>
-          <span style={{ fontWeight: 500, color: '#586782' }}>Quotation No. </span>
-          <span style={{ fontWeight: 600, color: '#586782' }}>{quotationNo}</span>
-        </span>
-      </div>
-    </>
+    <div style={{ background: gradient, padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
+      <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
+        {groupLabel}
+      </span>
+      <span style={{ fontSize: 13 }}>
+        <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.78)' }}>Quotation No. </span>
+        <span style={{ fontWeight: 600, color: '#FFFFFF' }}>{quotationNo}</span>
+      </span>
+    </div>
   )
 
   /* ── Payment block (closure over component state) ── */
