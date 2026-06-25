@@ -17,7 +17,7 @@ import { RejectModal } from '../../../components/modals/RejectModal'
 import { CancelModal } from '../../../components/modals/CancelModal'
 import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, canViewRequest } from '../utils/permissions'
 import { formatCurrency } from '../utils/calculations'
-import { formatDate, formatDateTime, formatCreditTerm } from '../utils/formatters'
+import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
 import { Edit, RefreshCw, Printer, Send, Ban, CheckCircle, XCircle } from 'lucide-react'
 
@@ -420,25 +420,6 @@ export function RequestDetailPage() {
                 </table>
               </div>
             </Card>
-
-            {/* Approval result — section-by-section comments live with their
-                respective data above; this just records who decided and when */}
-            {req.approvalResult && (
-              <Card title={req.status === 'approved' ? 'ผลการอนุมัติ' : 'ผลการปฏิเสธ'}>
-                <FieldGrid cols={3}>
-                  <FieldDisplay label="ผลการพิจารณา">
-                    <div style={{ fontSize: 14, fontWeight: 700, color: req.approvalResult.approvedAt ? '#14532D' : '#7F1D1D' }}>
-                      {req.approvalResult.approvedAt ? 'อนุมัติ' : 'ไม่อนุมัติ'}
-                    </div>
-                  </FieldDisplay>
-                  <FieldDisplay label="ผู้อนุมัติ" value={req.approvalResult.approverName} />
-                  <FieldDisplay label="วันที่" value={formatDate(req.approvalResult.approvedAt ?? req.approvalResult.rejectedAt ?? '')} />
-                </FieldGrid>
-                <p style={{ margin: '12px 0 0', fontSize: 12, color: '#586782' }}>
-                  ดูหมายเหตุของผู้พิจารณาแยกตามหมวดด้านบน
-                </p>
-              </Card>
-            )}
 
             {/* Status Timeline */}
             <Card title="ประวัติสถานะ">
