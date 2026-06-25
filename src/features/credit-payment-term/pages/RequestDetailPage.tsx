@@ -134,8 +134,10 @@ export function RequestDetailPage() {
   }
 
   // Column-header style is shared by every table on this page — same size, weight,
-  // color and underline — so "this is a header row" never has two different looks.
-  const tableHeaderCell: React.CSSProperties = { padding: '8px 14px', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }
+  // color and background — matched to the WorkX host table header (gray #F2F2F2
+  // bar, bold navy, normal case) so "this is a header row" looks identical
+  // app-wide, not just within this page.
+  const tableHeaderCell: React.CSSProperties = { padding: '8px 14px', fontWeight: 700, color: '#004081', fontSize: 12.5, background: '#F2F2F2' }
 
   // Line items stay informative but quiet (navy at normal weight) — bold navy
   // is reserved for the category subtotal and, more emphatically, the grand

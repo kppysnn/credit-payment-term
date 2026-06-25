@@ -9,7 +9,7 @@ import { Button } from '../../../components/ui/Button'
 import { Input, Select } from '../../../components/ui/FormField'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
-import { Plus, Search, Edit, RefreshCw, Printer, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Edit, RefreshCw, Printer } from 'lucide-react'
 import { exportPDF } from '../services/exportService'
 import { getRequestById } from '../services/creditTermService'
 
@@ -54,14 +54,14 @@ export function RequestListPage() {
       {/* Notice banner — always the first thing on the page */}
       {currentUser.role === 'sales' && counts.rejected > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 4, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#7F1D1D' }}>
-          <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
           <span style={{ fontWeight: 600, fontSize: 13, flex: 1 }}>มี {counts.rejected} คำขอที่ถูกปฏิเสธ — กรุณาแก้ไขและส่งใหม่</span>
           <Button variant="secondary" size="sm" onClick={() => setSearchParams({ status: 'rejected' })}>ดูทั้งหมด</Button>
         </div>
       )}
       {currentUser.role === 'approver' && counts.pending > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 4, border: '1px solid #FCD34D', background: '#FFFBEB', color: '#92400E' }}>
-          <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
           <span style={{ fontWeight: 600, fontSize: 13, flex: 1 }}>มี {counts.pending} คำขอรอการพิจารณา</span>
           <Button variant="secondary" size="sm" onClick={() => setSearchParams({ status: 'pending' })}>ดูทั้งหมด</Button>
         </div>
@@ -117,7 +117,7 @@ export function RequestListPage() {
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr style={{ background: '#F2F6F8', borderBottom: '1px solid #D0D6DF' }}>
+              <tr style={{ background: '#F2F2F2', borderBottom: '1px solid #D0D6DF' }}>
                 {['คำขอ', 'ลูกค้า / โปรเจกต์', 'เซลล์', 'มูลค่ารวม', 'สถานะ', 'อัปเดต', ''].map(h => (
                   <th key={h} style={{ padding: '12px 20px', textAlign: h === 'มูลค่ารวม' ? 'right' : 'left', fontWeight: 700, color: '#004081', fontSize: 12.5, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}

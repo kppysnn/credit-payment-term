@@ -796,10 +796,10 @@ export function RequestFormStepper({
       <Card title="สรุปรวมทั้งหมด" noPad>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
-              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายการ</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาทุน</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#586782', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ราคาขาย</th>
+            <tr style={{ background: '#F2F2F2', borderBottom: '1px solid #D0D6DF' }}>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#004081', fontSize: 12.5 }}>รายการ</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#004081', fontSize: 12.5 }}>ราคาทุน</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#004081', fontSize: 12.5 }}>ราคาขาย</th>
             </tr>
           </thead>
           <tbody>
