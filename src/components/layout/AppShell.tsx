@@ -1,53 +1,87 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, Link } from 'react-router-dom'
+import { FaChevronDown } from 'react-icons/fa6'
 import { RoleSwitcher } from './RoleSwitcher'
+import { useCurrentUser } from '../../app/UserContext'
+import workxLogo from '../../assets/navbar/workx-logo.png'
+import avatarPlaceholder from '../../assets/navbar/avatar-placeholder.png'
+import tabTravelExpense from '../../assets/navbar/tab-travel-expense.png'
+import tabTransportRequest from '../../assets/navbar/tab-transport-request.png'
+import tabPurchaseRequest from '../../assets/navbar/tab-purchase-request.png'
+import tabBoq from '../../assets/navbar/tab-boq.png'
+import tabInternalMemo from '../../assets/navbar/tab-internal-memo.png'
+import tabPaymentCreditTerm from '../../assets/navbar/tab-payment-credit-term.png'
 
-const PAGE_TITLES: Record<string, string> = {
-  '/requests': 'Payment & Credit Terms',
-  '/requests/new': 'สร้างคำขออนุมัติใหม่',
-}
+// The other WorkX modules as they appear in the host's TopMenuBar (Figma node
+// 1317:2565) — shown inert here since this app only owns the Payment & Credit
+// Term route, but kept so the module switcher matches the host pixel-for-pixel
+// once this module is embedded in the main platform.
+const OTHER_MODULES = [
+  { icon: tabTravelExpense, label: 'ใบเบิกค่าเดินทาง' },
+  { icon: tabTransportRequest, label: 'ขอใช้บริการขนส่ง' },
+  { icon: tabPurchaseRequest, label: 'ใบขอซื้อ PR' },
+  { icon: tabBoq, label: 'BOQ' },
+  { icon: tabInternalMemo, label: 'Internal Memo' },
+]
 
-function getPageTitle(pathname: string): string {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
-  if (pathname.endsWith('/edit')) return 'แก้ไขคำขอ'
-  if (/^\/requests\/[^/]+$/.test(pathname)) return 'รายละเอียดคำขอ'
-  return 'Payment & Credit Terms'
+function ModuleTab({ icon, label, active, to }: { icon: string; label: string; active?: boolean; to?: string }) {
+  const tab = (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      padding: '8px 16px',
+      borderRadius: 16,
+      background: active ? 'rgba(102,197,197,0.05)' : 'transparent',
+      border: `1px solid ${active ? '#66C5C5' : 'transparent'}`,
+      cursor: to ? 'pointer' : 'default',
+      whiteSpace: 'nowrap' as const,
+    }}>
+      <img src={icon} alt="" width={40} height={40} style={{ flexShrink: 0 }} />
+      <span style={{ fontWeight: 500, fontSize: 20, color: active ? '#004081' : '#586782' }}>{label}</span>
+    </div>
+  )
+  return to ? <Link to={to} style={{ textDecoration: 'none' }}>{tab}</Link> : tab
 }
 
 export function AppShell() {
-  const location = useLocation()
-  const pageTitle = getPageTitle(location.pathname)
+  const { currentUser } = useCurrentUser()
 
   return (
     <div style={{ minHeight: '100vh', background: '#F8F9FA' }}>
-      {/* Topbar */}
-      <header
-        className="no-print"
-        style={{
-          height: 60,
-          background: '#FFFFFF',
-          borderBottom: '1px solid #D0D6DF',
-          boxShadow: '0 1px 2px rgba(0,64,129,0.04), inset 0 3px 0 0 #66C5C5',
+      {/* Host chrome — matches the WorkX TopMenuBar (Figma node 1317:2565) so this
+          module looks identical once embedded in the main platform, with
+          "Payment & Credit Term" added as our module's entry in the switcher. */}
+      <header className="no-print" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#FFFFFF' }}>
+        <div style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '0 28px',
-          gap: 16,
-          zIndex: 10,
-          position: 'sticky',
-          top: 0,
-        }}
-      >
-        <h1 style={{
-          flex: 1,
-          margin: 0,
-          fontWeight: 600,
-          fontSize: 18,
-          color: '#001122',
-          letterSpacing: '-0.01em',
+          justifyContent: 'space-between',
+          padding: '24px 40px',
+          boxShadow: '0 4px 15px rgba(0,64,129,0.15)',
         }}>
-          {pageTitle}
-        </h1>
+          <img src={workxLogo} alt="WorkX" style={{ height: 60 }} />
 
-        <RoleSwitcher />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <RoleSwitcher />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 14, color: '#586782' }}>{currentUser.name}</span>
+              <img src={avatarPlaceholder} alt="" width={32} height={32} style={{ borderRadius: '50%' }} />
+              <button
+                aria-label="เมนูผู้ใช้"
+                style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #D0D6DF', borderRadius: 4, background: 'none', cursor: 'pointer', color: '#586782' }}
+              >
+                <FaChevronDown size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid #D0D6DF' }}>
+          <div style={{ display: 'flex', gap: 16, padding: '16px 40px', flexWrap: 'wrap' }}>
+            {OTHER_MODULES.map(m => <ModuleTab key={m.label} icon={m.icon} label={m.label} />)}
+            <ModuleTab icon={tabPaymentCreditTerm} label="Payment & Credit Term" active to="/requests" />
+          </div>
+        </div>
       </header>
 
       {/* Page content */}
