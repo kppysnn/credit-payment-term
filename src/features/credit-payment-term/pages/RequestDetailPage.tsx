@@ -144,7 +144,7 @@ export function RequestDetailPage() {
     <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
+          <tr>
             {['รายการ', 'ราคาทุน', 'ราคาขาย'].map(h => (
               <th key={h} style={{ ...tableHeaderCell, textAlign: h === 'รายการ' ? 'left' : 'right' }}>{h}</th>
             ))}
@@ -152,7 +152,7 @@ export function RequestDetailPage() {
         </thead>
         <tbody>
           {items.map(item => (
-            <tr key={item.itemId}>
+            <tr key={item.itemId} style={{ borderTop: '1px solid #F2F6F8' }}>
               <td style={{ padding: '12px 14px' }}>{item.name}</td>
               <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(item.cost, '#586782', undefined, 400)}</td>
               <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(item.sellingPrice, '#004081', undefined, 400)}</td>
@@ -184,7 +184,7 @@ export function RequestDetailPage() {
     <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
+          <tr>
             {['งวดที่', '%', 'ยอดชำระ'].map(h => (
               <th key={h} style={{ ...tableHeaderCell, textAlign: h === 'ยอดชำระ' ? 'right' : h === '%' ? 'center' : 'left', whiteSpace: 'nowrap' }}>{h}</th>
             ))}
@@ -192,7 +192,7 @@ export function RequestDetailPage() {
         </thead>
         <tbody>
           {installments.map(inst => (
-            <tr key={inst.installmentNo}>
+            <tr key={inst.installmentNo} style={{ borderTop: '1px solid #F2F6F8' }}>
               <td style={{ padding: '12px 14px' }}>{inst.installmentNo}</td>
               <td style={{ padding: '12px 14px', color: '#505050', textAlign: 'center' }}>{inst.installmentPercent}%</td>
               <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(inst.installmentAmount, '#004081', undefined, 400)}</td>
@@ -375,7 +375,7 @@ export function RequestDetailPage() {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
+                    <tr>
                       <th style={{ ...tableHeaderCell, textAlign: 'left' }}>รายการ</th>
                       <th style={{ ...tableHeaderCell, textAlign: 'right' }}>ราคาทุน</th>
                       <th style={{ ...tableHeaderCell, textAlign: 'right' }}>ราคาขาย</th>
@@ -383,7 +383,7 @@ export function RequestDetailPage() {
                   </thead>
                   <tbody>
                     {hardwareItems.length > 0 && (
-                      <tr>
+                      <tr style={{ borderTop: '1px solid #F2F6F8' }}>
                         <td style={{ padding: '12px 14px' }}>
                           <span style={{ fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{hardwareQuotationNo}</span>
                           <span style={{ color: '#586782', marginLeft: 8 }}>Hardware</span>
@@ -393,7 +393,7 @@ export function RequestDetailPage() {
                       </tr>
                     )}
                     {serviceItems.length > 0 && (
-                      <tr>
+                      <tr style={{ borderTop: '1px solid #F2F6F8' }}>
                         <td style={{ padding: '12px 14px' }}>
                           <span style={{ fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{serviceQuotationNo}</span>
                           <span style={{ color: '#586782', marginLeft: 8 }}>Software &amp; Installation</span>

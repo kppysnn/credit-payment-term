@@ -797,14 +797,14 @@ export function RequestFormStepper({
       <Card title="สรุปรวมทั้งหมด" noPad>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
+            <tr>
               <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>รายการ</th>
               <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาทุน</th>
               <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาขาย</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr style={{ borderTop: '1px solid #F2F6F8' }}>
               <td style={{ padding: '12px 14px' }}>
                 <span style={{ fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{hwQuotationNo}</span>
                 <span style={{ color: '#586782', marginLeft: 8 }}>Hardware</span>
@@ -812,7 +812,7 @@ export function RequestFormStepper({
               <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hwCost, '#586782', undefined, 400)}</td>
               <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hwSelling, '#004081', undefined, 500)}</td>
             </tr>
-            <tr>
+            <tr style={{ borderTop: '1px solid #F2F6F8' }}>
               <td style={{ padding: '12px 14px' }}>
                 <span style={{ fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{swQuotationNo}</span>
                 <span style={{ color: '#586782', marginLeft: 8 }}>Software &amp; Installation</span>
