@@ -434,7 +434,7 @@ export function RequestFormStepper({
                   onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   aria-label="เลือกจากรายการแทน">
-                  <FaXmark size={14} />
+                  <FaXmark size={16} />
                 </button>
               </div>
             ) : (
@@ -701,7 +701,7 @@ export function RequestFormStepper({
                     {!!ec.companyName && (
                       <button onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
                         style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#586782', padding: 2, display: 'flex' }}>
-                        <FaXmark size={14} />
+                        <FaXmark size={16} />
                       </button>
                     )}
                   </div>
@@ -740,7 +740,7 @@ export function RequestFormStepper({
                       {rs.resellerCompanyName && (
                         <button onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' } })}
                           style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#586782', padding: 2, display: 'flex' }}>
-                          <FaXmark size={14} />
+                          <FaXmark size={16} />
                         </button>
                       )}
                     </div>

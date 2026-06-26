@@ -224,7 +224,7 @@ export function RequestInformationStep({ data, onChange, onNext }: Props) {
                       style={{ flex: 1 }}
                       error={errors.existingCustomerId}
                     />
-                    <Button variant="secondary" size="sm" icon={<FaMagnifyingGlass size={14} />} onClick={handleSearch} loading={searching}>ค้นหา</Button>
+                    <Button variant="secondary" size="sm" icon={<FaMagnifyingGlass size={15} />} onClick={handleSearch} loading={searching}>ค้นหา</Button>
                   </div>
                   {searchDropdown(searchResults, selectExistingCustomer)}
                 </div>
@@ -257,7 +257,7 @@ export function RequestInformationStep({ data, onChange, onNext }: Props) {
                       style={{ flex: 1 }}
                       error={errors['res.resellerId']}
                     />
-                    <Button variant="secondary" size="sm" icon={<FaMagnifyingGlass size={14} />} onClick={handleSearch} loading={searching}>ค้นหา</Button>
+                    <Button variant="secondary" size="sm" icon={<FaMagnifyingGlass size={15} />} onClick={handleSearch} loading={searching}>ค้นหา</Button>
                   </div>
                   {searchDropdown(searchResults, selectReseller)}
                 </div>

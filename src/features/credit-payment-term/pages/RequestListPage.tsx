@@ -6,6 +6,7 @@ import type { RequestListItem, RequestStatus } from '../types/request'
 import { STATUS_LABELS } from '../types/request'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { Button } from '../../../components/ui/Button'
+import { Card } from '../../../components/ui/Card'
 import { Input, Select } from '../../../components/ui/FormField'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
@@ -49,30 +50,34 @@ export function RequestListPage() {
     if (req) exportPDF(req)
   }
 
+  const rejectedBanner = currentUser.role === 'sales' && counts.rejected > 0
+  const pendingBanner = currentUser.role === 'approver' && counts.pending > 0
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Notice banner — always the first thing on the page */}
-      {currentUser.role === 'sales' && counts.rejected > 0 && (
+      {/* Title row and notice banner share one slot — matching the WorkX host's
+          list pages, where an active notice takes over the title row instead of
+          stacking above it. */}
+      {rejectedBanner ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 4, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#7F1D1D' }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
           <span style={{ fontWeight: 600, fontSize: 13, flex: 1 }}>มี {counts.rejected} คำขอที่ถูกปฏิเสธ — กรุณาแก้ไขและส่งใหม่</span>
           <Button variant="secondary" size="sm" onClick={() => setSearchParams({ status: 'rejected' })}>ดูทั้งหมด</Button>
         </div>
-      )}
-      {currentUser.role === 'approver' && counts.pending > 0 && (
+      ) : pendingBanner ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 4, border: '1px solid #FCD34D', background: '#FFFBEB', color: '#92400E' }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
           <span style={{ fontWeight: 600, fontSize: 13, flex: 1 }}>มี {counts.pending} คำขอรอการพิจารณา</span>
           <Button variant="secondary" size="sm" onClick={() => setSearchParams({ status: 'pending' })}>ดูทั้งหมด</Button>
         </div>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 className="page-title" style={{ fontSize: 28 }}>รายการคำขอ</h1>
+          {currentUser.role === 'sales' && (
+            <Link to="/requests/new"><Button icon={<FaPlus size={15} />}>สร้างคำขอใหม่</Button></Link>
+          )}
+        </div>
       )}
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 className="page-title" style={{ fontSize: 28 }}>รายการคำขอ</h1>
-        {currentUser.role === 'sales' && (
-          <Link to="/requests/new"><Button icon={<FaPlus size={15} />}>สร้างคำขอใหม่</Button></Link>
-        )}
-      </div>
 
       {/* Filters */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -98,18 +103,14 @@ export function RequestListPage() {
               placeholder="ค้นหา Request No., ลูกค้า..."
               style={{ paddingRight: 36 }}
             />
-            <FaMagnifyingGlass size={15} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#929EB4', pointerEvents: 'none' }} />
+            <FaMagnifyingGlass size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#929EB4', pointerEvents: 'none' }} />
           </div>
         </div>
       </div>
 
-      {/* Table — no enclosing card/border, matching the WorkX host table */}
-      {!loading && (
-        <div style={{ fontSize: 12, color: '#586782' }}>
-          แสดง {filtered.length} จาก {requests.length} รายการ
-        </div>
-      )}
-      <div>
+      {/* Table card — header bar carries the result count, matching the WorkX
+          host's table-card pattern (count/summary bar + rows in one frame). */}
+      <Card title={!loading ? `แสดง ${filtered.length} จาก ${requests.length} รายการ` : undefined} noPad>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '48px 0', color: '#586782' }}>กำลังโหลด...</div>
         ) : filtered.length === 0 ? (
@@ -150,12 +151,12 @@ export function RequestListPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            icon={req.status === 'rejected' ? <FaArrowsRotate size={13} /> : <FaPenToSquare size={13} />}
+                            icon={req.status === 'rejected' ? <FaArrowsRotate size={15} /> : <FaPenToSquare size={15} />}
                             aria-label="แก้ไขคำขอ"
                           />
                         </Link>
                       )}
-                      <Button variant="ghost" size="sm" icon={<FaPrint size={13} />} aria-label="พิมพ์ / Export PDF" onClick={e => handleExport(e, req.id)} />
+                      <Button variant="ghost" size="sm" icon={<FaPrint size={15} />} aria-label="พิมพ์ / Export PDF" onClick={e => handleExport(e, req.id)} />
                     </div>
                   </td>
                 </tr>
@@ -163,7 +164,7 @@ export function RequestListPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

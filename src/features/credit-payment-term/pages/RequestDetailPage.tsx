@@ -268,7 +268,7 @@ export function RequestDetailPage() {
               <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{req.requestNo}</h1>
               <StatusBadge status={req.status} />
               {req.version > 1 && (
-                <span style={{ fontSize: 12, padding: '2px 8px', background: 'rgba(0,64,129,0.08)', color: '#004081', borderRadius: 9999, fontWeight: 600 }}>v{req.version}</span>
+                <span style={{ fontSize: 12, padding: '2px 8px', background: 'rgba(0,64,129,0.08)', color: '#004081', borderRadius: 4, fontWeight: 600 }}>v{req.version}</span>
               )}
             </div>
             <p style={{ margin: '6px 0 0', color: '#586782', fontSize: 14 }}>
@@ -278,26 +278,26 @@ export function RequestDetailPage() {
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <Button variant="secondary" size="sm" icon={<FaPrint size={14} />} onClick={() => exportPDF(req)}>Print / PDF</Button>
+            <Button variant="secondary" size="sm" icon={<FaPrint size={15} />} onClick={() => exportPDF(req)}>Print / PDF</Button>
 
             {currentUser.role === 'sales' && req.status === 'draft' && (
-              <Button size="sm" icon={<FaPaperPlane size={14} />} loading={submitLoading} onClick={handleSubmit}>ส่งขออนุมัติ</Button>
+              <Button size="sm" icon={<FaPaperPlane size={15} />} loading={submitLoading} onClick={handleSubmit}>ส่งขออนุมัติ</Button>
             )}
             {canEditRequest(currentUser, req) && (
               <Link to={`/requests/${req.id}/edit`}>
-                <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <FaArrowsRotate size={14} /> : <FaPenToSquare size={14} />}>
+                <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <FaArrowsRotate size={15} /> : <FaPenToSquare size={15} />}>
                   {req.status === 'rejected' ? 'แก้ไขและส่งใหม่' : 'แก้ไข'}
                 </Button>
               </Link>
             )}
             {canCancelRequest(currentUser, req) && (
-              <Button variant="danger" size="sm" icon={<FaBan size={14} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
+              <Button variant="danger" size="sm" icon={<FaBan size={15} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
             )}
             {canApproveRequest(currentUser, req) && (
-              <Button size="sm" icon={<FaCircleCheck size={14} />} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>
+              <Button size="sm" icon={<FaCircleCheck size={15} />} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>
             )}
             {canRejectRequest(currentUser, req) && (
-              <Button variant="danger" size="sm" icon={<FaCircleXmark size={14} />} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
+              <Button variant="danger" size="sm" icon={<FaCircleXmark size={15} />} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
             )}
           </div>
         </div>

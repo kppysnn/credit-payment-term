@@ -155,7 +155,7 @@ export function CustomerInformationStep({ data, onChange, onNext, onBack }: Prop
                 placeholder="ค้นหาด้วยชื่อบริษัทหรือ Tax ID..."
                 style={{ flex: 1 }}
               />
-              <Button variant="secondary" icon={<FaMagnifyingGlass size={14} />} onClick={handleSearch} loading={searching}>
+              <Button variant="secondary" icon={<FaMagnifyingGlass size={15} />} onClick={handleSearch} loading={searching}>
                 ค้นหา
               </Button>
             </div>

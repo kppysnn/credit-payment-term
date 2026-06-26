@@ -4,14 +4,14 @@ import { formatDateTime } from '../../features/credit-payment-term/utils/formatt
 import { FaCheck, FaXmark, FaClock, FaFileLines, FaPaperPlane, FaArrowsRotate, FaBan } from 'react-icons/fa6'
 
 const ACTION_ICONS: Record<string, React.ReactNode> = {
-  created: <FaFileLines size={14} />,
-  draft_saved: <FaFileLines size={14} />,
-  submitted: <FaPaperPlane size={14} />,
-  approved: <FaCheck size={14} />,
-  rejected: <FaXmark size={14} />,
-  edited: <FaArrowsRotate size={14} />,
-  resubmitted: <FaPaperPlane size={14} />,
-  cancelled: <FaBan size={14} />,
+  created: <FaFileLines size={15} />,
+  draft_saved: <FaFileLines size={15} />,
+  submitted: <FaPaperPlane size={15} />,
+  approved: <FaCheck size={15} />,
+  rejected: <FaXmark size={15} />,
+  edited: <FaArrowsRotate size={15} />,
+  resubmitted: <FaPaperPlane size={15} />,
+  cancelled: <FaBan size={15} />,
 }
 
 const ACTION_COLOR: Record<string, string> = {
@@ -53,7 +53,7 @@ export function StatusTimeline({ history }: Props) {
                   flexShrink: 0,
                 }}
               >
-                {ACTION_ICONS[entry.action] ?? <FaClock size={14} />}
+                {ACTION_ICONS[entry.action] ?? <FaClock size={15} />}
               </div>
               {!isLast && (
                 <div style={{ width: 2, flex: 1, background: '#D0D6DF', minHeight: 20, margin: '3px 0' }} />
