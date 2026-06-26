@@ -334,7 +334,7 @@ export function RequestDetailPage() {
                   <>
                     <FieldDisplay label="ชื่อบริษัท" value={req.customerInfo.data.companyName} />
                     <FieldDisplay label="Default Credit Term" preserveLabelCase>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#004081' }}>Net {req.customerInfo.data.defaultCreditTerm ?? 0}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#004081' }}>Net {req.customerInfo.data.defaultCreditTerm ?? 0}</div>
                     </FieldDisplay>
                     <FieldDisplay label="ผู้ติดต่อ" value={req.customerInfo.data.contactPerson || '—'} />
                     <FieldDisplay label="โทรศัพท์" value={req.customerInfo.data.contactPhone || '—'} />
@@ -351,7 +351,7 @@ export function RequestDetailPage() {
                   <>
                     <FieldDisplay label="Reseller" value={req.customerInfo.data.resellerCompanyName} />
                     <FieldDisplay label="Default Credit Term" preserveLabelCase>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#004081' }}>Net {req.customerInfo.data.defaultCreditTerm ?? 0}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#004081' }}>Net {req.customerInfo.data.defaultCreditTerm ?? 0}</div>
                     </FieldDisplay>
                     <FieldDisplay label="ผู้ติดต่อ" value={req.customerInfo.data.contactPerson || '—'} />
                     <FieldDisplay label="โทรศัพท์" value={req.customerInfo.data.contactPhone || '—'} />

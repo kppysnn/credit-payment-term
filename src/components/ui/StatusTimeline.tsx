@@ -14,8 +14,10 @@ const ACTION_ICONS: Record<string, React.ReactNode> = {
   cancelled: <FiSlash size={15} />,
 }
 
+// "approved" matches StatusBadge's teal exactly (#66C5C5, not green) — the
+// real draft (Exzy_WorkX 1765:5235) confirmed approved uses teal app-wide.
 const ACTION_COLOR: Record<string, string> = {
-  approved: '#82C566',
+  approved: '#66C5C5',
   rejected: '#F3554F',
   cancelled: '#929EB4',
   submitted: '#004081',
@@ -73,7 +75,7 @@ export function StatusTimeline({ history }: Props) {
               <div style={{ fontSize: 12, color: '#586782', marginTop: 2 }}>
                 {entry.actorName}
                 {entry.version > 1 && (
-                  <span style={{ marginLeft: 6, padding: '1px 5px', background: 'rgba(0,64,129,0.08)', color: '#004081', borderRadius: 9999, fontSize: 10, fontWeight: 600 }}>
+                  <span style={{ marginLeft: 6, padding: '1px 5px', background: 'rgba(0,64,129,0.08)', color: '#004081', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
                     v{entry.version}
                   </span>
                 )}

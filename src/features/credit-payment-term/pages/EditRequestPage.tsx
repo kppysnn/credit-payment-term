@@ -132,7 +132,7 @@ export function EditRequestPage() {
         <BackButton to={`/requests/${id}`} label="กลับไปหน้ารายละเอียดคำขอ" />
       </div>
       <div style={{ maxWidth: 760, margin: '0 auto 0' }}>
-        <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700 }}>
+        <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700, color: '#001122' }}>
           {isResubmit ? 'แก้ไขและส่งขออนุมัติอีกครั้ง' : isPendingEdit ? 'แก้ไขคำขอที่รออนุมัติ' : 'แก้ไขคำขอ'} — {req.requestNo}
         </h1>
       </div>

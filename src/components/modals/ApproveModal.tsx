@@ -48,7 +48,7 @@ export function ApproveModal({ open, request, customerName, onClose, onApprove }
     >
       {request && (
         <div style={{ marginBottom: 16, padding: '12px 14px', background: '#F2F6F8', borderRadius: 4, border: '1px solid #D0D6DF' }}>
-          <div style={{ fontWeight: 700, fontSize: 14, fontVariantNumeric: 'tabular-nums', color: '#004081' }}>{request.requestNo}</div>
+          <div style={{ fontWeight: 600, fontSize: 14, fontVariantNumeric: 'tabular-nums', color: '#004081' }}>{request.requestNo}</div>
           <div style={{ fontSize: 13, color: '#586782', marginTop: 3 }}>{customerName}</div>
         </div>
       )}
