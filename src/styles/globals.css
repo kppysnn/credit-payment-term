@@ -84,11 +84,11 @@ body {
 }
 
 /* Placeholder text needs body-level contrast, not the decorative --color-muted.
-   Italic matches the W+ Library "Web Text field" placeholder style exactly. */
+   Not italic — confirmed against the actual app draft, despite one isolated
+   library example showing italic; no placeholder in the real app is italic. */
 ::placeholder {
   color: var(--color-secondary);
   opacity: 1;
-  font-style: italic;
 }
 
 /* Scrollbar */

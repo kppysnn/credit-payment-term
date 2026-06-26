@@ -55,7 +55,7 @@ function buildPrintHTML(req: Request): string {
   th { background: #F2F6F8; font-weight: 600; text-align: left; padding: 5px 8px; border: 1px solid #D0D6DF; }
   td { padding: 5px 8px; border: 1px solid #D0D6DF; }
   .mono { font-family: 'Courier New', monospace; }
-  .status { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .status { display: inline-block; font-size: 11px; font-weight: 500; }
   @media print { @page { size: A4; margin: 0; } }
 </style></head><body>
 <div class="container">
@@ -64,7 +64,7 @@ function buildPrintHTML(req: Request): string {
       <h1>Credit &amp; Payment Term Approval Request</h1>
       <div class="sub">${req.requestNo} · Version ${req.version} · Created ${new Date(req.createdAt).toLocaleDateString('th-TH')}</div>
     </div>
-    <div class="status" style="background:${statusCfg.bgColor};color:${statusCfg.textColor}">${statusCfg.label}</div>
+    <div class="status" style="color:${statusCfg.iconColor}">${statusCfg.label}</div>
   </div>
 
   <div class="section">

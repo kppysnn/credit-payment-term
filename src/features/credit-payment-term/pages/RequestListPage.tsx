@@ -88,7 +88,7 @@ export function RequestListPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 className="page-title">รายการคำขอ</h1>
+        <h1 className="page-title">Credit & Payment Term</h1>
         {currentUser.role === 'sales' && (
           <Link to="/requests/new"><Button icon={<FiPlus size={15} />}>สร้างคำขอใหม่</Button></Link>
         )}
@@ -124,10 +124,10 @@ export function RequestListPage() {
       </div>
 
       {/* Table block — matches the WorkX host's table pattern (Figma node
-          730:25425): a flat notice bar (plain ⚠️ emoji, no card/border) sits
-          flush above the table, separated only by a border-top divider. No
-          count/title bar — Figma's table has none. */}
-      <div style={{ border: '1px solid #D0D6DF', borderRadius: 4, overflow: 'hidden', background: '#FFFFFF' }}>
+          730:25425) exactly: no outer border/box around the table at all, just
+          a flat notice bar (plain ⚠️ emoji) flush above it, separated only by a
+          thin border-top divider. No count/title bar — Figma's table has none. */}
+      <div style={{ background: '#FFFFFF' }}>
         {showBanner && (
           rejectedBanner ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: '#FEF2F2', color: '#7F1D1D' }}>
@@ -183,7 +183,9 @@ export function RequestListPage() {
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#001122' }}>{req.customerName}</td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', color: '#505050', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{req.salesName}</td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', textAlign: 'left', fontVariantNumeric: 'tabular-nums', fontSize: 13, color: '#004081', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatCurrency(req.totalSelling)}</td>
-                  <td style={{ padding: '14px 20px', verticalAlign: 'middle', overflow: 'hidden', whiteSpace: 'nowrap' }}><StatusBadge status={req.status} size="sm" /></td>
+                  <td style={{ padding: '14px 20px', verticalAlign: 'middle', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    <StatusBadge status={req.status} size="sm" subtitle={req.status === 'approved' ? req.approverName : undefined} />
+                  </td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', color: '#586782', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatDate(req.updatedAt)}</td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
                     <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>

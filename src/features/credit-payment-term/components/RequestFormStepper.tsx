@@ -85,13 +85,17 @@ function segBtn(active: boolean): React.CSSProperties {
   }
 }
 
+// Matches the W+ Library "RadioCheckbox" component (909:1495) exactly: the ring
+// stays neutral gray in every state — only the inner dot appears, navy, when
+// selected. The ring itself never changes color (it didn't in any of the
+// component's three states: untick / tick / disable).
 function RadioDot({ active }: { active: boolean }) {
   return (
     <span style={{
       width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
-      border: active ? '2px solid #66C5C5' : '2px solid #C7CEDA',
+      border: '1px solid #D0D6DF',
+      background: '#FFFFFF',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      transition: 'border-color 0.15s',
     }}>
       {active && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#004081' }} />}
     </span>

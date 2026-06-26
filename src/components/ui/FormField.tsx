@@ -71,6 +71,16 @@ export function Input({
   )
 }
 
+function handleSelectFocus(e: React.FocusEvent<HTMLSelectElement>) {
+  e.currentTarget.style.borderColor = '#004081'
+  e.currentTarget.style.outline = '2px solid rgba(0,64,129,0.15)'
+  e.currentTarget.style.outlineOffset = '2px'
+}
+function handleSelectBlur(e: React.FocusEvent<HTMLSelectElement>, error?: string) {
+  e.currentTarget.style.borderColor = error ? '#F3554F' : '#D0D6DF'
+  e.currentTarget.style.outline = 'none'
+}
+
 export function Select({
   error,
   style,
@@ -83,7 +93,11 @@ export function Select({
       {...props}
       disabled={disabled}
       aria-invalid={!!error}
-      style={{ ...inputBase, paddingRight: 32, appearance: 'none', background: `#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23586782' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center`, ...(error ? errorStyle : {}), ...(disabled ? disabledStyle : {}), ...style }}
+      // Matches the W+ Library "field-dropdown" component (926:425) exactly:
+      // 8px radius (not 4px, like Input) and a navy focus border (not teal).
+      style={{ ...inputBase, borderRadius: 8, paddingRight: 32, appearance: 'none', background: `#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23586782' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center`, ...(error ? errorStyle : {}), ...(disabled ? disabledStyle : {}), ...style }}
+      onFocus={handleSelectFocus}
+      onBlur={e => handleSelectBlur(e, error)}
     >
       {children}
     </select>

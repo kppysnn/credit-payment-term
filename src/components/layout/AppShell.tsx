@@ -28,16 +28,16 @@ function ModuleTab({ icon, label, active, to }: { icon: string; label: string; a
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: 10,
-      padding: '8px 16px',
-      borderRadius: 16,
+      gap: 6,
+      padding: '5px 10px',
+      borderRadius: 10,
       background: active ? 'rgba(102,197,197,0.1)' : 'transparent',
       border: `1px solid ${active ? '#66C5C5' : 'transparent'}`,
       cursor: to ? 'pointer' : 'default',
       whiteSpace: 'nowrap' as const,
     }}>
-      <img src={icon} alt="" width={40} height={40} style={{ flexShrink: 0 }} />
-      <span style={{ fontWeight: 500, fontSize: 20, color: active ? '#004081' : '#586782' }}>{label}</span>
+      <img src={icon} alt="" width={24} height={24} style={{ flexShrink: 0 }} />
+      <span style={{ fontWeight: 500, fontSize: 13, color: active ? '#004081' : '#586782' }}>{label}</span>
     </div>
   )
   return to ? <Link to={to} style={{ textDecoration: 'none' }}>{tab}</Link> : tab
@@ -48,41 +48,40 @@ export function AppShell() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#F8F9FA' }}>
-      {/* Host chrome — matches the WorkX TopMenuBar exactly (Figma node 1371:11120,
-          a clean isolated instance of the same component as 1317:2565): row 1 is
-          h-100 with px-40/py-24, logo h-60; row 2 is min-h-80 with the module
-          switcher CENTERED (not left-aligned) via justify-content: center. */}
+      {/* Host chrome — same composition as the WorkX TopMenuBar (Figma node
+          1371:11120 / 1317:2565: logo+profile row, then a CENTERED module
+          switcher row below) but scaled down ~60% from Figma's literal 1920px-
+          canvas sizing, which read oversized at normal app viewport widths. */}
       <header className="no-print" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#FFFFFF' }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          height: 100,
-          padding: '24px 40px',
+          padding: '12px 24px',
           boxShadow: '0 4px 15px rgba(0,64,129,0.15)',
           boxSizing: 'border-box',
         }}>
-          <img src={workxLogo} alt="WorkX" style={{ height: 60 }} />
+          <img src={workxLogo} alt="WorkX" style={{ height: 32 }} />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <RoleSwitcher />
-            <span style={{ fontSize: 14, color: '#586782' }}>{currentUser.name}</span>
-            <img src={avatarPlaceholder} alt="" width={32} height={32} style={{ borderRadius: '50%' }} />
+            <span style={{ fontSize: 12, color: '#586782' }}>{currentUser.name}</span>
+            <img src={avatarPlaceholder} alt="" width={22} height={22} style={{ borderRadius: '50%' }} />
             <button
               aria-label="เมนูผู้ใช้"
-              style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #D0D6DF', borderRadius: 4, background: 'none', cursor: 'pointer', color: '#586782' }}
+              style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #D0D6DF', borderRadius: 4, background: 'none', cursor: 'pointer', color: '#586782' }}
             >
-              <ChevronIcon direction="down" size={14} />
+              <ChevronIcon direction="down" size={10} />
             </button>
           </div>
         </div>
 
         <div style={{
           display: 'flex',
-          gap: 16,
+          gap: 10,
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: 80,
+          padding: '8px 24px',
           borderTop: '1px solid #D0D6DF',
           flexWrap: 'wrap',
         }}>

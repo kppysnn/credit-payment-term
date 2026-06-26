@@ -4,30 +4,24 @@ import { getStatusConfig } from '../../features/credit-payment-term/utils/status
 interface Props {
   status: RequestStatus
   size?: 'sm' | 'md'
+  /** Second line under the label, e.g. "By Lalin A." — matches the approved-
+   * status example in the actual draft of this module (Exzy_WorkX 1765:5235). */
+  subtitle?: string
 }
 
-// Filled tag/chip, matching the W+ Library "table tag" component (909:1216) —
-// light tinted background per status, not the bare icon+text this used before.
-export function StatusBadge({ status, size = 'md' }: Props) {
+// Bare icon + plain gray text, no background — matches the real draft of this
+// module's status column exactly (Exzy_WorkX node 1765:5235): only the icon
+// carries the status color, the label is always #505050.
+export function StatusBadge({ status, size = 'md', subtitle }: Props) {
   const cfg = getStatusConfig(status)
   const Icon = cfg.icon
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: size === 'sm' ? '3px 8px' : '4px 10px',
-        borderRadius: 4,
-        background: cfg.bgColor,
-        fontSize: size === 'sm' ? 12 : 13,
-        fontWeight: 500,
-        color: cfg.textColor,
-        whiteSpace: 'nowrap',
-      }}
-    >
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
       <Icon size={size === 'sm' ? 13 : 14} color={cfg.iconColor} style={{ flexShrink: 0 }} />
-      {cfg.label}
+      <span style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ fontSize: size === 'sm' ? 12 : 13, fontWeight: 400, color: '#505050' }}>{cfg.label}</span>
+        {subtitle && <span style={{ fontSize: 11, color: '#929EB4' }}>{subtitle}</span>}
+      </span>
     </span>
   )
 }
