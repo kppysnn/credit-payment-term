@@ -50,8 +50,9 @@ export function AppShell() {
     <div style={{ minHeight: '100vh', background: '#F8F9FA' }}>
       {/* Host chrome — same composition as the WorkX TopMenuBar (Figma node
           1371:11120 / 1317:2565: logo+profile row, then a CENTERED module
-          switcher row below) but scaled down ~60% from Figma's literal 1920px-
-          canvas sizing, which read oversized at normal app viewport widths. */}
+          switcher row below). Logo is at Figma's literal size (60px); the
+          module-switcher row stays scaled down ~60%, confirmed correct at
+          that size as-is. */}
       <header className="no-print" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#FFFFFF' }}>
         <div style={{
           display: 'flex',
@@ -61,7 +62,7 @@ export function AppShell() {
           boxShadow: '0 4px 15px rgba(0,64,129,0.15)',
           boxSizing: 'border-box',
         }}>
-          <img src={workxLogo} alt="WorkX" style={{ height: 32 }} />
+          <img src={workxLogo} alt="WorkX" style={{ height: 60 }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <RoleSwitcher />

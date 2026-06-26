@@ -80,7 +80,7 @@ function segBtn(active: boolean): React.CSSProperties {
       : '#fff',
     color: active ? '#004081' : '#586782',
     transition: 'border-color 0.15s, color 0.15s, background 0.15s',
-    boxShadow: active ? '0 1px 5px rgba(102,197,197,0.2)' : 'none',
+    boxShadow: active ? '0 1px 5px rgba(0,64,129,0.2)' : 'none',
     textAlign: 'left',
   }
 }
@@ -306,8 +306,8 @@ export function RequestFormStepper({
       <thead>
         <tr>
           <th style={{ width: 120 }} />
-          <th style={{ padding: '0 16px 4px 0', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#586782' }}>ราคาทุน (THB)</th>
-          <th style={{ padding: '0 0 4px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: '#586782' }}>ราคาขาย (THB)</th>
+          <th style={{ padding: '0 16px 4px 0', textAlign: 'right', fontSize: 12, fontWeight: 400, color: '#586782' }}>ราคาทุน (THB)</th>
+          <th style={{ padding: '0 0 4px', textAlign: 'right', fontSize: 12, fontWeight: 400, color: '#586782' }}>ราคาขาย (THB)</th>
         </tr>
       </thead>
       <tbody>
@@ -315,7 +315,7 @@ export function RequestFormStepper({
           const sellError = spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined
           return (
             <tr key={spKey}>
-              <td style={{ padding: '8px 0', fontSize: 13, fontWeight: 600, color: '#001122' }}>{label}</td>
+              <td style={{ padding: '8px 0', fontSize: 13, fontWeight: 400, color: '#001122' }}>{label}</td>
               <td style={{ padding: '8px 16px 8px 0', verticalAlign: 'top' }}>
                 <Input type="text" inputMode="numeric"
                   value={formatThousands(fd[costKey])}
@@ -797,35 +797,35 @@ export function RequestFormStepper({
       <Card title="สรุปรวมทั้งหมด" noPad>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ background: '#F2F2F2', borderBottom: '1px solid #D0D6DF' }}>
-              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#004081', fontSize: 12.5 }}>รายการ</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#004081', fontSize: 12.5 }}>ราคาทุน</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#004081', fontSize: 12.5 }}>ราคาขาย</th>
+            <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>รายการ</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาทุน</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาขาย</th>
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: '1px solid #F2F6F8' }}>
+            <tr>
               <td style={{ padding: '12px 14px' }}>
-                <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#001122' }}>{hwQuotationNo}</span>
-                <span style={{ color: '#586782', fontWeight: 500, marginLeft: 8 }}>Hardware</span>
+                <span style={{ fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{hwQuotationNo}</span>
+                <span style={{ color: '#586782', marginLeft: 8 }}>Hardware</span>
               </td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hwCost, '#586782', undefined, 500)}</td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hwSelling, '#004081', undefined, 600)}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hwCost, '#586782', undefined, 400)}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hwSelling, '#004081', undefined, 500)}</td>
             </tr>
             <tr>
               <td style={{ padding: '12px 14px' }}>
-                <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#001122' }}>{swQuotationNo}</span>
-                <span style={{ color: '#586782', fontWeight: 500, marginLeft: 8 }}>Software &amp; Installation</span>
+                <span style={{ fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{swQuotationNo}</span>
+                <span style={{ color: '#586782', marginLeft: 8 }}>Software &amp; Installation</span>
               </td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#586782', undefined, 500)}</td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081', undefined, 600)}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#586782', undefined, 400)}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081', undefined, 500)}</td>
             </tr>
           </tbody>
           <tfoot>
-            <tr style={{ borderTop: '1.5px solid #D0D6DF', background: '#F8F9FA' }}>
-              <td style={{ padding: '14px', fontWeight: 700, fontSize: 14, color: '#001122' }}>รวมทั้งหมด</td>
-              <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(totalCost, '#586782')}</td>
-              <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081', 16)}</td>
+            <tr style={{ borderTop: '1px solid #D0D6DF', background: '#F8F9FA' }}>
+              <td style={{ padding: '14px', fontWeight: 600, fontSize: 14, color: '#001122' }}>รวมทั้งหมด</td>
+              <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(totalCost, '#586782', undefined, 500)}</td>
+              <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081', 16, 700)}</td>
             </tr>
           </tfoot>
         </table>
