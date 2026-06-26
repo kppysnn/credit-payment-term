@@ -7,10 +7,9 @@ import { STATUS_LABELS } from '../types/request'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { Button } from '../../../components/ui/Button'
 import { Input, Select } from '../../../components/ui/FormField'
-import { SearchIcon, SortCarets } from '../../../components/icons/FigmaIcons'
+import { SearchIcon, SortCarets, AddCircleIcon, EditIcon, RefreshIcon, PrinterIcon } from '../../../components/icons/FigmaIcons'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
-import { FiPlus, FiEdit2, FiRefreshCw, FiPrinter } from 'react-icons/fi'
 import { exportPDF } from '../services/exportService'
 import { getRequestById } from '../services/creditTermService'
 
@@ -90,7 +89,7 @@ export function RequestListPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 className="page-title">Credit & Payment Term</h1>
         {currentUser.role === 'sales' && (
-          <Link to="/requests/new"><Button icon={<FiPlus size={15} />}>สร้างคำขอใหม่</Button></Link>
+          <Link to="/requests/new"><Button icon={<AddCircleIcon size={15} />}>สร้างคำขอใหม่</Button></Link>
         )}
       </div>
 
@@ -194,12 +193,12 @@ export function RequestListPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            icon={req.status === 'rejected' ? <FiRefreshCw size={15} /> : <FiEdit2 size={15} />}
+                            icon={req.status === 'rejected' ? <RefreshIcon size={15} /> : <EditIcon size={15} />}
                             aria-label="แก้ไขคำขอ"
                           />
                         </Link>
                       )}
-                      <Button variant="ghost" size="sm" icon={<FiPrinter size={15} />} aria-label="พิมพ์ / Export PDF" onClick={e => handleExport(e, req.id)} />
+                      <Button variant="ghost" size="sm" icon={<PrinterIcon size={15} />} aria-label="พิมพ์ / Export PDF" onClick={e => handleExport(e, req.id)} />
                     </div>
                   </td>
                 </tr>

@@ -10,7 +10,8 @@ import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { Alert } from '../../../components/ui/Alert'
 import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
 import { searchCustomers } from '../services/customerService'
-import { FiSave, FiSend, FiX } from 'react-icons/fi'
+import { FiSave, FiX } from 'react-icons/fi'
+import { MailSendIcon } from '../../../components/icons/FigmaIcons'
 
 interface InstRow { installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: PaymentCondition | '' }
 
@@ -848,7 +849,7 @@ export function RequestFormStepper({
                 บันทึกแบบร่าง
               </Button>
             )}
-            <Button icon={<FiSend size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading || !confirmed}>
+            <Button icon={<MailSendIcon size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading || !confirmed}>
               {isPendingEdit ? 'บันทึกการแก้ไข' : isResubmit ? 'ส่งขออนุมัติอีกครั้ง' : 'ส่งขออนุมัติ'}
             </Button>
           </div>

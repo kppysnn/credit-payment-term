@@ -1,16 +1,17 @@
 import type { ApprovalHistoryEntry } from '../../features/credit-payment-term/types/approval'
 import { APPROVAL_ACTION_LABELS } from '../../features/credit-payment-term/types/approval'
 import { formatDateTime } from '../../features/credit-payment-term/utils/formatters'
-import { FiCheck, FiX, FiClock, FiFileText, FiSend, FiRefreshCw, FiSlash } from 'react-icons/fi'
+import { FiCheck, FiX, FiClock, FiFileText, FiSlash } from 'react-icons/fi'
+import { MailSendIcon, RefreshIcon } from '../icons/FigmaIcons'
 
 const ACTION_ICONS: Record<string, React.ReactNode> = {
   created: <FiFileText size={15} />,
   draft_saved: <FiFileText size={15} />,
-  submitted: <FiSend size={15} />,
+  submitted: <MailSendIcon size={15} />,
   approved: <FiCheck size={15} />,
   rejected: <FiX size={15} />,
-  edited: <FiRefreshCw size={15} />,
-  resubmitted: <FiSend size={15} />,
+  edited: <RefreshIcon size={15} />,
+  resubmitted: <MailSendIcon size={15} />,
   cancelled: <FiSlash size={15} />,
 }
 

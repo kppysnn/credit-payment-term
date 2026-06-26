@@ -1,6 +1,6 @@
 import type { IconType } from 'react-icons'
-import { FiFileText, FiRefreshCw, FiSlash } from 'react-icons/fi'
-import { XMarkIcon, HourglassIcon, CheckCircleIcon } from '../../../components/icons/FigmaIcons'
+import { FiFileText, FiSlash } from 'react-icons/fi'
+import { XMarkIcon, HourglassIcon, CheckCircleIcon, RefreshIcon } from '../../../components/icons/FigmaIcons'
 import type { RequestStatus } from '../types/request'
 import { STATUS_LABELS } from '../types/request'
 
@@ -37,7 +37,7 @@ export const STATUS_CONFIG: Record<RequestStatus, StatusConfig> = {
   revised: {
     label: STATUS_LABELS.revised,
     iconColor: '#1E40AF',
-    icon: FiRefreshCw,
+    icon: RefreshIcon,
   },
   cancelled: {
     label: STATUS_LABELS.cancelled,
