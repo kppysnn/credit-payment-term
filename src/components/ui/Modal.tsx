@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
-import { FaXmark } from 'react-icons/fa6'
+import { FiX } from 'react-icons/fi'
 
 interface Props {
   open: boolean
@@ -68,7 +68,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }: P
             onClick={onClose}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#586782', padding: 4, borderRadius: 4, display: 'flex' }}
           >
-            <FaXmark size={18} />
+            <FiX size={18} />
           </button>
         </div>
 

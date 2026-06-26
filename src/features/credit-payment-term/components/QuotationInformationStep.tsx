@@ -5,7 +5,8 @@ import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { formatCurrency, calcGrossProfit, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
 import { formatCreditTerm } from '../utils/formatters'
 import { PAYMENT_CONDITION_LABELS, type PaymentCondition } from '../types/request'
-import { FaPlus, FaTrashCan, FaChevronLeft, FaChevronRight } from 'react-icons/fa6'
+import { FiPlus, FiTrash2 } from 'react-icons/fi'
+import { ChevronIcon } from '../../../components/icons/FigmaIcons'
 import type { SaleType } from '../types/request'
 
 interface HwItem { name: string; sellingPrice: number | ''; cost: number | '' }
@@ -161,7 +162,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
                       <td style={{ padding: '8px 6px', textAlign: 'center' as const, verticalAlign: 'middle' }}>
                         <button onClick={() => removeHw(i)} disabled={hwItems.length <= 1}
                           style={{ background: 'none', border: 'none', cursor: hwItems.length > 1 ? 'pointer' : 'default', color: hwItems.length > 1 ? '#F3554F' : '#D0D6DF', padding: 3 }}>
-                          <FaTrashCan size={15} />
+                          <FiTrash2 size={15} />
                         </button>
                       </td>
                     </tr>
@@ -171,7 +172,7 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
               <tfoot>
                 <tr style={{ background: '#F2F6F8', borderTop: '2px solid #D0D6DF' }}>
                   <td style={{ padding: '8px 10px' }}>
-                    <Button variant="ghost" size="sm" icon={<FaPlus size={15} />} onClick={addHw}>เพิ่มรายการ</Button>
+                    <Button variant="ghost" size="sm" icon={<FiPlus size={15} />} onClick={addHw}>เพิ่มรายการ</Button>
                   </td>
                   <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#001122' }}>
                     {hwSelling > 0 ? formatCurrency(hwSelling) : '—'}
@@ -362,8 +363,8 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
-        <Button variant="secondary" icon={<FaChevronLeft size={15} />} onClick={onBack}>ย้อนกลับ</Button>
-        <Button icon={<FaChevronRight size={15} />} onClick={() => validate() && onNext()}>ถัดไป — สรุปและส่ง</Button>
+        <Button variant="secondary" icon={<ChevronIcon direction="left" size={15} />} onClick={onBack}>ย้อนกลับ</Button>
+        <Button icon={<ChevronIcon direction="right" size={15} />} onClick={() => validate() && onNext()}>ถัดไป — สรุปและส่ง</Button>
       </div>
     </Card>
   )

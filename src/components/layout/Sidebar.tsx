@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { FaTableCellsLarge, FaClipboardCheck, FaPlus } from 'react-icons/fa6'
+import { FiGrid, FiClipboard, FiPlus } from 'react-icons/fi'
 import { useCurrentUser } from '../../app/UserContext'
 import { ROLE_LABELS } from '../../features/credit-payment-term/types/user'
 
@@ -11,9 +11,9 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', icon: <FaTableCellsLarge size={16} />, label: 'Dashboard' },
-  { to: '/requests', icon: <FaClipboardCheck size={16} />, label: 'รายการคำขอ' },
-  { to: '/requests/new', icon: <FaPlus size={16} />, label: 'สร้างคำขอใหม่', roles: ['sales'] },
+  { to: '/dashboard', icon: <FiGrid size={16} />, label: 'Dashboard' },
+  { to: '/requests', icon: <FiClipboard size={16} />, label: 'รายการคำขอ' },
+  { to: '/requests/new', icon: <FiPlus size={16} />, label: 'สร้างคำขอใหม่', roles: ['sales'] },
 ]
 
 const ROLE_COLORS: Record<string, string> = {

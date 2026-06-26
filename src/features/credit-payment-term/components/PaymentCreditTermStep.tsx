@@ -6,7 +6,7 @@ import { Alert } from '../../../components/ui/Alert'
 import { PAYMENT_CONDITION_LABELS, type PaymentCondition } from '../types/request'
 import { calcInstallmentAmount, calcTotalInstallmentPercent, formatCurrency } from '../utils/calculations'
 import { formatCreditTerm } from '../utils/formatters'
-import { FaChevronRight, FaChevronLeft } from 'react-icons/fa6'
+import { ChevronIcon } from '../../../components/icons/FigmaIcons'
 
 interface InstallmentRow {
   installmentPercent: number | ''
@@ -215,8 +215,8 @@ export function PaymentCreditTermStep({ data, onChange, onNext, onBack }: Props)
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Button variant="secondary" icon={<FaChevronLeft size={15} />} onClick={onBack}>ย้อนกลับ</Button>
-          <Button icon={<FaChevronRight size={15} />} onClick={() => validate() && onNext()}>ถัดไป — สรุปและส่ง</Button>
+          <Button variant="secondary" icon={<ChevronIcon direction="left" size={15} />} onClick={onBack}>ย้อนกลับ</Button>
+          <Button icon={<ChevronIcon direction="right" size={15} />} onClick={() => validate() && onNext()}>ถัดไป — สรุปและส่ง</Button>
         </div>
       </div>
     </Card>

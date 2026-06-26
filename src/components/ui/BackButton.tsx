@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { FaChevronLeft } from 'react-icons/fa6'
+import { ChevronIcon } from '../icons/FigmaIcons'
 import { Button } from './Button'
 
 interface Props {
@@ -13,7 +13,7 @@ export function BackButton({ to, label = 'ย้อนกลับ', style }: Pr
   return (
     <Button
       variant="secondary"
-      icon={<FaChevronLeft size={15} />}
+      icon={<ChevronIcon direction="left" size={15} />}
       onClick={() => navigate(to)}
       style={style}
     >

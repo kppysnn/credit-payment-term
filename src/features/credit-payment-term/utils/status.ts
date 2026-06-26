@@ -1,5 +1,5 @@
 import type { IconType } from 'react-icons'
-import { FaFileLines, FaHourglass, FaCircleCheck, FaCircleXmark, FaArrowsRotate, FaBan } from 'react-icons/fa6'
+import { FiFileText, FiClock, FiCheckCircle, FiXCircle, FiRefreshCw, FiSlash } from 'react-icons/fi'
 import type { RequestStatus } from '../types/request'
 import { STATUS_LABELS } from '../types/request'
 
@@ -17,37 +17,37 @@ export const STATUS_CONFIG: Record<RequestStatus, StatusConfig> = {
     label: STATUS_LABELS.draft,
     iconColor: '#4A5568',
     textColor: '#4A5568',
-    icon: FaFileLines,
+    icon: FiFileText,
   },
   pending: {
     label: STATUS_LABELS.pending,
     iconColor: '#FFCC00',
     textColor: '#92400E',
-    icon: FaHourglass,
+    icon: FiClock,
   },
   approved: {
     label: STATUS_LABELS.approved,
     iconColor: '#82C566',
     textColor: '#14532D',
-    icon: FaCircleCheck,
+    icon: FiCheckCircle,
   },
   rejected: {
     label: STATUS_LABELS.rejected,
     iconColor: '#F3554F',
     textColor: '#F3554F',
-    icon: FaCircleXmark,
+    icon: FiXCircle,
   },
   revised: {
     label: STATUS_LABELS.revised,
     iconColor: '#1E40AF',
     textColor: '#1E40AF',
-    icon: FaArrowsRotate,
+    icon: FiRefreshCw,
   },
   cancelled: {
     label: STATUS_LABELS.cancelled,
     iconColor: '#6B7280',
     textColor: '#6B7280',
-    icon: FaBan,
+    icon: FiSlash,
   },
 }
 

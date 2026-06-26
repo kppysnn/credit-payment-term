@@ -1,5 +1,5 @@
 import { Outlet, Link } from 'react-router-dom'
-import { FaChevronDown } from 'react-icons/fa6'
+import { ChevronIcon } from '../icons/FigmaIcons'
 import { RoleSwitcher } from './RoleSwitcher'
 import { useCurrentUser } from '../../app/UserContext'
 import workxLogo from '../../assets/navbar/workx-logo.png'
@@ -28,16 +28,16 @@ function ModuleTab({ icon, label, active, to }: { icon: string; label: string; a
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: 10,
-      padding: '8px 16px',
-      borderRadius: 16,
+      gap: 6,
+      padding: '5px 10px',
+      borderRadius: 10,
       background: active ? 'rgba(102,197,197,0.05)' : 'transparent',
       border: `1px solid ${active ? '#66C5C5' : 'transparent'}`,
       cursor: to ? 'pointer' : 'default',
       whiteSpace: 'nowrap' as const,
     }}>
-      <img src={icon} alt="" width={40} height={40} style={{ flexShrink: 0 }} />
-      <span style={{ fontWeight: 500, fontSize: 20, color: active ? '#004081' : '#586782' }}>{label}</span>
+      <img src={icon} alt="" width={20} height={20} style={{ flexShrink: 0 }} />
+      <span style={{ fontWeight: 500, fontSize: 13, color: active ? '#004081' : '#586782' }}>{label}</span>
     </div>
   )
   return to ? <Link to={to} style={{ textDecoration: 'none' }}>{tab}</Link> : tab
@@ -50,34 +50,36 @@ export function AppShell() {
     <div style={{ minHeight: '100vh', background: '#F8F9FA' }}>
       {/* Host chrome — matches the WorkX TopMenuBar (Figma node 1317:2565) so this
           module looks identical once embedded in the main platform, with
-          "Payment & Credit Term" added as our module's entry in the switcher. */}
+          "Payment & Credit Term" added as our module's entry in the switcher.
+          Scaled down from Figma's literal 1920px-canvas proportions (100px+80px
+          rows) to a size that reads right at normal app viewport widths. */}
       <header className="no-print" style={{ position: 'sticky', top: 0, zIndex: 10, background: '#FFFFFF' }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '24px 40px',
+          padding: '8px 24px',
           boxShadow: '0 4px 15px rgba(0,64,129,0.15)',
         }}>
-          <img src={workxLogo} alt="WorkX" style={{ height: 60 }} />
+          <img src={workxLogo} alt="WorkX" style={{ height: 26 }} />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <RoleSwitcher />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 14, color: '#586782' }}>{currentUser.name}</span>
-              <img src={avatarPlaceholder} alt="" width={32} height={32} style={{ borderRadius: '50%' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13, color: '#586782' }}>{currentUser.name}</span>
+              <img src={avatarPlaceholder} alt="" width={26} height={26} style={{ borderRadius: '50%' }} />
               <button
                 aria-label="เมนูผู้ใช้"
-                style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #D0D6DF', borderRadius: 4, background: 'none', cursor: 'pointer', color: '#586782' }}
+                style={{ width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #D0D6DF', borderRadius: 4, background: 'none', cursor: 'pointer', color: '#586782' }}
               >
-                <FaChevronDown size={14} />
+                <ChevronIcon direction="down" size={11} />
               </button>
             </div>
           </div>
         </div>
 
         <div style={{ borderTop: '1px solid #D0D6DF' }}>
-          <div style={{ display: 'flex', gap: 16, padding: '16px 40px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, padding: '6px 24px', flexWrap: 'wrap' }}>
             {OTHER_MODULES.map(m => <ModuleTab key={m.label} icon={m.icon} label={m.label} />)}
             <ModuleTab icon={tabPaymentCreditTerm} label="Payment & Credit Term" active to="/requests" />
           </div>

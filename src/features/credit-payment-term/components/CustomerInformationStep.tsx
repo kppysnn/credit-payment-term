@@ -6,7 +6,7 @@ import { Alert } from '../../../components/ui/Alert'
 import { CUSTOMER_TYPE_LABELS, type CustomerType } from '../types/customer'
 import { searchCustomers } from '../services/customerService'
 import type { Customer } from '../types/customer'
-import { FaChevronRight, FaChevronLeft, FaMagnifyingGlass } from 'react-icons/fa6'
+import { ChevronIcon, SearchIcon } from '../../../components/icons/FigmaIcons'
 
 interface Props {
   data: Record<string, unknown>
@@ -155,7 +155,7 @@ export function CustomerInformationStep({ data, onChange, onNext, onBack }: Prop
                 placeholder="ค้นหาด้วยชื่อบริษัทหรือ Tax ID..."
                 style={{ flex: 1 }}
               />
-              <Button variant="secondary" icon={<FaMagnifyingGlass size={15} />} onClick={handleSearch} loading={searching}>
+              <Button variant="secondary" icon={<SearchIcon size={15} />} onClick={handleSearch} loading={searching}>
                 ค้นหา
               </Button>
             </div>
@@ -244,8 +244,8 @@ export function CustomerInformationStep({ data, onChange, onNext, onBack }: Prop
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
-        <Button variant="secondary" icon={<FaChevronLeft size={15} />} onClick={onBack}>ย้อนกลับ</Button>
-        <Button icon={<FaChevronRight size={15} />} onClick={() => validate() && onNext()}>ถัดไป — ใบเสนอราคา</Button>
+        <Button variant="secondary" icon={<ChevronIcon direction="left" size={15} />} onClick={onBack}>ย้อนกลับ</Button>
+        <Button icon={<ChevronIcon direction="right" size={15} />} onClick={() => validate() && onNext()}>ถัดไป — ใบเสนอราคา</Button>
       </div>
     </Card>
   )

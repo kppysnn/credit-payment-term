@@ -19,7 +19,7 @@ import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, 
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
-import { FaPenToSquare, FaArrowsRotate, FaPrint, FaPaperPlane, FaBan, FaCircleCheck, FaCircleXmark } from 'react-icons/fa6'
+import { FiEdit2, FiRefreshCw, FiPrinter, FiSend, FiSlash, FiCheckCircle, FiXCircle } from 'react-icons/fi'
 
 export function RequestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -133,15 +133,13 @@ export function RequestDetailPage() {
     )
   }
 
-  // Column-header style is shared by every table on this page — same size, weight,
-  // color and background — matched to the WorkX host table header (gray #F2F2F2
-  // bar, bold navy, normal case) so "this is a header row" looks identical
-  // app-wide, not just within this page.
-  const tableHeaderCell: React.CSSProperties = { padding: '8px 14px', fontWeight: 700, color: '#004081', fontSize: 12.5, background: '#F2F2F2' }
+  // Column-header style is shared by every table on this page — matched to the
+  // WorkX host table header (white bg, regular-weight navy label) so "this is a
+  // header row" looks identical app-wide, not just within this page. Hierarchy
+  // comes from color, not boldness — the host's own tables carry no bold text
+  // at all, reserving weight for nothing and letting navy/gray do the work.
+  const tableHeaderCell: React.CSSProperties = { padding: '8px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5 }
 
-  // Line items stay informative but quiet (navy at normal weight) — bold navy
-  // is reserved for the category subtotal and, more emphatically, the grand
-  // total, so a reader's eye lands on the number that actually matters most.
   const itemsTable = (items: QuotationItem[]) => (
     <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -153,11 +151,11 @@ export function RequestDetailPage() {
           </tr>
         </thead>
         <tbody>
-          {items.map((item, idx) => (
-            <tr key={item.itemId} style={{ borderBottom: idx === items.length - 1 ? 'none' : '1px solid #F2F6F8' }}>
+          {items.map(item => (
+            <tr key={item.itemId}>
               <td style={{ padding: '12px 14px' }}>{item.name}</td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(item.cost, '#586782', undefined, 500)}</td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(item.sellingPrice, '#004081', undefined, 600)}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(item.cost, '#586782', undefined, 400)}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(item.sellingPrice, '#004081', undefined, 400)}</td>
             </tr>
           ))}
         </tbody>
@@ -167,18 +165,18 @@ export function RequestDetailPage() {
 
   const totalStrip = (label: string, cost: number, selling: number) => labeledBand(`รวม ${label}`, (
     <span style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-      <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
-        ราคาทุน <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#586782' }}>{formatCurrency(cost)}</span>
+      <span style={{ fontSize: 12, color: '#586782', fontWeight: 500 }}>
+        ราคาทุน <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 500, color: '#586782' }}>{formatCurrency(cost)}</span>
       </span>
-      <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
-        ราคาขาย <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCurrency(selling)}</span>
+      <span style={{ fontSize: 12, color: '#586782', fontWeight: 500 }}>
+        ราคาขาย <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#004081' }}>{formatCurrency(selling)}</span>
       </span>
     </span>
   ), true, true)
 
   const installmentStrip = (creditTermDays: number) => labeledBand('Payment Schedule', (
-    <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
-      Credit Term: <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 700, color: '#004081' }}>{formatCreditTerm(creditTermDays)}</span>
+    <span style={{ fontSize: 12, color: '#586782', fontWeight: 500 }}>
+      Credit Term: <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#004081' }}>{formatCreditTerm(creditTermDays)}</span>
     </span>
   ), true, true)
 
@@ -193,11 +191,11 @@ export function RequestDetailPage() {
           </tr>
         </thead>
         <tbody>
-          {installments.map((inst, idx) => (
-            <tr key={inst.installmentNo} style={{ borderBottom: idx === installments.length - 1 ? 'none' : '1px solid #F2F6F8' }}>
+          {installments.map(inst => (
+            <tr key={inst.installmentNo}>
               <td style={{ padding: '12px 14px' }}>{inst.installmentNo}</td>
               <td style={{ padding: '12px 14px', color: '#505050', textAlign: 'center' }}>{inst.installmentPercent}%</td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(inst.installmentAmount, '#004081', undefined, 600)}</td>
+              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(inst.installmentAmount, '#004081', undefined, 400)}</td>
             </tr>
           ))}
         </tbody>
@@ -278,26 +276,26 @@ export function RequestDetailPage() {
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <Button variant="secondary" size="sm" icon={<FaPrint size={15} />} onClick={() => exportPDF(req)}>Print / PDF</Button>
+            <Button variant="secondary" size="sm" icon={<FiPrinter size={15} />} onClick={() => exportPDF(req)}>Print / PDF</Button>
 
             {currentUser.role === 'sales' && req.status === 'draft' && (
-              <Button size="sm" icon={<FaPaperPlane size={15} />} loading={submitLoading} onClick={handleSubmit}>ส่งขออนุมัติ</Button>
+              <Button size="sm" icon={<FiSend size={15} />} loading={submitLoading} onClick={handleSubmit}>ส่งขออนุมัติ</Button>
             )}
             {canEditRequest(currentUser, req) && (
               <Link to={`/requests/${req.id}/edit`}>
-                <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <FaArrowsRotate size={15} /> : <FaPenToSquare size={15} />}>
+                <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <FiRefreshCw size={15} /> : <FiEdit2 size={15} />}>
                   {req.status === 'rejected' ? 'แก้ไขและส่งใหม่' : 'แก้ไข'}
                 </Button>
               </Link>
             )}
             {canCancelRequest(currentUser, req) && (
-              <Button variant="danger" size="sm" icon={<FaBan size={15} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
+              <Button variant="danger" size="sm" icon={<FiSlash size={15} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
             )}
             {canApproveRequest(currentUser, req) && (
-              <Button size="sm" icon={<FaCircleCheck size={15} />} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>
+              <Button size="sm" icon={<FiCheckCircle size={15} />} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>
             )}
             {canRejectRequest(currentUser, req) && (
-              <Button variant="danger" size="sm" icon={<FaCircleXmark size={15} />} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
+              <Button variant="danger" size="sm" icon={<FiXCircle size={15} />} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
             )}
           </div>
         </div>
@@ -385,31 +383,31 @@ export function RequestDetailPage() {
                   </thead>
                   <tbody>
                     {hardwareItems.length > 0 && (
-                      <tr style={{ borderBottom: '1px solid #F2F6F8' }}>
+                      <tr>
                         <td style={{ padding: '12px 14px' }}>
-                          <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#001122' }}>{hardwareQuotationNo}</span>
-                          <span style={{ color: '#586782', fontWeight: 500, marginLeft: 8 }}>Hardware</span>
+                          <span style={{ fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{hardwareQuotationNo}</span>
+                          <span style={{ color: '#586782', marginLeft: 8 }}>Hardware</span>
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hardwareCost, '#586782', undefined, 500)}</td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hardwareSelling, '#004081', undefined, 600)}</td>
+                        <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hardwareCost, '#586782', undefined, 400)}</td>
+                        <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hardwareSelling, '#004081', undefined, 500)}</td>
                       </tr>
                     )}
                     {serviceItems.length > 0 && (
-                      <tr style={{ borderBottom: '1px solid #F2F6F8' }}>
+                      <tr>
                         <td style={{ padding: '12px 14px' }}>
-                          <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#001122' }}>{serviceQuotationNo}</span>
-                          <span style={{ color: '#586782', fontWeight: 500, marginLeft: 8 }}>Software &amp; Installation</span>
+                          <span style={{ fontVariantNumeric: 'tabular-nums', color: '#001122' }}>{serviceQuotationNo}</span>
+                          <span style={{ color: '#586782', marginLeft: 8 }}>Software &amp; Installation</span>
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#586782', undefined, 500)}</td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081', undefined, 600)}</td>
+                        <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#586782', undefined, 400)}</td>
+                        <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081', undefined, 500)}</td>
                       </tr>
                     )}
                   </tbody>
                   <tfoot>
-                    <tr style={{ borderTop: '1.5px solid #D0D6DF', background: '#F8F9FA' }}>
-                      <td style={{ padding: '14px', fontWeight: 700, fontSize: 14, color: '#001122' }}>รวมทั้งหมด</td>
-                      <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#586782')}</td>
-                      <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081', 16)}</td>
+                    <tr style={{ borderTop: '1px solid #D0D6DF', background: '#F8F9FA' }}>
+                      <td style={{ padding: '14px', fontWeight: 600, fontSize: 14, color: '#001122' }}>รวมทั้งหมด</td>
+                      <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#586782', undefined, 500)}</td>
+                      <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081', 16, 700)}</td>
                     </tr>
                   </tfoot>
                 </table>

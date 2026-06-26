@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
-import { FaCircleCheck } from 'react-icons/fa6'
+import { FiCheckCircle } from 'react-icons/fi'
 import type { Request } from '../../features/credit-payment-term/types/request'
 
 interface Props {
@@ -40,7 +40,7 @@ export function ApproveModal({ open, request, customerName, onClose, onApprove }
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={loading}>ยกเลิก</Button>
-          <Button icon={<FaCircleCheck size={15} />} onClick={handleSubmit} loading={loading}>
+          <Button icon={<FiCheckCircle size={15} />} onClick={handleSubmit} loading={loading}>
             ยืนยันอนุมัติ
           </Button>
         </>

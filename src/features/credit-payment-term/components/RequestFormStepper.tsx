@@ -10,7 +10,7 @@ import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { Alert } from '../../../components/ui/Alert'
 import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
 import { searchCustomers } from '../services/customerService'
-import { FaFloppyDisk, FaPaperPlane, FaXmark } from 'react-icons/fa6'
+import { FiSave, FiSend, FiX } from 'react-icons/fi'
 
 interface InstRow { installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: PaymentCondition | '' }
 
@@ -434,7 +434,7 @@ export function RequestFormStepper({
                   onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   aria-label="เลือกจากรายการแทน">
-                  <FaXmark size={16} />
+                  <FiX size={16} />
                 </button>
               </div>
             ) : (
@@ -701,7 +701,7 @@ export function RequestFormStepper({
                     {!!ec.companyName && (
                       <button onClick={() => update({ existingCustomerId: '', existingCustomer: { companyName: '', defaultCreditTerm: 0 } })}
                         style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#586782', padding: 2, display: 'flex' }}>
-                        <FaXmark size={16} />
+                        <FiX size={16} />
                       </button>
                     )}
                   </div>
@@ -740,7 +740,7 @@ export function RequestFormStepper({
                       {rs.resellerCompanyName && (
                         <button onClick={() => update({ reseller: { ...rs, resellerId: '', resellerCompanyName: '', defaultCreditTerm: 0, contactPerson: '', contactPhone: '' } })}
                           style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#586782', padding: 2, display: 'flex' }}>
-                          <FaXmark size={16} />
+                          <FiX size={16} />
                         </button>
                       )}
                     </div>
@@ -840,11 +840,11 @@ export function RequestFormStepper({
           </label>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             {!isPendingEdit && (
-              <Button variant="ghost" icon={<FaFloppyDisk size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
+              <Button variant="ghost" icon={<FiSave size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}>
                 บันทึกแบบร่าง
               </Button>
             )}
-            <Button icon={<FaPaperPlane size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading || !confirmed}>
+            <Button icon={<FiSend size={15} />} onClick={handleSubmit} loading={submitLoading} disabled={draftLoading || !confirmed}>
               {isPendingEdit ? 'บันทึกการแก้ไข' : isResubmit ? 'ส่งขออนุมัติอีกครั้ง' : 'ส่งขออนุมัติ'}
             </Button>
           </div>
