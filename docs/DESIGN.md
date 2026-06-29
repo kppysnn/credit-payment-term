@@ -398,6 +398,21 @@ Form-side equivalents (`RequestFormStepper.tsx`):
 - `segBtn` (sale-type / customer-type / payment-condition selector cards): radius 4, border `1.5px` (`#66C5C5` active / `#D0D6DF` inactive); **active state intentionally keeps a teal-to-navy gradient background** (`linear-gradient(135deg,#EBF9F9 0%,#E8F2FC 100%)`, navy text, navy-tinted shadow `0 1px 5px rgba(0,64,129,0.2)`) rather than matching plain `Button` secondary — this was an explicit user choice ("คงไล่ฟ้าเดิม") to keep, not a leftover to "fix" toward Button's flat white.
 - `RadioDot`: the ring is **always neutral gray** (`1px solid #D0D6DF`, white fill) in every state — only the inner 8px navy dot (`#004081`) appears when selected. The ring itself never changes color. Matches the W+ Library "RadioCheckbox" component (`909:1495`) exactly across its untick/tick/disable states.
 
+### 8.8 Row action menu — `RequestListPage` table (added 2026-06-29)
+
+Edit/Print used to be two separate ghost buttons in the table's last column. They're now consolidated into `KebabMenu` (`src/components/ui/KebabMenu.tsx`): a 32px icon-only trigger (`KebabIcon`, matches Exzy_WorkX `1317:2565`) opening a white dropdown (matches `934:7551`'s row structure — full-width rows, `16px/10px` padding, Poppins Regular 14px `#707070` — but navy-tinted shadow per §2.8, not the Figma export's literal black one). Click-outside-to-close via the same `mousedown`+ref pattern as `DatePicker`.
+
+**Item order is deliberate, not alphabetical:** Edit → Print → Delete. Common/safe actions first; Delete is last, separated by a top rule, and colored `#F3554F` — reserved for genuinely destructive actions so it's never the first thing a thumb lands on. Items are built via conditional `.push()` onto a typed array, not a `.filter()`/type-predicate — an earlier filter-based attempt failed to typecheck because TS couldn't narrow a mixed array of `false` and object literals against a `KebabMenuItem` union; explicit push calls sidestep that entirely.
+
+**Delete is real, not a UI stub**, and only ever appears for a draft the current sales user owns:
+- `canDeleteRequest` (`permissions.ts`) — deliberately narrower than `canCancelRequest`: cancelling a pending request preserves an audit trail (it's a decision on a real submission); a draft has never been submitted and has no history worth keeping, so it can be hard-deleted outright instead of soft-cancelled.
+- `deleteRequest` (`creditTermService.ts`) → `deleteMockRequest` (`mockRequests.ts`) — the only mutation in the service layer that doesn't append a history entry; the row just disappears.
+- `DeleteRequestModal` (`src/components/modals/DeleteRequestModal.tsx`) — follows the destructive-confirm visual pattern (§8.4) but **omits the required checkbox** the other three modals use, since it only ever targets a low-stakes draft with nothing to lose beyond itself.
+
+**Rejected rows get a standalone button, not a kebab item.** A rejected request's "edit" is really "resubmit" — same form, different context — so it's surfaced as its own bordered `<Button variant="secondary">` (icon `RefreshIcon`, label "ส่งใหม่") sitting directly in the row, to the left of the kebab. The kebab on a rejected row drops "Edit" (it's now the standalone button) but keeps "Print". This is why the action column widened `10% → 16%` (taken from "ลูกค้า" 22%→18% and "อัปเดต" 13%→11%, the two columns with the most slack) — it now has to fit a labeled button plus the kebab side by side, not just one icon button.
+
+**Banner CTA buttons use `secondary`, not `ghost`.** The rejected/pending attention-banner's "ดูคำขอที่ถูกปฏิเสธ"/"ดูคำขอที่รอพิจารณา" buttons sit on a tinted banner background; `ghost`'s transparent fill + invisible border reads as plain text there, not a button. Fixed by switching both to `secondary` (solid white + visible border), which is `ghost`'s general failure mode anywhere the surrounding background isn't plain white — check for the same mistake before reusing `ghost` on any other colored surface.
+
 ---
 
 ## 9. Icon System — corrected, replaces all prior versions of this section
@@ -418,7 +433,7 @@ Two sources. **Neither `lucide-react` nor `react-icons/fa6` exists anywhere in `
    | `AddCircleIcon` | `icon_Add` (937:1058) | a disc with the plus **literally cut out** (evenodd fill, white). Dropped onto a gradient/colored button, the cutout shows the button's own background through the plus — "white ring, gradient plus" is a stacking effect, not separate layers |
    | `PrinterIcon` | `icon_printer` (917:404) | |
    | `EditIcon` | `icon_Edit` (937:1064) | pencil |
-   | `TrashIcon` | `icon_delete_bin` (909:1413) | not currently used by any live component |
+   | `TrashIcon` | `icon_delete_bin` (909:1413) | kebab-menu "ลบคำขอ" item + `DeleteRequestModal` confirm button |
    | `RefreshIcon` | `icon_refresh` (937:1108) | distinct path from any chevron-style refresh; used for `revised` status + resubmit actions |
    | `MailSendIcon` | `icon_Mail_send` (937:1093) | 3-layer composite (envelope + badge circle + mirrored arrow), reconstructed at the source's original relative offsets — not simplified to one path |
 
