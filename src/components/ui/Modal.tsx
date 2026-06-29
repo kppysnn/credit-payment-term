@@ -63,7 +63,10 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }: P
             borderBottom: '1px solid #D0D6DF',
           }}
         >
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#586782' }}>{title}</h3>
+          {/* Weight 500 (Medium), not 700 — confirmed against a real WorkX
+              modal header ("ไม่อนุมัติ Internal Memo", 1319:3275): Poppins
+              Medium, never bold. */}
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500, color: '#586782' }}>{title}</h3>
           <button
             onClick={onClose}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#586782', padding: 4, borderRadius: 4, display: 'flex' }}

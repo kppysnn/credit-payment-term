@@ -40,7 +40,9 @@ export function Card({ title, children, style, actions, noPad }: CardProps) {
           background: '#F2F6F8',
         }}>
           {title && (
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#586782', letterSpacing: '-0.01em' }}>
+            // Weight 500 (Medium), not 700 — matches Section.tsx and WorkX's
+            // own text/title weight (confirmed Poppins Medium, never bold).
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#586782', letterSpacing: '-0.01em' }}>
               {title}
             </h3>
           )}

@@ -94,7 +94,7 @@ export function RequestDetailPage() {
   // for ordinary row dividers, not a hard structural edge.
   const labeledBand = (label: string, right?: React.ReactNode, framed = true, tinted = false) => (
     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: framed ? '18px 14px 12px' : '18px 0 12px', borderTop: `1px solid ${framed ? '#D0D6DF' : '#F2F6F8'}`, background: tinted ? '#F8F9FA' : undefined }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: '#586782' }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: '#586782' }}>{label}</span>
       {right}
     </div>
   )
@@ -177,13 +177,13 @@ export function RequestDetailPage() {
         ราคาขาย <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#004081' }}>{formatCurrency(selling)}</span>
       </span>
     </span>
-  ), false, true)
+  ), true, true)
 
   const installmentStrip = (creditTermDays: number) => labeledBand('Payment Schedule', (
     <span style={{ fontSize: 12, color: '#586782', fontWeight: 500 }}>
       Credit Term: <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#004081' }}>{formatCreditTerm(creditTermDays)}</span>
     </span>
-  ), false, true)
+  ), true, true)
 
   const installmentTable = (installments: PaymentInstallment[]) => (
     <div style={{ overflowX: 'auto' }}>
@@ -208,29 +208,32 @@ export function RequestDetailPage() {
     </div>
   )
 
-  // No outer card/border — the colored header bar itself is the section
-  // anchor (it carries real meaning: which quotation, its reference number),
-  // not a generic box. Matches the airier direction confirmed against
-  // WorkX's own multi-section form (Exzy_WorkX "Edit My work", 1190:5406),
-  // which marks section breaks with a strong visual element, not a frame.
+  // No stroked border — but the gradient header still needs to read as
+  // *attached* to its own content, not a rounded chip floating on the white
+  // panel above it. Solved with fill instead of stroke: the header is
+  // top-rounded only (it caps the block from above) and the body gets a
+  // soft tint (#F8F9FA) with bottom rounding, so header+body together form
+  // one visually contiguous unit purely through color, no line needed.
   const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], extra?: React.ReactNode) => (
     <div>
-      <div style={{ background: gradient, borderRadius: 4, padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
+      <div style={{ background: gradient, borderRadius: '4px 4px 0 0', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>{label}</span>
         <span style={{ fontSize: 13 }}>
           <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.78)' }}>Quotation No. </span>
           <span style={{ fontWeight: 600, color: '#FFFFFF' }}>{quotationNo}</span>
         </span>
       </div>
-      {itemsTable(items)}
-      {totalStrip(label, cost, selling)}
-      {installments.length > 0 && (
-        <div style={{ paddingBottom: 16 }}>
-          {installmentStrip(creditTermDays)}
-          {installmentTable(installments)}
-        </div>
-      )}
-      {extra}
+      <div style={{ background: '#F8F9FA', borderRadius: '0 0 4px 4px', overflow: 'hidden' }}>
+        {itemsTable(items)}
+        {totalStrip(label, cost, selling)}
+        {installments.length > 0 && (
+          <div style={{ paddingBottom: 16 }}>
+            {installmentStrip(creditTermDays)}
+            {installmentTable(installments)}
+          </div>
+        )}
+        {extra}
+      </div>
     </div>
   )
 
@@ -273,7 +276,7 @@ export function RequestDetailPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{req.requestNo}</h1>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{req.requestNo}</h1>
               <StatusBadge status={req.status} />
               {req.version > 1 && (
                 <span style={{ fontSize: 12, padding: '2px 8px', background: 'rgba(0,64,129,0.08)', color: '#004081', borderRadius: 4, fontWeight: 600 }}>v{req.version}</span>
@@ -323,9 +326,13 @@ export function RequestDetailPage() {
           </Alert>
         )}
 
-        {/* 32px, not 24 — without a Card border to mark the boundary between
-            sections, the gap itself has to carry more of that signal. */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+        {/* One white panel for the whole content area, matching WorkX's own
+            assembled form (Exzy_WorkX "Edit My work", 1190:5406) — it's a
+            single continuous white surface, not a borderless page bg with
+            each field floating loose on it. <Section> divides *inside* this
+            one surface (title + thin rule); the surface itself is what was
+            missing when the per-section <Card> boxes were first removed. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32, background: '#fff', border: '1px solid #D0D6DF', borderRadius: 4, padding: 32 }}>
             {/* Request Info */}
             <Section title="ข้อมูลคำขอ">
               <FieldGrid cols={3}>
@@ -376,11 +383,11 @@ export function RequestDetailPage() {
 
             {/* Hardware quotation: items + its own payment schedule */}
             {hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments,
-              sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, false, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
+              sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, true, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
 
             {/* Software & Installation quotation: items + its own payment schedule */}
             {serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [],
-              sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, false, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
+              sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, true, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
 
             {/* Overall total */}
             <Section title="สรุปยอดรวม">

@@ -8,7 +8,7 @@ import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { Button } from '../../../components/ui/Button'
 import { Input, Select } from '../../../components/ui/FormField'
 import { DatePicker } from '../../../components/ui/DatePicker'
-import { SearchIcon, SortCarets, AddCircleIcon, EditIcon, RefreshIcon, PrinterIcon } from '../../../components/icons/FigmaIcons'
+import { SearchIcon, SortCarets, AddCircleIcon, EditIcon, RefreshIcon, PrinterIcon, XMarkIcon } from '../../../components/icons/FigmaIcons'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
 import { exportPDF } from '../services/exportService'
@@ -38,6 +38,22 @@ function matchesDateRange(iso: string, fromIso: string, toIso: string): boolean 
   const [fy, fm, fd] = fromIso.split('-').map(Number)
   const [ty, tm, td] = toIso.split('-').map(Number)
   return day >= new Date(fy, fm - 1, fd).getTime() && day <= new Date(ty, tm - 1, td).getTime()
+}
+
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', background: '#F2F6F8', color: '#004081', borderRadius: 4, fontSize: 13 }}>
+      {label}
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`ล้างตัวกรอง ${label}`}
+        style={{ display: 'flex', background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#004081', opacity: 0.6 }}
+      >
+        <XMarkIcon size={9} />
+      </button>
+    </span>
+  )
 }
 
 export function RequestListPage() {
@@ -167,19 +183,33 @@ export function RequestListPage() {
           border-top divider. No count/title bar — Figma's table has none. */}
       <div style={{ background: '#FFFFFF' }}>
         {anyFilterActive ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: '#F2F6F8', color: '#004081' }}>
-            <span style={{ fontSize: 14, flex: 1 }}>
-              กำลังกรอง:{' '}
-              {[
-                filterStatus && STATUS_LABELS[filterStatus as RequestStatus],
-                filterDateFrom && (() => {
+          // Tags, not a status sentence — reads as "here's what you've
+          // picked," not a system reporting its own state back at you.
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', flexWrap: 'wrap' }}>
+            {filterStatus && (
+              <FilterChip
+                label={STATUS_LABELS[filterStatus as RequestStatus]}
+                onRemove={() => setSearchParams(p => { const n = new URLSearchParams(p); n.delete('status'); return n })}
+              />
+            )}
+            {filterDateFrom && (
+              <FilterChip
+                label={(() => {
                   const fmt = (iso: string) => new Intl.DateTimeFormat('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(iso))
                   return !filterDateTo || filterDateFrom === filterDateTo ? fmt(filterDateFrom) : `${fmt(filterDateFrom)} - ${fmt(filterDateTo)}`
-                })(),
-                filterText && `ค้นหา "${filterText}"`,
-              ].filter(Boolean).join(' · ')}
-            </span>
-            <Button variant="ghost" size="sm" onClick={() => setSearchParams({})}>ดูคำขอทั้งหมด</Button>
+                })()}
+                onRemove={() => setSearchParams(p => { const n = new URLSearchParams(p); n.delete('dateFrom'); n.delete('dateTo'); return n })}
+              />
+            )}
+            {filterText && (
+              <FilterChip
+                label={`"${filterText}"`}
+                onRemove={() => setSearchParams(p => { const n = new URLSearchParams(p); n.delete('q'); return n })}
+              />
+            )}
+            {[filterStatus, filterDateFrom, filterText].filter(Boolean).length > 1 && (
+              <Button variant="ghost" size="sm" onClick={() => setSearchParams({})}>ล้างทั้งหมด</Button>
+            )}
           </div>
         ) : showBanner && (
           rejectedBanner ? (

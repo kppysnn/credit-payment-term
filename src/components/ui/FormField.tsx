@@ -18,7 +18,9 @@ export function FormGroup({ label, error, hint, required, children, style }: Bas
         // component (909:1107): text/error and stroke/error are two distinct
         // reds, not the same token reused. The required asterisk stays
         // #F3554F unconditionally either way (it never switches to #FF3028).
-        <label style={{ fontSize: 12, fontWeight: 600, color: error ? '#FF3028' : '#586782' }}>
+        // Weight 400, not 600 — that same component's own field-title header
+        // is Poppins Regular, not semibold.
+        <label style={{ fontSize: 12, fontWeight: 400, color: error ? '#FF3028' : '#586782' }}>
           {label}
           {required && <span style={{ color: '#F3554F', fontWeight: 700, fontSize: 14, marginLeft: 3 }}>*</span>}
         </label>

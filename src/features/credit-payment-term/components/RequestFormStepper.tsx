@@ -355,7 +355,7 @@ export function RequestFormStepper({
   )
 
   const quotationHeader = (quotationNo: string, groupLabel: string, gradient: string) => (
-    <div style={{ background: gradient, borderRadius: 4, padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
+    <div style={{ background: gradient, borderRadius: '4px 4px 0 0', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
       <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
         {groupLabel}
       </span>
@@ -591,7 +591,7 @@ export function RequestFormStepper({
           marginTop: 6, padding: '12px 14px', borderRadius: 4,
           background: '#F2F6F8',
         }}>
-          <span style={{ fontSize: 13, color: '#586782', fontWeight: 700 }}>รวม {summaryLabel}</span>
+          <span style={{ fontSize: 13, color: '#586782', fontWeight: 600 }}>รวม {summaryLabel}</span>
           <span style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, color: '#586782', fontWeight: 600 }}>
               ราคาทุน <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#586782' }}>{formatCurrency(costTotal)}</span>
@@ -608,21 +608,22 @@ export function RequestFormStepper({
   }
 
   /* ── Quotation card wrapper ── */
-  // No outer border/bg — the gradient header itself is the section anchor
-  // (matches RequestDetailPage's quotationBlock and the airier direction
-  // confirmed against WorkX's own multi-section form, Exzy_WorkX 1190:5406).
+  // No stroked border, but the header still needs to read as *attached* to
+  // its own content rather than a chip floating on the panel — solved with
+  // fill, not stroke: header top-rounded only, body gets a soft #F8F9FA
+  // tint with bottom rounding, so the two form one visual unit through
+  // color alone (matches RequestDetailPage's identical quotationBlock fix).
   const quotationCard = (quotationNo: string, label: string, headerGradient: string, body: React.ReactNode) => (
     <div>
       {quotationHeader(quotationNo, label, headerGradient)}
-      {body}
+      <div style={{ background: '#F8F9FA', borderRadius: '0 0 4px 4px', overflow: 'hidden' }}>
+        {body}
+      </div>
     </div>
   )
 
   return (
-    // 32px, not 20 — without a Card border marking each section's boundary,
-    // the gap itself has to carry more of that signal (matches
-    // RequestDetailPage's identical adjustment).
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 760, margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 760, margin: '0 auto' }}>
 
       {isResubmit && initialRequest?.approvalResult && (
         <Alert type="error" title="เหตุผลที่ถูก Reject ครั้งก่อน">
@@ -637,6 +638,16 @@ export function RequestFormStepper({
           )}
         </Alert>
       )}
+
+      {/* One white panel for the whole form, matching WorkX's own assembled
+          form (Exzy_WorkX "Edit My work", 1190:5406) — a single continuous
+          white surface, not a borderless page bg with each field floating
+          loose on it. <Section> divides *inside* this one surface (title +
+          thin rule); the surface itself is what was missing when the
+          per-section <Card> boxes were first removed. 32px gap, not 20 —
+          without a Card border to mark each section's boundary, the gap
+          itself has to carry more of that signal. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 32, background: '#fff', border: '1px solid #D0D6DF', borderRadius: 4, padding: 32 }}>
 
       {/* ─── 1. ข้อมูลคำขอ ─── */}
       <Section title="1. ข้อมูลคำขอ">
@@ -860,6 +871,7 @@ export function RequestFormStepper({
         </div>
       </div>
 
+      </div>
     </div>
   )
 }

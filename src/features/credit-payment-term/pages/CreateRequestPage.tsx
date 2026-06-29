@@ -120,7 +120,7 @@ export function CreateRequestPage() {
         <BackButton to="/requests" label="กลับไปหน้ารายการคำขอ" />
       </div>
       <div style={{ maxWidth: 760, margin: '0 auto 0' }}>
-        <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700, color: '#586782' }}>สร้างคำขออนุมัติใหม่</h1>
+        <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 500, color: '#586782' }}>สร้างคำขออนุมัติใหม่</h1>
       </div>
       <RequestFormStepper
         currentUser={currentUser}

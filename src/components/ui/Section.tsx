@@ -20,7 +20,10 @@ export function Section({ title, children, style, actions }: SectionProps) {
     <div style={style}>
       {title && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10, marginBottom: 16, borderBottom: '1px solid #D0D6DF' }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#586782', letterSpacing: '-0.01em' }}>{title}</h3>
+          {/* Weight 500 (Medium), not 700 — WorkX's own text/title is Poppins
+              Medium everywhere checked (page title, modal header); it never
+              goes as heavy as bold. */}
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500, color: '#586782', letterSpacing: '-0.01em' }}>{title}</h3>
           {actions && <div style={{ display: 'flex', gap: 8 }}>{actions}</div>}
         </div>
       )}
