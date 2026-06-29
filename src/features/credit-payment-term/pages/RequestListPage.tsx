@@ -155,7 +155,10 @@ export function RequestListPage() {
                   <th
                     key={col.label || col.key || 'actions'}
                     onClick={col.key ? () => toggleSort(col.key!) : undefined}
-                    style={{ width: col.width, padding: '10px 20px', textAlign: 'left', fontWeight: 400, color: '#004081', fontSize: 13, whiteSpace: 'nowrap', cursor: col.key ? 'pointer' : undefined, userSelect: 'none' }}
+                    // Header cell padding matches body-row padding exactly (14px 20px) —
+                    // the WorkX host's own table component (Exzy_WorkX 851:2649) uses one
+                    // shared padding spec for header and body cells alike; don't let them drift.
+                    style={{ width: col.width, padding: '14px 20px', textAlign: 'left', fontWeight: 400, color: '#004081', fontSize: 13, whiteSpace: 'nowrap', cursor: col.key ? 'pointer' : undefined, userSelect: 'none' }}
                   >
                     {col.label && (
                       <span style={{ display: 'inline-flex', alignItems: 'center' }}>

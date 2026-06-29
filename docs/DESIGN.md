@@ -1,0 +1,467 @@
+# DESIGN.md — WorkX / W+ Design System · payment&creditTerm Module
+
+> **Primary sources:** Figma `60RgjevWzbKhCCjoc5kcmk` (W+ Library — Website/Button/Field/Icon-grid pages) and Figma `ALvNsSNBdxzj9MVk2imemL` (Exzy_WorkX — the actual host app draft, incl. node `1317:2565` TopMenuBar, `1765:5235` status column, `730:25425` table pattern, `909:1495` RadioCheckbox)
+> **Verified against:** live MCP inspection of both files + current `src/` code (not assumptions) — every fact below has been cross-checked against an actual component or an actual Figma node, not carried over from an older doc
+> **Last rewritten:** 2026-06-29 — supersedes all prior versions of this file. Previous versions had drifted from the real code in several places (button variants, status-badge text color, input radius, topbar/sidebar structure, icon library) — those are corrected here, not repeated.
+
+This document is the authoritative design reference for this module. Where the live code and an older doc (CLAUDE.md included) disagree, **trust this file** — it was rebuilt directly from `src/` and from Figma, not inherited.
+
+---
+
+## 1. Design System Overview
+
+WorkX / W+ (Exzy platform) is a **B2B internal enterprise platform** in a **Professional-Clean** language:
+
+- Trust and clarity over decoration
+- Semantic color usage — every hex carries a role
+- Bilingual text — Thai and English coexist in one font stack (Poppins → Noto Sans Thai fallback)
+- Squared 4px components app-wide (EXZY CI v3, commit `98d50f4`) — one exception: `<Select>` at 8px (see §5)
+- Hierarchy from **color**, not boldness — the host's own tables and status displays use little-to-no bold text; weight is reserved for things that genuinely need it (page titles, totals)
+
+This module is an embedded sub-section of the WorkX host and must be visually indistinguishable from it.
+
+### 1.1 Two layout realities — read this before touching layout
+
+There are **two** layout implementations in this codebase and only one is live:
+
+| | `AppShell.tsx` | `Sidebar.tsx` |
+|---|---|---|
+| Mounted by the router? | **Yes** — wraps every route | **No** |
+| Structure | Two-row sticky top header, no sidebar | 260px navy sidebar |
+| When it applies | Right now, in this standalone app | Only if/when this module is embedded inside the real WorkX host shell, which may supply its own sidebar externally |
+
+`Sidebar.tsx` is fully built (nav items, role badge, user footer) but currently renders nowhere. Don't assume a sidebar is visible — it isn't, today. Don't delete it either — it's there for the embedded-host scenario described in `CLAUDE.md`.
+
+---
+
+## 2. Color System
+
+### 2.1 Brand Palette (EXZY CI) — defined in `src/styles/globals.css` `@theme {}`
+
+| Token | Hex | Role |
+|-------|-----|------|
+| `--color-navy` | `#004081` | Primary heading, info, primary text on light buttons |
+| `--color-navy-dark` | `#002D5C` | Navy hover state |
+| `--color-teal` | `#66C5C5` | Accent, focus ring, active indicator |
+| `--color-teal-dark` | `#4AADAD` | Teal hover state |
+| `--gradient-primary` | `linear-gradient(135deg, #66C5C5 0%, #004081 100%)` | Primary button, quotation block headers, `AddCircleIcon`'s effective look |
+
+Components use the **hardcoded hex**, not `var(--color-*)`, in inline styles — this is the established pattern (`CLAUDE.md` §3.2). Don't refactor to CSS vars without an explicit ask.
+
+### 2.2 Neutral / Surface
+
+| Token | Hex | Role |
+|-------|-----|------|
+| `--color-bg` | `#F8F9FA` | Page background, `<main>`, table-row hover, tfoot tint |
+| `--color-surface` | `#FFFFFF` | Card/input/modal body |
+| `--color-surface-2` | `#F2F6F8` | Card header, table header bg (where one exists), read-only input bg |
+| `--color-border` | `#D0D6DF` | Structural borders — see the three-tier divider system in §6 |
+
+### 2.3 Text Hierarchy
+
+| Token | Hex | Role |
+|-------|-----|------|
+| `--color-ink` | `#001122` | Headings, card titles, field values |
+| `--color-body` | `#505050` | Default body text (`body{}` in globals.css), **the StatusBadge label color, always** |
+| `--color-secondary` | `#586782` | Labels, secondary text, section-band labels |
+| `--color-muted` | `#929EB4` | Placeholders (decorative use only — see note below), timestamps, hints |
+
+**`::placeholder` does NOT use `--color-muted`.** It's set to `--color-secondary` (`#586782`) globally in `globals.css`, confirmed against the real app draft — placeholder text needs body-level contrast, not the lighter decorative muted tone. `--color-muted` is reserved for genuinely decorative/disabled contexts (timestamps, disabled input text).
+
+### 2.4 Semantic Status Colors (token level)
+
+| Token | Hex |
+|-------|-----|
+| `--color-success` | `#82C566` |
+| `--color-warning` | `#FFCC00` |
+| `--color-danger` | `#F3554F` |
+| `--color-info` | `#004081` |
+
+These are *not* all directly used as status icon colors — see §2.5 for the actual per-status mapping, which deviates from this table in two places (`approved` uses teal, not `--color-success` green; `cancelled`/`revised` use colors outside this table entirely).
+
+### 2.5 Status Display — `StatusBadge` (corrected)
+
+**The label is always plain gray (`#505050`). Only the icon carries the status color.** This was confirmed against the real draft of this module's status column (Exzy_WorkX node `1765:5235`) — there is no per-status text color anymore. (An earlier version of this doc listed a "text colour" column per status; that's obsolete — `getStatusConfig()` in `status.ts` has no such field.)
+
+No background, no border, no pill — just `<Icon color={iconColor} /> <span style={{color:'#505050'}}>{label}</span>`.
+
+| Status | Icon | Icon color | Source |
+|--------|------|-------------|--------|
+| `draft` | `FiFileText` | `#929EB4` | react-icons/fi |
+| `pending` | `HourglassIcon` | `#FFCC00` (`--color-warning`) | `FigmaIcons.tsx`, exact Figma path |
+| `approved` | `CheckCircleIcon` | `#66C5C5` (teal) | `FigmaIcons.tsx` — **teal, not `--color-success` green.** Confirmed repeatedly against the real draft; do not "fix" this back to green. |
+| `rejected` | `XMarkIcon` | `#F3554F` | `FigmaIcons.tsx` — a bare crossed-bar X, **not** a circled X-mark |
+| `revised` | `RefreshIcon` | `#1E40AF` | `FigmaIcons.tsx`, exact `icon_refresh` (937:1108) path |
+| `cancelled` | `FiSlash` | `#6B7280` | react-icons/fi |
+
+Size: `sm` → icon 13px / label 12px. `md` (default) → icon 14px / label 13px. Optional `subtitle` line (e.g. approver name) at 11px / `#929EB4`.
+
+### 2.6 Approval Timeline Colors — `StatusTimeline`
+
+Separate palette from §2.5 (timeline dots, not the inline badge):
+
+| Action | Color | Icon |
+|--------|-------|------|
+| `approved` | `#66C5C5` | `FiCheck` — matches StatusBadge's teal exactly |
+| `rejected` | `#F3554F` | `FiX` |
+| `cancelled` | `#929EB4` | `FiSlash` |
+| `submitted` / `resubmitted` | `#004081` | `MailSendIcon` (exact `icon_Mail_send`, 937:1093) |
+| `edited` | `#92400E` | `RefreshIcon` |
+| `created` / `draft_saved` | `#586782` | `FiFileText` |
+
+Dot: 28px circle, background = `color + '18'` (≈12% tint), 2px solid border in `color`. Connector line: 2px, `#D0D6DF`. Version chip (`v2`, `v3`...): bg `rgba(0,64,129,0.08)`, color `#004081`, **radius 4** (not pill — this was a stray `9999` fixed in 2026-06-26).
+
+### 2.7 Alert — its own pastel palette (not the brand tokens)
+
+`Alert.tsx` does not reuse `--color-success`/`--color-warning`/etc. directly — it has 4 dedicated pastel pairs:
+
+| Type | bg | border | text |
+|------|-----|--------|------|
+| `warning` | `#FFFBEB` | `#FCD34D` | `#92400E` |
+| `info` | `#EFF6FF` | `#93C5FD` | `#1E40AF` |
+| `success` | `#F0FDF4` | `#86EFAC` | `#14532D` |
+| `error` | `#FEF2F2` | `#FCA5A5` | `#7F1D1D` |
+
+The same red trio (`#FEF2F2` / `#FCA5A5` / `#7F1D1D`) is reused outside `<Alert>` too — it's the standard "reviewer note / rejection" box color wherever one appears (`ApproveModal`/`RejectModal`/`CancelModal` info boxes use the same red on reject/cancel; `sectionComment` boxes on the detail page; the "previously rejected" inline callout). Treat this exact triplet as the canonical destructive/warning-note color, separate from button danger red.
+
+### 2.8 Shadow System — navy-tinted only, no exceptions
+
+```css
+--shadow-sm:    0 1px 2px rgba(0,64,129,0.04);
+--shadow-md:    0 4px 14px rgba(0,64,129,0.07);
+--shadow-lg:    0 16px 34px rgba(0,64,129,0.10), 0 2px 6px rgba(0,64,129,0.06);
+--shadow-hover: 0 4px 14px rgba(0,64,129,0.07);   /* alias of shadow-md, used by Card's hover handler */
+```
+
+Never `rgba(0,0,0,x)`. The whole `src/` tree was swept for this — zero violations remain outside dead files.
+
+### 2.9 Other confirmed colors (not part of the token system, used at fixed points)
+
+| Hex | Where | Role |
+|-----|-------|------|
+| `#7F1D1D` | rejection/cancel info boxes, error-text inside red notes | darker red than `--color-danger`, for text-on-pastel-bg legibility |
+| `#FCA5A5` / `#FCD34D` / `#93C5FD` / `#86EFAC` | Alert borders | pastel border companions to each Alert type's bg |
+| `rgba(102,197,197,0.10–0.2)` | segBtn active bg tints, ghost-button hover bg, RoleSwitcher active pill bg | teal-tinted backgrounds at varying opacity, never a flat teal fill |
+| `#707070` | Button `secondary` text | distinct from `--color-secondary` (`#586782`) — confirm before assuming they're interchangeable |
+
+---
+
+## 3. Typography
+
+### 3.1 Font Stack — one family, no mono
+
+```css
+--font-sans: 'Poppins', 'Noto Sans Thai', system-ui, sans-serif;
+```
+
+**There is no `--font-mono` anymore.** A 2026-06-2x cleanup (commit `9ae249f`, "...drop JetBrains Mono") removed it project-wide. Numbers/currency/reference codes get `fontVariantNumeric: 'tabular-nums'` on the regular sans font — not a separate monospace family. If you see `fontFamily: 'JetBrains Mono...'` anywhere, it's in dead code (`QuotationInformationStep.tsx`, `StickyRequestSummary.tsx` — both unused, see §11) and should not be treated as current style.
+
+**Poppins MUST come first.** It has no Thai glyphs, so Thai characters cascade to Noto Sans Thai automatically, even mid-string. Reversing the order breaks mixed-language text.
+
+### 3.2 Type Scale (as actually implemented, file by file)
+
+| Role | Size | Weight | Color | Where |
+|------|------|--------|-------|-------|
+| List-page title | **36px** | **500** | `#004081` | `.page-title` class (globals.css) — used only by `RequestListPage`'s `<h1>`. Matches the WorkX host's own oversized title-row convention. |
+| Form/detail page title | 22px | 700 | `#001122` | Inline `<h1>` on `CreateRequestPage`, `EditRequestPage`, `RequestDetailPage` — a different, smaller convention from the list page. Don't unify these; they're deliberately different page types. |
+| Card header | 14px | 700 | `#001122` | `Card.tsx`, `-0.01em` letter-spacing |
+| Section band label (`labeledBand`) | 13px | 700 | `#586782` | One step below Card-header weight by design — reads as a sub-section, not a competing heading |
+| `FieldDisplay` label | 11px | 700 | `#586782` | UPPERCASE + `0.06em` letter-spacing, unless `preserveLabelCase` (then normal case, `0.01em`) |
+| `FieldDisplay` value | 14px | per-field (`valueWeight` prop, no longer hardcoded) | `#001122` | `line-height: 1.5` |
+| Form label (`FormGroup`) | 12px | 600 | `#586782` | required `*` in `#F3554F` |
+| Body text | 14px | 400 | `#505050` | `body{}` in globals.css, `line-height: 1.65` |
+| Detail-page table header | 12.5px | **400** | `#004081` | `tableHeaderCell` in `RequestDetailPage.tsx` — **not bold, not uppercase, not gray.** Explicit code comment: "Hierarchy comes from color, not boldness — the host's own tables carry no bold text at all." |
+| List-page table header | 13px | 400 | `#004081` | `RequestListPage.tsx` — same philosophy, slightly different size, with sortable carets |
+| Form entry-table header (`priceTable`) | 12px | 400 | `#586782` | `RequestFormStepper.tsx` — right-aligned column labels above price inputs |
+| Modal header | 16px | 700 | `#001122` | `Modal.tsx` |
+| Hint / muted | 11–12px | 400 | `#929EB4` | timestamps, hints |
+| StatusBadge label | 13px (12px `sm`) | 400 | `#505050` always | regardless of status — see §2.5 |
+
+### 3.3 Thai Text
+
+```css
+:lang(th), .thai { line-height: 1.75; }
+```
+Needed for tone-mark clearance. Apply via `:lang(th)` (automatic on Thai-script text) or the `.thai` class.
+
+---
+
+## 4. Spacing Scale (4pt base, `globals.css`)
+
+| Token | Value |
+|-------|-------|
+| `--space-1` | 4px |
+| `--space-2` | 8px |
+| `--space-3` | 12px |
+| `--space-4` | 16px |
+| `--space-5` | 20px |
+| `--space-6` | 24px |
+| `--space-8` | 32px |
+| `--space-10` | 40px |
+| `--space-12` | 48px |
+| `--space-16` | 64px |
+
+Page layout: `<main>` padding `28px 32px` (`AppShell.tsx`).
+
+---
+
+## 5. Border Radius — corrected
+
+**EXZY CI v3 (commit `98d50f4`): squared app-wide.** But the actual current rule has one more nuance than "4px everywhere, 6px for inputs" — that 6px claim is stale:
+
+| Element | Radius | Note |
+|---------|--------|------|
+| Buttons, Card, Modal, Alert, comboDropdown panel, quotationBlock | **4px** | universal |
+| `<Input>`, `<Textarea>` | **4px** | — not 6px. `inputBase` in `FormField.tsx` hardcodes `borderRadius: 4`. The `--radius-sm: 6px` token exists in `globals.css` but Input/Textarea don't use it. |
+| `<Select>` | **8px** | **deliberate, documented exception** — code comment: "Matches the W+ Library 'field-dropdown' component (926:425) exactly." Also gets a navy focus border/outline instead of teal (see §8.3). |
+| Module-switcher nav tabs (`AppShell.tsx`) | **10px** | another deliberate exception, mirrors the Figma TopMenuBar's tab shape |
+| Sidebar nav items (`Sidebar.tsx`, unmounted) | 8px | only relevant if/when Sidebar is mounted |
+| Sidebar logo mark, RoleSwitcher pills, Sidebar role badge | 10 / 9999 / 9999 | RoleSwitcher is a dev-only tool — out of scope of the squaring rule. Sidebar's pill role badge is a known stray leftover in unmounted code, not yet fixed (low priority since it never renders). |
+
+`--radius-pill: 9999px` is still **defined** in `globals.css` for legacy/embedded-component reasons but is explicitly commented "kept defined but unused — don't default to it." Don't reach for it in new live-rendered components.
+
+---
+
+## 6. Border / Divider System — three tiers, not one
+
+This is the most-corrected section of this doc. There are three distinct divider weights, each meaning something different — treat them as different concepts, not interchangeable grays:
+
+1. **Structural / block-level (`#D0D6DF`, usually 1px)** — a real boundary between two separate blocks: Card's own border, Modal's header/footer separators, `quotationBlock`'s outer border, a table's `tfoot` top rule (grand total), the `labeledBand` rule when it sits inside a bordered container (`framed=true`).
+2. **Soft / row-level (`#F2F6F8`, 1px)** — a divider between peers inside the same block: every ordinary table body row's top border, `comboDropdown` result-row separators, a `labeledBand` rule when it sits in a plain Card body with no outer box to echo (`framed=false`, e.g. the customer note).
+3. **Component-resting (`#D0D6DF`)** — the default resting border on inputs/Select/Cards before any state change; not a divider at all, just the element's own edge.
+
+**Tables specifically never have both at once.** A table header row has no bottom border; instead every body row gets a top border in `#F2F6F8`, and only the very last row (tfoot/total) gets the heavier `#D0D6DF` + a tint (`#F8F9FA`). This matches the WorkX host's own table convention (Figma node `730:25425`) and was the single biggest correction made across this module's tables in the 2026-06-2x consistency pass.
+
+**Cards always have an outer border; tables (on their own, outside a Card) never do.** `RequestListPage`'s table sits directly on the page background with zero outer frame — that's intentional, matching the host, not a missing Card wrapper.
+
+> **Open item (flagged 2026-06-29, not yet audited):** the user pointed at Exzy_WorkX node `851:2479` and asked specifically whether **row padding equals column padding**, identically between header cells and body cells, and asked about the **header-column filter affordance** — across *every* page, not just one table. This needs a dedicated pass comparing exact cell padding (header vs. body, row vs. column) against that Figma node, plus checking whether any host tables show inline column filters that this module's tables are missing. Not yet done — do this before considering tables "fully audited."
+
+---
+
+## 7. Layout
+
+### 7.1 `AppShell.tsx` — the live shell
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ Row 1: padding 18px 32px, justify space-between           │
+│   [WorkX logo, height 44px]      [role-switcher · user]   │
+├──────────────────────────────────────────────────────────┤ ← 1px solid #D0D6DF (NOT a shadow)
+│ Row 2: padding 14px 28px, centered, gap 14, wrap          │
+│   [module tab] [module tab] ... [Payment & Credit Term*]  │
+└──────────────────────────────────────────────────────────┘
+<main> bg #F8F9FA, padding 28px 32px
+  <Outlet />
+```
+
+Whole header: `position: sticky; top: 0`, bg `#FFFFFF`, **no `boxShadow` at all**. The only separator between the two rows is a literal 1px line (confirmed via Figma's own sibling frame "Frame 7597", height 1px — there is no drop-shadow effect on the real TopMenuBar despite an earlier assumption that there was).
+
+Logo sizing note: Figma's literal logo height is 60px on a 1920px-wide canvas (~3% ratio). Rendered literally at 60px on this app's narrower actual viewport, it read oversized — so the logo is instead scaled to roughly match that *ratio* (44px), not the literal Figma pixel value. This is a deliberate, viewport-relative adaptation, not a deviation to "fix."
+
+Module tabs: inactive = transparent bg, `1px solid transparent`, `#586782` text. Active = `rgba(102,197,197,0.1)` bg, `1px solid #66C5C5`, `#004081` text, radius 10.
+
+### 7.2 `Sidebar.tsx` — built, not mounted (see §1.1)
+
+```
+260px wide, bg #004081, full height
+├─ Logo block (72px, border-bottom rgba(255,255,255,.08))
+├─ "เมนู" section label (10px, rgba(255,255,255,.3), uppercase)
+├─ Nav items (active: borderLeft 3px #66C5C5, bg rgba(102,197,197,.15))
+└─ User footer (border-top rgba(255,255,255,.08)): avatar circle + name/email + role badge (pill — stray, see §5)
+```
+
+### 7.3 Content Widths
+
+- Forms / detail page: `maxWidth: 760px`, centered
+- List/table pages: full fluid width
+- Modals: sm=420px / md=560px / lg=720px
+
+---
+
+## 8. Component Rules
+
+### 8.1 Button — 4 variants only (`primary | secondary | danger | ghost`)
+
+**There is no `success` variant.** An earlier doc described a 5th green-gradient variant; it does not exist in `Button.tsx`. Don't reintroduce it without an explicit ask.
+
+| Variant | Background | Text | Border |
+|---------|-----------|------|--------|
+| `primary` (default) | `linear-gradient(135deg, #66C5C5 0%, #004081 100%)` | `#F8F9FA` | none |
+| `secondary` | **solid `#FFFFFF`** | `#707070` | `1px solid #D0D6DF` |
+| `danger` | **solid `#F3554F`** | `#FFFFFF` | none |
+| `ghost` | transparent | `#586782` | `1px solid transparent` |
+
+**`secondary` and `danger` are flat colors, not gradients.** Older docs (including `CLAUDE.md` at time of writing) describe `secondary` as a light teal/navy gradient and `danger` as a red gradient — that's wrong; verify against `Button.tsx` directly before styling to match a doc.
+
+Sizes: `sm`=30px / `md`=38px (default) / `lg`=44px height, with matching padding/fontSize/icon-gap. All radius 4, `fontWeight: 600`, `letter-spacing: 0.01em`, `white-space: nowrap`.
+
+Hover (applied via inline `onMouseEnter`/`onMouseLeave`, not CSS `:hover`):
+- `primary`/`danger`: `filter: brightness(1.08)` + navy/red-tinted shadow + `translateY(-1px)`
+- `secondary`: bg → `#D0D6DF`
+- `ghost`: bg → `rgba(102,197,197,0.10)`, color → `#004081`
+
+Loading state replaces the icon with a spinner and disables the button. A blur-on-mouseup handler clears the focus ring after a mouse click (so it doesn't visually stick through a React Router navigation), and a window-focus listener re-syncs hover styles after blocking calls like `window.print()`/`window.confirm()` that can cause the browser to miss the `mouseleave` event.
+
+### 8.2 Card
+
+- bg `#FFFFFF`, border `1px solid #D0D6DF`, radius `4px`, `overflow: hidden`
+- Header (only if `title`/`actions` given): bg `#F2F6F8`, padding `14px 20px`, `borderBottom: 1px solid #D0D6DF`, title `14px/700/#001122/-0.01em`
+- Body padding `20px` (`noPad` prop removes it)
+- Hover: `translateY(-2px)` + `shadow-md` + border → `rgba(102,197,197,0.5)`
+- `FieldDisplay`/`FieldGrid` — see §3.2 and below
+
+`FieldGrid` uses CSS grid `auto-fit` with `minmax(190px or 240px, 1fr)` (190 if `cols>=3`, else 240) — it naturally collapses to 2 then 1 column as the container narrows, no manual breakpoints. `gap: 16px 28px`.
+
+### 8.3 Form Fields
+
+| | `<Input>`/`<Textarea>` | `<Select>` |
+|---|---|---|
+| Height | 38px (Textarea: auto, `8px 12px` padding) | 38px |
+| Radius | **4px** | **8px** (deliberate exception, §5) |
+| Border resting | `1px solid #D0D6DF` | same |
+| Focus | border `#66C5C5` + outline `2px solid rgba(102,197,197,0.6)` | border **`#004081`** + outline `2px solid rgba(0,64,129,0.15)` |
+| Error | border `#F3554F`, bg `#FEF2F2` | same |
+| Disabled | bg `#F2F6F8`, color `#929EB4` | same |
+
+Label (`FormGroup`): `12px/600/#586782` (turns `#F3554F` on error); required `*` is `#F3554F`/700/14px/`margin-left:3`. Hint: `11px/#586782`. Error text: `12px/#F3554F`.
+
+### 8.4 Modal
+
+- Backdrop: `rgba(15,23,42,0.50)`, no blur
+- Box: `#FFFFFF`, radius 4, `shadow-lg`, sizes sm=420/md=560/lg=720 max-width
+- Header: padding `16px 20px`, `borderBottom: 1px solid #D0D6DF`, title `16px/700/#001122`, close = `FiX` 18px
+- Body: padding 20px, scrolls if tall
+- Footer: padding `14px 20px`, `borderTop: 1px solid #D0D6DF`, buttons right-aligned, gap 10
+- Body scroll-locked while open (`document.body.style.overflow`)
+
+**Destructive-confirm pattern** (`ApproveModal`/`RejectModal`/`CancelModal` all follow this): an info box at the top restates the request number + customer name — navy-tinted (`#F2F6F8`/`#D0D6DF`) for Approve, red-tinted (`#FEF2F2`/`#FCA5A5`/`#7F1D1D` text) for Reject/Cancel — followed by a required checkbox (`accentColor` matches the action: teal for approve, red for reject/cancel) that gates the confirm button. `CancelModal` additionally requires a typed reason in a `<Textarea>`. `RejectModal` requires at least one section comment to already be filled in elsewhere on the page before it'll let you confirm. All three font-weight their info-box request number at **600** (a 700 in `ApproveModal` was a drift fixed 2026-06-2x — keep these three in sync if touching one).
+
+### 8.5 Alert — see §2.7 for exact colors
+
+`16px` icon, `4px` radius, `12px 14px` padding, `10px` gap. Title (if given) is `600` weight.
+
+### 8.6 StatusBadge / StatusTimeline — see §2.5 / §2.6
+
+### 8.7 Quotation block pattern (the module's signature composite component)
+
+Implemented **twice**, independently, in `RequestFormStepper.tsx` (entry form) and `RequestDetailPage.tsx` (read view) — they are not shared code, so a fix to one does not propagate to the other. Check both when touching this pattern.
+
+Structure (read-view, `quotationBlock` in `RequestDetailPage.tsx`):
+```
+┌─ border 1px #D0D6DF, radius 4 ──────────────────────┐
+│ gradient header (--gradient-primary), white text     │  ← Quotation No. + label
+│ items table (header 12.5px/400/#004081, rows /F2F6F8)│
+│ "รวม [label]" total strip (labeledBand, framed)       │
+│ "Payment Schedule" strip + installment table          │
+│ optional section-comment block                        │
+└────────────────────────────────────────────────────────┘
+```
+
+`labeledBand` (shared helper, used for both the total strip and the payment-schedule strip): thin top rule + `13px/700/#586782` label — **one step below Card-header weight**, by design, so it reads as a sub-section rather than competing with the parent Card's own header. `framed=true` → rule is `#D0D6DF` (it's echoing the quotationBlock's own border, a real structural break). `framed=false` → rule is `#F2F6F8` (used standalone inside a plain Card body, e.g. the customer note, where there's no outer box to echo).
+
+`sectionComment` (per-category reviewer note, e.g. "หมายเหตุสำหรับ Hardware"): editable red-framed `<Textarea>` for whoever currently holds decision authority on the request; read-only red box for everyone else; **hidden entirely** if empty and there's no prior-round rejection to show. If a prior round was rejected and the live field is still blank, it surfaces that old note inline ("เคยถูกปฏิเสธไว้ว่า: ..."). This live/snapshot split — `customerComment`/`hardwareComment`/`swComment` (editable, current round) vs. `req.approvalResult.*Comment` (frozen snapshot of what a past decision said) — replaced an earlier single `decisionComment`/`suggestion` field design.
+
+Form-side equivalents (`RequestFormStepper.tsx`):
+- `priceTable`: entry rows for cost/selling price, column headers `12px/400/#586782` right-aligned, no row borders (rhythm via padding only)
+- `comboDropdown` (customer search-select, reused for new/existing/reseller flows): radius 4, border `#D0D6DF`, navy-soft shadow, `max-height: 220` scrollable, row hover → `#F2F6F8` bg, `#F2F6F8` row separators
+- `segBtn` (sale-type / customer-type / payment-condition selector cards): radius 4, border `1.5px` (`#66C5C5` active / `#D0D6DF` inactive); **active state intentionally keeps a teal-to-navy gradient background** (`linear-gradient(135deg,#EBF9F9 0%,#E8F2FC 100%)`, navy text, navy-tinted shadow `0 1px 5px rgba(0,64,129,0.2)`) rather than matching plain `Button` secondary — this was an explicit user choice ("คงไล่ฟ้าเดิม") to keep, not a leftover to "fix" toward Button's flat white.
+- `RadioDot`: the ring is **always neutral gray** (`1px solid #D0D6DF`, white fill) in every state — only the inner 8px navy dot (`#004081`) appears when selected. The ring itself never changes color. Matches the W+ Library "RadioCheckbox" component (`909:1495`) exactly across its untick/tick/disable states.
+
+---
+
+## 9. Icon System — corrected, replaces all prior versions of this section
+
+Two sources. **Neither `lucide-react` nor `react-icons/fa6` exists anywhere in `src/` anymore** — both were migrated away from (fa6 → fi, then several fi icons → literal Figma exports). If you see either referenced in an older doc, it's stale.
+
+1. **`src/components/icons/FigmaIcons.tsx`** — literal SVG paths exported directly from Figma's icon grid (`60RgjevWzbKhCCjoc5kcmk`, node `937:914`) for icons with a confirmed exact Figma source:
+
+   | Component | Figma source | Note |
+   |---|---|---|
+   | `ChevronIcon` | — | direction prop: right/down/left/up |
+   | `SearchIcon` | — | |
+   | `KebabIcon` | — | vertical 3-dot |
+   | `SortIcon` / `SortCarets` | — | table column sort carets |
+   | `XMarkIcon` | `icon_X` (917:377) | bare crossed bars, **not** a circled X — used for `rejected` |
+   | `HourglassIcon` | `hourglass-split` (909:953) | `pending` |
+   | `CheckCircleIcon` | `check-circle-fill` (909:1364) | `approved` — colored teal, not green |
+   | `AddCircleIcon` | `icon_Add` (937:1058) | a disc with the plus **literally cut out** (evenodd fill, white). Dropped onto a gradient/colored button, the cutout shows the button's own background through the plus — "white ring, gradient plus" is a stacking effect, not separate layers |
+   | `PrinterIcon` | `icon_printer` (917:404) | |
+   | `EditIcon` | `icon_Edit` (937:1064) | pencil |
+   | `TrashIcon` | `icon_delete_bin` (909:1413) | not currently used by any live component |
+   | `RefreshIcon` | `icon_refresh` (937:1108) | distinct path from any chevron-style refresh; used for `revised` status + resubmit actions |
+   | `MailSendIcon` | `icon_Mail_send` (937:1093) | 3-layer composite (envelope + badge circle + mirrored arrow), reconstructed at the source's original relative offsets — not simplified to one path |
+
+2. **`react-icons/fi`** (Feather, pure outline) — for everything without a literal Figma export yet: `FiSave`, `FiX`, `FiSlash`, `FiCheckCircle`, `FiXCircle`, `FiCheck`, `FiClock`, `FiFileText`, `FiGrid`, `FiClipboard`, `FiPlus` (Sidebar nav only — see note below), `FiAlertTriangle`, `FiInfo`.
+
+**`Sidebar.tsx`'s `FiPlus` was deliberately left as Feather, not swapped to `AddCircleIcon`.** It's a plain nav-list icon sitting next to other plain Feather icons (`FiGrid`, `FiClipboard`) — a different usage context from `AddCircleIcon`, which is specifically the primary-action-button icon. Swapping just that one icon would introduce a new inconsistency within that same nav list, not fix one.
+
+Icon sizes by context: Button inline 15px · form/nav 16px · Modal close 18px · StatusBadge icon 13–14px · StatusTimeline dot icon 15px · table row action 15px.
+
+---
+
+## 10. Accessibility
+
+- Every input has a `<label>` via `<FormGroup>`
+- Icon-only buttons carry `aria-label`
+- Color is never the sole status indicator — every `StatusBadge` pairs its color with text
+- Focus ring: `2px solid rgba(102,197,197,0.7); outline-offset: 2px` (global `:focus-visible`); `<Select>` additionally gets its own navy focus override per §8.3
+- Modal body-scroll-locks while open
+
+---
+
+## 11. Known Dead Code (not design-system facts, but relevant when auditing the design system)
+
+These files are **not imported anywhere live** and should not be treated as representing current design decisions, even though they still exist in the repo and still contain stale patterns (green colors, `JetBrains Mono`, old radii):
+
+- `RequestInformationStep.tsx`
+- `CustomerInformationStep.tsx`
+- `QuotationInformationStep.tsx`
+- `PaymentCreditTermStep.tsx`
+- `StickyRequestSummary.tsx`
+
+`RequestFormStepper.tsx` is the one real, live form implementation (used by both `CreateRequestPage` and `EditRequestPage`). If a fix needs to land in "the form," it goes there — not in any of the five files above.
+
+---
+
+## 12. Print
+
+`src/styles/print.css`:
+- Hides `.no-print`, `header`, `nav`, `.role-switcher` on print
+- Also references `.sidebar`/`.topbar` classes, but **neither className is actually applied anywhere in the current live markup** (`AppShell` doesn't set `class="topbar"`; `Sidebar` isn't mounted) — those two print-CSS selectors are currently inert. Not a bug to "fix," just worth knowing if print output looks different than the CSS implies.
+- Page: A4, `margin: 0`
+- Table borders become visible (`1px solid #D0D6DF`) for print only
+
+---
+
+## 13. Do / Don't
+
+### ✅ DO
+- Use the shared primitives: `<Button>`, `<Card>`, `<FormGroup>`/`<Input>`/`<Select>`/`<Textarea>`, `<Modal>`, `<StatusBadge>`, `<Alert>`
+- 4px radius everywhere except `<Select>` (8px) and the module-switcher nav tabs (10px)
+- Navy-tinted shadows only
+- `fontVariantNumeric: 'tabular-nums'` for numbers/currency — no mono font
+- `line-height: 1.75` for Thai text blocks
+- Check both `RequestFormStepper.tsx` and `RequestDetailPage.tsx` when touching the quotation-block/table pattern — it's duplicated, not shared
+
+### ❌ DON'T
+- Use `rgba(0,0,0,x)` shadows
+- Reintroduce a `success` Button variant, or gradient `secondary`/`danger` buttons — verify `Button.tsx` directly, don't trust a doc's claim about variant colors
+- Give `<Input>`/`<Textarea>` a 6px radius "to match the token" — they're 4px in practice; only `<Select>` is 8px
+- Give `StatusBadge` a per-status text color — the label is always `#505050`
+- Use pill radius (`9999`) on anything newly built — it survives only in two known, scoped exceptions (`RoleSwitcher`, dev-only; `Sidebar`'s role badge, unmounted)
+- Treat `lucide-react` or `react-icons/fa6` as current — both are fully migrated away from
+- Assume a sidebar is visible in this app today — `AppShell.tsx` has none; `Sidebar.tsx` is unmounted
+
+---
+
+## 14. Open Items — not yet resolved
+
+1. **Table cell padding/filter audit (flagged 2026-06-29, not yet done).** Check Exzy_WorkX node `851:2479`: does header-row padding match body-row padding exactly, in both row and column directions, across every table in this module — and does the host show inline column filters in its header row that this module's tables currently lack? Scope is *every page with a table*, not just one.
+2. **Metropolis brand colors** — a secondary palette referenced in the W+ Library Figma file; exact hex values were never pinned down, and nothing in `src/` currently references them. Likely irrelevant unless a future Figma component pulls one in.
+3. **Mobile responsiveness** — the app is desktop-only today. The only responsive behavior anywhere is `FieldGrid`'s `auto-fit` column collapse; nothing else adapts below desktop width.
+4. **`Sidebar.tsx`'s stray pill radius + `ROLE_COLORS.accounting` reusing `#82C566`** — low priority since the component is unmounted, but worth a pass before this module is ever embedded in the real host shell (see §1.1).
+5. **Dead-code cleanup** (§11) — five unused files still sit in the repo with stale patterns. Safe to delete; not yet done, pending an explicit ask.
+
+---
+
+*DESIGN.md · WorkX / W+ Design System · rebuilt from verified code + Figma, 2026-06-29*

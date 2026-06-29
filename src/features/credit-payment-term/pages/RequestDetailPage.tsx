@@ -139,7 +139,10 @@ export function RequestDetailPage() {
   // header row" looks identical app-wide, not just within this page. Hierarchy
   // comes from color, not boldness — the host's own tables carry no bold text
   // at all, reserving weight for nothing and letting navy/gray do the work.
-  const tableHeaderCell: React.CSSProperties = { padding: '8px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5 }
+  // Header padding matches every body row's padding exactly (12px 14px) — the
+  // WorkX host's own table cells (Exzy_WorkX 851:2649) share one padding spec
+  // between header and body, never a lighter header.
+  const tableHeaderCell: React.CSSProperties = { padding: '12px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5 }
 
   const itemsTable = (items: QuotationItem[]) => (
     <div style={{ overflowX: 'auto' }}>

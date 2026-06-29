@@ -799,9 +799,9 @@ export function RequestFormStepper({
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr>
-              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>รายการ</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาทุน</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาขาย</th>
+              <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>รายการ</th>
+              <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาทุน</th>
+              <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาขาย</th>
             </tr>
           </thead>
           <tbody>

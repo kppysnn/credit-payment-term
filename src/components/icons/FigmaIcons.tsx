@@ -60,10 +60,14 @@ export function SortIcon({ size = 8, color = '#D0D6DF', style, direction = 'down
 }
 
 /** The two stacked carets next to a sortable table column header, matching the
- * host table's "icon_sort" component (730:25586 etc.) exactly. */
+ * host table's "icon_sort" component (730:25586 etc.) exactly. Gap from the
+ * column label is 10px, not a tight 4px — Figma's own icon_sort sits inside a
+ * 32px box with the glyph inset ~33% from its left edge, so the *visible*
+ * gap between label and glyph works out to ~10-11px even though the layout
+ * itself has zero explicit gap (confirmed against Exzy_WorkX 851:2649). */
 export function SortCarets({ size = 7, activeColor = '#004081', inactiveColor = '#D0D6DF', sort }: { size?: number; activeColor?: string; inactiveColor?: string; sort?: 'asc' | 'desc' }) {
   return (
-    <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 2, marginLeft: 4 }}>
+    <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 2, marginLeft: 10 }}>
       <SortIcon size={size} direction="up" color={sort === 'asc' ? activeColor : inactiveColor} />
       <SortIcon size={size} direction="down" color={sort === 'desc' ? activeColor : inactiveColor} />
     </span>
