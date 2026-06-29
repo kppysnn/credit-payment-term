@@ -163,19 +163,22 @@ Never `rgba(0,0,0,x)`. The whole `src/` tree was swept for this — zero violati
 | Role | Size | Weight | Color | Where |
 |------|------|--------|-------|-------|
 | List-page title | **36px** | **500** | `#586782` | `.page-title` class (globals.css) — used only by `RequestListPage`'s `<h1>`. Matches the WorkX host's own title text exactly ("My Works", Exzy_WorkX `851:2532`) — corrected 2026-06-29, was navy. |
-| Form/detail page title | 22px | 700 | `#586782` | Inline `<h1>` on `CreateRequestPage`, `EditRequestPage`, `RequestDetailPage` — a different, smaller convention from the list page (size differs; color does not — both are WorkX's `text/title`). Don't unify the *sizes*; they're deliberately different page types. |
-| Card header / Section title | 14px / 16px | 700 | `#586782` | `Card.tsx`, `Section.tsx`, `-0.01em` letter-spacing |
-| Section band label (`labeledBand`) | 13px | 700 | `#586782` | One step below Card-header weight by design — reads as a sub-section, not a competing heading |
-| `FieldDisplay` label | 11px | 700 | `#586782` | UPPERCASE + `0.06em` letter-spacing, unless `preserveLabelCase` (then normal case, `0.01em`) |
+| Form/detail page title | 22px | **500** | `#586782` | Inline `<h1>` on `CreateRequestPage`, `EditRequestPage`, `RequestDetailPage` — a different, smaller convention from the list page (size differs; weight/color do not — both are WorkX's `text/title`, Poppins Medium). Was 700 until 2026-06-29; don't unify the *sizes*, they're deliberately different page types, but weight should match. |
+| Card header / Section title | 14px / 16px | **500** | `#586782` | `Card.tsx`, `Section.tsx`, `-0.01em` letter-spacing. Was 700 — WorkX's own title text is Poppins Medium, confirmed twice (page title, modal header), never bold. See §13 typography note. |
+| Section band label (`labeledBand`, and its `RequestFormStepper` duplicate) | 13px | **600** | `#586782` | Softened from 700 (2026-06-29) to stay below the now-500-weight section title in the hierarchy — not pinned to a specific Figma value, a judgment call. |
+| `FieldDisplay` label | 11px | 700 | `#586782` | UPPERCASE + `0.06em` letter-spacing, unless `preserveLabelCase` (then normal case, `0.01em`). **Deliberately left at 700** — a distinct micro-label/eyebrow pattern, not directly checked against Figma, don't assume it should soften just because titles did. |
 | `FieldDisplay` value | 14px | per-field (`valueWeight` prop, no longer hardcoded) | `#586782` | `line-height: 1.5` — matches WorkX's `text/filled` token (confirmed via `909:1107`), not a distinct "ink" |
-| Form label (`FormGroup`) | 12px | 600 | `#586782` | required `*` in `#F3554F` |
+| Form label (`FormGroup`) | 12px | **400** | `#586782` | required `*` in `#F3554F`/700 (unconditional). Was 600 — that same `909:1107` component's own field-title header is Poppins Regular. |
 | Body text | 14px | 400 | `#505050` | `body{}` in globals.css, `line-height: 1.65` |
 | Detail-page table header | 12.5px | **400** | `#004081` | `tableHeaderCell` in `RequestDetailPage.tsx` — **not bold, not uppercase, not gray.** Explicit code comment: "Hierarchy comes from color, not boldness — the host's own tables carry no bold text at all." |
 | List-page table header | 13px | 400 | `#004081` | `RequestListPage.tsx` — same philosophy, slightly different size, with sortable carets |
+| List-page filter label ("Status"/"Date") | 16px | 400 | `#707070` | English, not Thai — matches WorkX's own filter row exactly (Exzy_WorkX `851:2542`, "Month"). Scoped to just this bar; every other label in the module stays Thai. |
 | Form entry-table header (`priceTable`) | 12px | 400 | `#586782` | `RequestFormStepper.tsx` — right-aligned column labels above price inputs |
-| Modal header | 16px | 700 | `#586782` | `Modal.tsx` |
+| Modal header | 16px | **500** | `#586782` | `Modal.tsx`. Was 700 — confirmed Poppins Medium against a real WorkX modal header (`1319:3275`). |
 | Hint / muted | 11–12px | 400 | `#929EB4` | timestamps, hints |
 | StatusBadge label | 13px (12px `sm`) | 400 | `#505050` always | regardless of status — see §2.5 |
+
+**General rule (2026-06-29): WorkX barely uses bold (700) anywhere.** Every title/label checked against live Figma came back Medium (500) or Regular (400) — bold doesn't appear in any of the examples fetched this engagement. Don't reach for 700 on new heading/label text; start from 500 (titles) or 400 (labels, body) and only go heavier with a specific reason (we kept 700 on: white text over a colored gradient bar, numeric/currency emphasis, and the small uppercase eyebrow-label pattern — none of those are the "heading on light background" case the Figma checks covered).
 
 ### 3.3 Thai Text
 
@@ -315,14 +318,16 @@ Loading state replaces the icon with a spinner and disables the button. A blur-o
 | | `<Card>` | `<Section>` |
 |---|---|---|
 | Use for | An actual boxed surface where one is wanted (rare in this module now) | Dividing a page into named groups of fields — the default for form/detail-page sectioning |
-| Visual | bg `#FFFFFF`, border `1px solid #D0D6DF`, radius 4, header bg `#F2F6F8` | No border, no bg — title `16px/700/#586782` + `1px solid #D0D6DF` rule underneath, `10px` padding-bottom, `16px` margin-bottom |
+| Visual | bg `#FFFFFF`, border `1px solid #D0D6DF`, radius 4, header bg `#F2F6F8` | No border, no bg — title `16px/500/#586782` (weight corrected 700→500, see §3.2) + `1px solid #D0D6DF` rule underneath, `10px` padding-bottom, `16px` margin-bottom |
 | Hover | `translateY(-2px)` + `shadow-md` + teal border tint | none |
 
 `Card.tsx` still exports `FieldDisplay`/`FieldGrid` (§3.2) — those are unaffected; only the outer boxing changed. `FieldGrid` uses CSS grid `auto-fit` with `minmax(190px or 240px, 1fr)` (190 if `cols>=3`, else 240) — collapses to 2 then 1 column as the container narrows, no manual breakpoints. `gap: 16px 28px`.
 
 **Section gap is 32px, not the 20–24px it was under `<Card>`.** Without a border to mark "this section ended, a new one begins," the gap between sections has to carry more of that signal on its own.
 
-**The quotation-block wrapper (`quotationBlock` in `RequestDetailPage.tsx`, `quotationCard`/`quotationHeader` in `RequestFormStepper.tsx`) also lost its outer `border`+bg.** The gradient header is the section's real anchor — it carries the quotation number, that's communicative color, not a box for boxing's sake — so it stays, now with its own `borderRadius: 4` since it no longer connects to a box below it. The `labeledBand` rule inside (total strip, payment-schedule strip) switched from `framed=true` (`#D0D6DF`, echoing an outer border that no longer exists) to `framed=false` (`#F2F6F8`, the soft row-level rule) to match.
+**The whole section list sits inside ONE white panel** (`background: '#fff', border: '1px solid #D0D6DF', borderRadius: 4, padding: 32`) in both `RequestFormStepper.tsx` and `RequestDetailPage.tsx` — added 2026-06-29 after de-carding read as "incomplete," not intentionally airy. The first de-carding pass removed *all* containment, including the page's own background contrast; WorkX's own reference form ("Edit My work", `1190:5406`) is not borderless, it's a single continuous white surface with `<Section>`-style divisions *inside* it. This panel wraps the section list only — the page header/action row above it (request number, status badge, action buttons) stays outside, as page-level chrome.
+
+**The quotation-block wrapper (`quotationBlock` in `RequestDetailPage.tsx`, `quotationCard`/`quotationHeader` in `RequestFormStepper.tsx`) has no stroked border**, but isn't bare either — its gradient header is top-rounded only (`borderRadius: '4px 4px 0 0'`) and sits directly above a body wrapper tinted `#F8F9FA` with bottom rounding (`'0 0 4px 4px'`). Header+body read as one unit through *fill*, not a stroke — fixed 2026-06-29 after the header-only version (no body tint) read as a floating colored chip with nothing tying it to its content. The `labeledBand`/`sectionComment` calls inside these blocks use `framed=true` (`#D0D6DF` rule, `14px` horizontal padding) again now that there's an enclosing tinted area to pad against — don't "fix" this back to `framed=false`, that was only correct for the brief window when the block had zero enclosure.
 
 The form's footer action bar (checkbox + Save Draft/Submit buttons) similarly dropped its full box for a `borderTop: 1px solid #D0D6DF` + `paddingTop: 20`.
 
@@ -485,7 +490,9 @@ These files are **not imported anywhere live** and should not be treated as repr
 
 ### 8.5 DatePicker
 
-`src/components/ui/DatePicker.tsx` — single-date calendar popover, used by `RequestListPage`'s "วันที่อัปเดต" filter (filters on `updatedAt`, which already covers "last edited" and falls back to "created" automatically since a never-edited request has `updatedAt === createdAt`). Structure matches WorkX's own calendar (Exzy_WorkX `72:5368`: prev/next month header, weekday row, day grid) but recolored to this app's actual brand tokens (Poppins, navy `#004081` selected day, teal `#66C5C5` today ring) rather than the literal library-default neutrals (`#14181F`, `#DCE0E5`, Inter font) that component's own Figma export uses — those don't appear anywhere else in WorkX's real rendered UI, strongly suggesting that specific component is an unskinned base-library widget, not WorkX's actual brand. Simplified to single-day select (click a day, popover closes immediately) rather than the Figma reference's range-select + Cancel/Done footer, since this filters by one date, not a range.
+`src/components/ui/DatePicker.tsx` — calendar popover supporting both a single day and a date **range** (two clicks: start, then end — auto-swaps if end is picked before start), used by `RequestListPage`'s "Date" filter (filters on `updatedAt`, which already covers "last edited" and falls back to "created" automatically since a never-edited request has `updatedAt === createdAt`; URL params are `dateFrom`/`dateTo`). Structure matches WorkX's own calendar (Exzy_WorkX `72:5368`: prev/next month header, weekday row, day grid, range start/end as a navy pill with a soft in-between fill, Cancel/Done footer) but recolored to this app's actual brand tokens (Poppins, navy `#004081` start/end, teal `#66C5C5` today ring, `rgba(0,64,129,0.08)` in-between fill) rather than the literal library-default neutrals (`#14181F`, `#DCE0E5`, Inter font, `#E0EDFF` range fill) that component's own Figma export uses — those don't appear anywhere else in WorkX's real rendered UI, strongly suggesting that specific component is an unskinned base-library widget, not WorkX's actual brand. A single day is just a range where `dateFrom === dateTo`; the Cancel/Done footer was added back (an earlier single-day-only version skipped it) since range selection genuinely benefits from an explicit confirm step.
+
+**Active-filter strip is chips, not a sentence.** Each active filter (status, date, search) renders as its own small removable tag (`#F2F6F8` bg, `#004081` text, radius 4, own `×`) rather than a `"กำลังกรอง: ..."` string — the sentence-style version read as stiff/system-y rather than friendly once shipped. A "ล้างทั้งหมด" link only appears once 2+ filters are stacked; a single chip's own `×` is enough on its own. This replaced the original `anyFilterActive` strip's text rendering; the mutual-exclusivity logic with the attention banner (§ below) is unchanged.
 
 ---
 
