@@ -489,7 +489,13 @@ export function RequestFormStepper({
 
         {/* Preset buttons */}
         <div>
-          <div style={{ fontSize: 11, color: '#586782', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>สัดส่วน</div>
+          {/* Matches FormGroup exactly — this labels a row of preset buttons,
+              the same "label above a control group" role as Credit Term/
+              จำนวนงวด right above. No actual reason it was uppercase/11px/700
+              while those are 12px/400 — that was drift, not a deliberate
+              distinct pattern (unlike FieldDisplay's read-only eyebrow
+              label, which labels a displayed *value*, not a control). */}
+          <div style={{ fontSize: 12, color: '#586782', fontWeight: 400, marginBottom: 8 }}>สัดส่วน</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {(INSTALLMENT_PRESETS[instCount] ?? []).slice(0, 4).map(preset => {
               const active = preset.percents.every((p, idx) => numVal(insts[idx]?.installmentPercent) === p)
@@ -513,7 +519,7 @@ export function RequestFormStepper({
 
         {/* Installment cards */}
         <div>
-          <div style={{ fontSize: 11, color: '#586782', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>รายละเอียดงวด</div>
+          <div style={{ fontSize: 12, color: '#586782', fontWeight: 400, marginBottom: 8 }}>รายละเอียดงวด</div>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${instCount}, minmax(0, 1fr))`, gap: 8 }}>
             {insts.slice(0, instCount).map((row, i) => {
               const hasAnyFilled = insts.slice(0, instCount).some(r => r.installmentPercent !== '')
@@ -756,7 +762,7 @@ export function RequestFormStepper({
           {customerType === 'reseller' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Reseller</div>
+                <div style={{ fontSize: 12, fontWeight: 400, color: '#586782', marginBottom: 10 }}>Reseller</div>
                 <FormGroup error={errors['res.resellerCompanyName']}>
                   <div style={{ position: 'relative' }}>
                     <div style={{ position: 'relative' }}>
