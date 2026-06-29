@@ -161,6 +161,11 @@ export function RequestFormStepper({
   )
   const [hwCustomCreditTerm, setHwCustomCreditTerm] = useState(false)
   const [hwCustomCount, setHwCustomCount] = useState(false)
+  // Holds the literal in-progress text of the custom count <Input> — kept
+  // separate from hwInstallmentCount (which must always be a valid number
+  // for rendering) so the field can go blank mid-edit instead of snapping
+  // back to a forced value on every keystroke.
+  const [hwCountDraft, setHwCountDraft] = useState<number | ''>(req?.installmentCount ?? 1)
   const [hwCustomPercentRows, setHwCustomPercentRows] = useState<Record<number, boolean>>({})
 
   // ── SW payment state ──
@@ -177,6 +182,7 @@ export function RequestFormStepper({
   )
   const [swCustomCreditTerm, setSwCustomCreditTerm] = useState(false)
   const [swCustomCount, setSwCustomCount] = useState(false)
+  const [swCountDraft, setSwCountDraft] = useState<number | ''>(req?.swInstallmentCount ?? 1)
   const [swCustomPercentRows, setSwCustomPercentRows] = useState<Record<number, boolean>>({})
 
   const fd = formData
@@ -401,6 +407,8 @@ export function RequestFormStepper({
     const setIsCustomCT= prefix === 'hw' ? setHwCustomCreditTerm   : setSwCustomCreditTerm
     const isCustomCount   = prefix === 'hw' ? hwCustomCount   : swCustomCount
     const setIsCustomCount= prefix === 'hw' ? setHwCustomCount: setSwCustomCount
+    const countDraft      = prefix === 'hw' ? hwCountDraft    : swCountDraft
+    const setCountDraft   = prefix === 'hw' ? setHwCountDraft : setSwCountDraft
     const customPctRows    = prefix === 'hw' ? hwCustomPercentRows    : swCustomPercentRows
     const setCustomPctRows = prefix === 'hw' ? setHwCustomPercentRows : setSwCustomPercentRows
 
@@ -502,12 +510,24 @@ export function RequestFormStepper({
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Input
                   type="number" min="1" max={MAX_INSTALLMENTS} autoFocus
-                  value={instCount}
-                  onChange={e => changeCount(e.target.value === '' ? 1 : Number(e.target.value))}
+                  value={countDraft}
+                  onChange={e => {
+                    const v = e.target.value
+                    // Stays blank while typing instead of forcing a value on
+                    // every keystroke — only commits to instCount once the
+                    // text actually parses to a real number, so clearing the
+                    // field to type a replacement no longer snaps back to 1.
+                    setCountDraft(v === '' ? '' : Number(v))
+                    if (v !== '' && Number(v) >= 1) changeCount(Number(v))
+                  }}
+                  // type="number" inputs don't support .select(), so there's
+                  // no reliable "select all on focus" here — just fall back
+                  // cleanly to the last valid count if left blank/invalid.
+                  onBlur={() => { if (countDraft === '' || numVal(countDraft) < 1) setCountDraft(instCount) }}
                   placeholder="พิมพ์จำนวนงวด"
                   style={{ flex: 1 }}
                 />
-                <button type="button" onClick={() => { setIsCustomCount(false); changeCount(INSTALLMENT_COUNT_PRESETS[0]) }}
+                <button type="button" onClick={() => { setIsCustomCount(false); changeCount(INSTALLMENT_COUNT_PRESETS[0]); setCountDraft(INSTALLMENT_COUNT_PRESETS[0]) }}
                   style={{ width: 28, height: 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -520,7 +540,7 @@ export function RequestFormStepper({
                 value={String(instCount)}
                 onChange={e => {
                   const v = e.target.value
-                  if (v === 'custom') { setIsCustomCount(true); return }
+                  if (v === 'custom') { setIsCustomCount(true); setCountDraft(instCount); return }
                   changeCount(Number(v))
                 }}
                 style={selectStyle}
@@ -657,7 +677,13 @@ export function RequestFormStepper({
                   <thead>
                     <tr style={{ position: 'sticky', top: 0 }}>
                       <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8' }}>งวดที่</th>
-                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'right', background: '#F2F6F8', width: 130 }}>สัดส่วน (%)</th>
+                      {/* Centered, not right — matches the read-only Payment
+                          Schedule table's "%" column convention (RequestDetailPage),
+                          and a fixed, content-hugging width instead of a wide one:
+                          right-aligning a narrow input inside an oversized column
+                          left a big empty gutter that read as "shifted left" /
+                          not lined up with the header above it. */}
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: 110 }}>สัดส่วน (%)</th>
                       <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'right', background: '#F2F6F8' }}>มูลค่า (THB)</th>
                     </tr>
                   </thead>
@@ -669,13 +695,17 @@ export function RequestFormStepper({
                       return (
                         <tr key={i} style={{ borderTop: '1px solid #F2F6F8', background: errors[pctErrRowKey] ? '#FEF2F2' : undefined }}>
                           <td style={{ padding: '6px 14px', color: '#586782' }}>{i + 1}</td>
-                          <td style={{ padding: '6px 14px', textAlign: 'right' }}>
+                          <td style={{ padding: '6px 14px', textAlign: 'center' }}>
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              {/* no-spinner: the native up/down arrows ate into
+                                  this 64px box and pushed the digits off-center,
+                                  which was the other half of the alignment bug. */}
                               <Input type="number" min="0" max="100" value={row.installmentPercent}
                                 onChange={e => updateInstRow(i, 'installmentPercent', e.target.value !== '' ? Number(e.target.value) : '')}
                                 placeholder="0"
                                 error={errors[pctErrRowKey]}
-                                style={{ width: 76, textAlign: 'right', height: 32 }} />
+                                className="no-spinner"
+                                style={{ width: 64, textAlign: 'right', height: 32 }} />
                               <span style={{ color: '#586782', fontSize: 12 }}>%</span>
                             </div>
                           </td>

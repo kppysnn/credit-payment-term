@@ -130,6 +130,19 @@ body {
   margin: 0;
 }
 
+/* Hides native number-input spinner arrows. Used on dense per-row % inputs
+   (the many-installment table) where the spinner widget eats into a narrow
+   fixed-width box and visually pushes the digits off-center/left, away from
+   where the column's own right edge actually is. */
+.no-spinner::-webkit-inner-spin-button,
+.no-spinner::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  -moz-appearance: textfield;
+}
+
 /* Spin animation for Button loading */
 @keyframes spin {
   to { transform: rotate(360deg); }

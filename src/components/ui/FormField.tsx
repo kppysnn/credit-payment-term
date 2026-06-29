@@ -73,6 +73,8 @@ export function Input({
   error,
   style,
   disabled,
+  onFocus,
+  onBlur,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & { error?: string }) {
   return (
@@ -81,8 +83,12 @@ export function Input({
       disabled={disabled}
       aria-invalid={!!error}
       style={{ ...inputBase, ...(error ? errorStyle : {}), ...(disabled ? disabledStyle : {}), ...style }}
-      onFocus={handleFocus}
-      onBlur={e => handleBlur(e, error)}
+      // Compose with the caller's own onFocus/onBlur instead of overriding it —
+      // a caller-supplied handler used to be silently dropped here (this prop
+      // would win over a spread {...props} regardless of what the caller
+      // passed), so nothing using <Input> could ever hook focus/blur itself.
+      onFocus={e => { handleFocus(e); onFocus?.(e) }}
+      onBlur={e => { handleBlur(e, error); onBlur?.(e) }}
     />
   )
 }
