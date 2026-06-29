@@ -7,6 +7,7 @@ import { STATUS_LABELS } from '../types/request'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { Button } from '../../../components/ui/Button'
 import { Input, Select } from '../../../components/ui/FormField'
+import { DatePicker } from '../../../components/ui/DatePicker'
 import { SearchIcon, SortCarets, AddCircleIcon, EditIcon, RefreshIcon, PrinterIcon } from '../../../components/icons/FigmaIcons'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
@@ -27,6 +28,15 @@ const COLUMNS: { label: string; width: string; key?: SortKey }[] = [
   { label: '', width: '10%' },
 ]
 
+// "อัปเดต" already shows updatedAt for every row (it defaults to createdAt on
+// a never-edited request) — so filtering by that one column covers both
+// "last edited" and "created" without a second field, matching the request.
+function matchesDate(iso: string, isoDateOnly: string): boolean {
+  const d = new Date(iso)
+  const [y, m, day] = isoDateOnly.split('-').map(Number)
+  return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day
+}
+
 export function RequestListPage() {
   const { currentUser } = useCurrentUser()
   const navigate = useNavigate()
@@ -37,6 +47,7 @@ export function RequestListPage() {
 
   const filterStatus = searchParams.get('status') ?? ''
   const filterText = searchParams.get('q') ?? ''
+  const filterDate = searchParams.get('date') ?? ''
 
   const viewAll = currentUser.role === 'approver' || currentUser.role === 'accounting'
 
@@ -53,7 +64,8 @@ export function RequestListPage() {
     const matchStatus = !filterStatus || r.status === filterStatus
     const q = filterText.toLowerCase()
     const matchText = !q || [r.requestNo, r.customerName, r.proposalNo, r.salesName].some(s => s?.toLowerCase().includes(q))
-    return matchStatus && matchText
+    const matchDate = !filterDate || matchesDate(r.updatedAt, filterDate)
+    return matchStatus && matchText && matchDate
   })
 
   const sorted = [...filtered]
@@ -82,7 +94,14 @@ export function RequestListPage() {
 
   const rejectedBanner = currentUser.role === 'sales' && counts.rejected > 0
   const pendingBanner = currentUser.role === 'approver' && counts.pending > 0
-  const showBanner = rejectedBanner || pendingBanner
+  const anyFilterActive = Boolean(filterStatus || filterText || filterDate)
+  // The attention banner ("you have N rejected/pending") and the active-filter
+  // strip share one slot and are mutually exclusive: once any filter is on,
+  // showing the banner too is redundant — you're already looking at exactly
+  // what it would have taken you to. This also means the same clearly-labeled
+  // "ดูคำขอทั้งหมด" exit is always in the same spot, however you got filtered
+  // (banner click, status dropdown, search, or date picker).
+  const showBanner = !anyFilterActive && (rejectedBanner || pendingBanner)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -95,50 +114,71 @@ export function RequestListPage() {
 
       {/* Filters */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#586782' }}>สถานะ</span>
-          <Select
-            value={filterStatus}
-            onChange={e => setSearchParams(p => { const n = new URLSearchParams(p); n.set('status', e.target.value); return n })}
-            style={{ width: 170 }}
-          >
-            <option value="">ทุกสถานะ</option>
-            {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
-          </Select>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {(filterStatus || filterText) && (
-            <Button variant="ghost" size="sm" onClick={() => setSearchParams({})}>ล้างตัวกรอง</Button>
-          )}
-          <div style={{ position: 'relative', width: 280 }}>
-            <Input
-              value={filterText}
-              onChange={e => setSearchParams(p => { const n = new URLSearchParams(p); n.set('q', e.target.value); return n })}
-              placeholder="ค้นหา Request No., ลูกค้า..."
-              style={{ paddingRight: 36 }}
-            />
-            <SearchIcon size={15} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#586782' }}>สถานะ</span>
+            <Select
+              value={filterStatus}
+              onChange={e => setSearchParams(p => { const n = new URLSearchParams(p); n.set('status', e.target.value); return n })}
+              style={{ width: 170 }}
+            >
+              <option value="">ทุกสถานะ</option>
+              {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
+            </Select>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#586782' }}>วันที่อัปเดต</span>
+            <DatePicker
+              value={filterDate || null}
+              onChange={d => setSearchParams(p => {
+                const n = new URLSearchParams(p)
+                if (d) n.set('date', d); else n.delete('date')
+                return n
+              })}
+              style={{ width: 170 }}
+            />
+          </div>
+        </div>
+        <div style={{ position: 'relative', width: 280 }}>
+          <Input
+            value={filterText}
+            onChange={e => setSearchParams(p => { const n = new URLSearchParams(p); n.set('q', e.target.value); return n })}
+            placeholder="ค้นหา Request No., ลูกค้า..."
+            style={{ paddingRight: 36 }}
+          />
+          <SearchIcon size={15} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         </div>
       </div>
 
       {/* Table block — matches the WorkX host's table pattern (Figma node
           730:25425) exactly: no outer border/box around the table at all, just
-          a flat notice bar (plain ⚠️ emoji) flush above it, separated only by a
-          thin border-top divider. No count/title bar — Figma's table has none. */}
+          a flat notice bar flush above it, separated only by a thin
+          border-top divider. No count/title bar — Figma's table has none. */}
       <div style={{ background: '#FFFFFF' }}>
-        {showBanner && (
+        {anyFilterActive ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: '#F2F6F8', color: '#004081' }}>
+            <span style={{ fontSize: 14, flex: 1 }}>
+              กำลังกรอง:{' '}
+              {[
+                filterStatus && STATUS_LABELS[filterStatus as RequestStatus],
+                filterDate && new Intl.DateTimeFormat('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(filterDate)),
+                filterText && `ค้นหา "${filterText}"`,
+              ].filter(Boolean).join(' · ')}
+            </span>
+            <Button variant="ghost" size="sm" onClick={() => setSearchParams({})}>ดูคำขอทั้งหมด</Button>
+          </div>
+        ) : showBanner && (
           rejectedBanner ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: '#FEF2F2', color: '#7F1D1D' }}>
               <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
               <span style={{ fontSize: 14, flex: 1 }}>มี {counts.rejected} คำขอที่ถูกปฏิเสธ — กรุณาแก้ไขและส่งใหม่</span>
-              <Button variant="ghost" size="sm" onClick={() => setSearchParams({ status: 'rejected' })}>ดูทั้งหมด</Button>
+              <Button variant="ghost" size="sm" onClick={() => setSearchParams({ status: 'rejected' })}>ดูคำขอที่ถูกปฏิเสธ</Button>
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: '#FFFBEB', color: '#92400E' }}>
               <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
-              <span style={{ fontSize: 14, flex: 1 }}>มี {counts.pending} คำขอรอการพิจารณา</span>
-              <Button variant="ghost" size="sm" onClick={() => setSearchParams({ status: 'pending' })}>ดูทั้งหมด</Button>
+              <span style={{ fontSize: 14, flex: 1 }}>มี {counts.pending} คำขอที่รอคุณพิจารณา</span>
+              <Button variant="ghost" size="sm" onClick={() => setSearchParams({ status: 'pending' })}>ดูคำขอที่รอพิจารณา</Button>
             </div>
           )
         )}
@@ -150,7 +190,7 @@ export function RequestListPage() {
         ) : (
           <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr style={{ borderTop: showBanner ? '1px solid #D0D6DF' : undefined }}>
+              <tr style={{ borderTop: (showBanner || anyFilterActive) ? '1px solid #D0D6DF' : undefined }}>
                 {COLUMNS.map(col => (
                   <th
                     key={col.label || col.key || 'actions'}

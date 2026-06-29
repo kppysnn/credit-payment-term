@@ -8,7 +8,8 @@ import { SALE_TYPE_LABELS } from '../types/request'
 import { CUSTOMER_TYPE_LABELS } from '../types/customer'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { StatusTimeline } from '../../../components/ui/StatusTimeline'
-import { Card, FieldDisplay, FieldGrid } from '../../../components/ui/Card'
+import { FieldDisplay, FieldGrid } from '../../../components/ui/Card'
+import { Section } from '../../../components/ui/Section'
 import { Button } from '../../../components/ui/Button'
 import { Alert } from '../../../components/ui/Alert'
 import { Textarea } from '../../../components/ui/FormField'
@@ -176,13 +177,13 @@ export function RequestDetailPage() {
         ราคาขาย <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#004081' }}>{formatCurrency(selling)}</span>
       </span>
     </span>
-  ), true, true)
+  ), false, true)
 
   const installmentStrip = (creditTermDays: number) => labeledBand('Payment Schedule', (
     <span style={{ fontSize: 12, color: '#586782', fontWeight: 500 }}>
       Credit Term: <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#004081' }}>{formatCreditTerm(creditTermDays)}</span>
     </span>
-  ), true, true)
+  ), false, true)
 
   const installmentTable = (installments: PaymentInstallment[]) => (
     <div style={{ overflowX: 'auto' }}>
@@ -207,9 +208,14 @@ export function RequestDetailPage() {
     </div>
   )
 
+  // No outer card/border — the colored header bar itself is the section
+  // anchor (it carries real meaning: which quotation, its reference number),
+  // not a generic box. Matches the airier direction confirmed against
+  // WorkX's own multi-section form (Exzy_WorkX "Edit My work", 1190:5406),
+  // which marks section breaks with a strong visual element, not a frame.
   const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], extra?: React.ReactNode) => (
-    <div style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #D0D6DF', background: '#FFFFFF' }}>
-      <div style={{ background: gradient, padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
+    <div>
+      <div style={{ background: gradient, borderRadius: 4, padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>{label}</span>
         <span style={{ fontSize: 13 }}>
           <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.78)' }}>Quotation No. </span>
@@ -317,9 +323,11 @@ export function RequestDetailPage() {
           </Alert>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {/* 32px, not 24 — without a Card border to mark the boundary between
+            sections, the gap itself has to carry more of that signal. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             {/* Request Info */}
-            <Card title="ข้อมูลคำขอ">
+            <Section title="ข้อมูลคำขอ">
               <FieldGrid cols={3}>
                 <FieldDisplay label="Request No." value={req.requestNo} mono preserveLabelCase valueWeight={600} />
                 <FieldDisplay label="Proposal No." value={req.proposalNo} mono preserveLabelCase valueWeight={600} />
@@ -328,10 +336,10 @@ export function RequestDetailPage() {
                 <FieldDisplay label="อัปเดตล่าสุด" value={formatDateTime(req.updatedAt)} />
                 <FieldDisplay label="Version" value={`v${req.version}`} preserveLabelCase />
               </FieldGrid>
-            </Card>
+            </Section>
 
             {/* Customer Info */}
-            <Card title="ข้อมูลลูกค้า">
+            <Section title="ข้อมูลลูกค้า">
               <FieldGrid cols={3}>
                 <FieldDisplay label="ประเภทลูกค้า" value={CUSTOMER_TYPE_LABELS[req.customerInfo.type]} />
                 {req.customerInfo.type === 'existing' && (
@@ -364,18 +372,18 @@ export function RequestDetailPage() {
                 )}
               </FieldGrid>
               {sectionComment('หมายเหตุข้อมูลลูกค้า', customerComment, canComment, setCustomerComment, false, req.approvalResult?.customerComment)}
-            </Card>
+            </Section>
 
             {/* Hardware quotation: items + its own payment schedule */}
             {hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments,
-              sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, true, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
+              sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, false, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
 
             {/* Software & Installation quotation: items + its own payment schedule */}
             {serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [],
-              sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, true, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
+              sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, false, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
 
             {/* Overall total */}
-            <Card title="สรุปยอดรวม" noPad>
+            <Section title="สรุปยอดรวม">
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
@@ -416,12 +424,12 @@ export function RequestDetailPage() {
                   </tfoot>
                 </table>
               </div>
-            </Card>
+            </Section>
 
             {/* Status Timeline */}
-            <Card title="ประวัติสถานะ">
+            <Section title="ประวัติสถานะ">
               <StatusTimeline history={req.history} />
-            </Card>
+            </Section>
 
           </div>
       </div>

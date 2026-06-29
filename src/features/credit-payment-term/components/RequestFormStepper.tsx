@@ -4,7 +4,7 @@ import type { CurrentUser } from '../types/user'
 import type { Customer, CustomerType } from '../types/customer'
 import { CUSTOMER_TYPE_LABELS } from '../types/customer'
 import { type SaleType, type PaymentCondition } from '../types/request'
-import { Card } from '../../../components/ui/Card'
+import { Section } from '../../../components/ui/Section'
 import { Button } from '../../../components/ui/Button'
 import { Checkbox } from '../../../components/ui/Checkbox'
 import { FormGroup, Input, Select } from '../../../components/ui/FormField'
@@ -355,7 +355,7 @@ export function RequestFormStepper({
   )
 
   const quotationHeader = (quotationNo: string, groupLabel: string, gradient: string) => (
-    <div style={{ background: gradient, padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
+    <div style={{ background: gradient, borderRadius: 4, padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
       <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
         {groupLabel}
       </span>
@@ -608,15 +608,21 @@ export function RequestFormStepper({
   }
 
   /* ── Quotation card wrapper ── */
+  // No outer border/bg — the gradient header itself is the section anchor
+  // (matches RequestDetailPage's quotationBlock and the airier direction
+  // confirmed against WorkX's own multi-section form, Exzy_WorkX 1190:5406).
   const quotationCard = (quotationNo: string, label: string, headerGradient: string, body: React.ReactNode) => (
-    <div style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #D0D6DF', background: '#FFFFFF' }}>
+    <div>
       {quotationHeader(quotationNo, label, headerGradient)}
       {body}
     </div>
   )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 760, margin: '0 auto' }}>
+    // 32px, not 20 — without a Card border marking each section's boundary,
+    // the gap itself has to carry more of that signal (matches
+    // RequestDetailPage's identical adjustment).
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 760, margin: '0 auto' }}>
 
       {isResubmit && initialRequest?.approvalResult && (
         <Alert type="error" title="เหตุผลที่ถูก Reject ครั้งก่อน">
@@ -633,7 +639,7 @@ export function RequestFormStepper({
       )}
 
       {/* ─── 1. ข้อมูลคำขอ ─── */}
-      <Card title="1. ข้อมูลคำขอ">
+      <Section title="1. ข้อมูลคำขอ">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <FormGroup label="Proposal No." required error={errors.proposalNo}>
             <Input value={String(fd.proposalNo || '')} onChange={e => update({ proposalNo: e.target.value })} placeholder="PRO-2026-001" error={errors.proposalNo} />
@@ -654,10 +660,10 @@ export function RequestFormStepper({
             {errors.saleType && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 4 }}>{errors.saleType}</div>}
           </div>
         </div>
-      </Card>
+      </Section>
 
       {/* ─── 2. ข้อมูลลูกค้า ─── */}
-      <Card title="2. ข้อมูลลูกค้า">
+      <Section title="2. ข้อมูลลูกค้า">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#586782', marginBottom: 8 }}>
@@ -770,7 +776,7 @@ export function RequestFormStepper({
             </div>
           )}
         </div>
-      </Card>
+      </Section>
 
       {/* ─── Quotation cards (always 2 blocks) ─── */}
       {quotationCard(hwQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', (
@@ -795,7 +801,7 @@ export function RequestFormStepper({
       ))}
 
       {/* ─── สรุปรวมทั้งหมด ─── */}
-      <Card title="สรุปรวมทั้งหมด" noPad>
+      <Section title="สรุปรวมทั้งหมด">
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr>
@@ -830,10 +836,10 @@ export function RequestFormStepper({
             </tr>
           </tfoot>
         </table>
-      </Card>
+      </Section>
 
       {/* ─── Footer ─── */}
-      <div style={{ background: '#fff', borderRadius: 4, padding: '20px 24px', border: '1px solid #D0D6DF' }}>
+      <div style={{ paddingTop: 20, borderTop: '1px solid #D0D6DF' }}>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <Checkbox
