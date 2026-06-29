@@ -50,6 +50,17 @@ export function canCancelRequest(user: CurrentUser, req: Request): boolean {
   return req.status === 'draft' || req.status === 'pending'
 }
 
+// Deliberately narrower than canCancelRequest: cancelling a pending request
+// keeps a full audit trail (it's a real decision on a real submission), but
+// a draft has never been submitted and carries no history worth preserving
+// — so a draft can be hard-deleted outright, while "cancel" is the only
+// option once a request has actually entered the approval flow.
+export function canDeleteRequest(user: CurrentUser, req: Request): boolean {
+  if (user.role !== 'sales') return false
+  if (req.salesId !== user.id) return false
+  return req.status === 'draft'
+}
+
 export function canExport(user: CurrentUser): boolean {
   return hasPermission(user, 'creditTerm.export')
 }

@@ -11,6 +11,7 @@ import {
   getMockRequests,
   getMockRequestById,
   saveMockRequest,
+  deleteMockRequest,
   generateRequestNo,
   generateId,
 } from '../data/mockRequests'
@@ -340,4 +341,16 @@ export async function cancelRequest(id: string, reason: string, actor: CurrentUs
   const updated: Request = { ...existing, status: 'cancelled', updatedAt: now, history: [...existing.history, entry] }
   saveMockRequest(updated)
   return updated
+}
+
+// Hard delete — only ever valid for a draft (see canDeleteRequest). Unlike
+// every other mutation here, there's no history entry to append to: the
+// request row disappears outright, the same as if it had never been saved.
+export async function deleteRequest(id: string, actor: CurrentUser): Promise<void> {
+  await _delay()
+  const existing = getMockRequestById(id)
+  if (!existing) throw new Error('Request not found')
+  if (existing.status !== 'draft') throw new Error('Only a draft can be deleted')
+  if (existing.salesId !== actor.id) throw new Error('Cannot delete a request you do not own')
+  deleteMockRequest(id)
 }

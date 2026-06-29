@@ -1,31 +1,36 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
-import { getRequests } from '../services/creditTermService'
+import { getRequests, getRequestById, deleteRequest } from '../services/creditTermService'
 import type { RequestListItem, RequestStatus } from '../types/request'
 import { STATUS_LABELS } from '../types/request'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { Button } from '../../../components/ui/Button'
 import { Input, Select } from '../../../components/ui/FormField'
 import { DatePicker } from '../../../components/ui/DatePicker'
-import { SearchIcon, SortCarets, AddCircleIcon, EditIcon, RefreshIcon, PrinterIcon, XMarkIcon } from '../../../components/icons/FigmaIcons'
+import { KebabMenu, type KebabMenuItem } from '../../../components/ui/KebabMenu'
+import { DeleteRequestModal } from '../../../components/modals/DeleteRequestModal'
+import { SearchIcon, SortCarets, AddCircleIcon, EditIcon, RefreshIcon, PrinterIcon, TrashIcon, XMarkIcon } from '../../../components/icons/FigmaIcons'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
 import { exportPDF } from '../services/exportService'
-import { getRequestById } from '../services/creditTermService'
+import type { Request } from '../types/request'
 
 const STATUSES: RequestStatus[] = ['draft', 'pending', 'approved', 'rejected', 'revised', 'cancelled']
 
 type SortKey = 'requestNo' | 'customerName' | 'salesName' | 'totalSelling' | 'status' | 'updatedAt'
 
+// Action column widened (10% -> 16%) to fit the rejected-row's own resubmit
+// button alongside the kebab menu — taken from "ลูกค้า" and "อัปเดต", the
+// two columns with the most slack.
 const COLUMNS: { label: string; width: string; key?: SortKey }[] = [
   { label: 'คำขอ', width: '15%', key: 'requestNo' },
-  { label: 'ลูกค้า', width: '22%', key: 'customerName' },
+  { label: 'ลูกค้า', width: '18%', key: 'customerName' },
   { label: 'เซลล์', width: '15%', key: 'salesName' },
   { label: 'มูลค่ารวม', width: '13%', key: 'totalSelling' },
   { label: 'สถานะ', width: '12%', key: 'status' },
-  { label: 'อัปเดต', width: '13%', key: 'updatedAt' },
-  { label: '', width: '10%' },
+  { label: 'อัปเดต', width: '11%', key: 'updatedAt' },
+  { label: '', width: '16%' },
 ]
 
 // "อัปเดต" already shows updatedAt for every row (it defaults to createdAt on
@@ -67,6 +72,7 @@ export function RequestListPage() {
   const [requests, setRequests] = useState<RequestListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' } | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Request | null>(null)
 
   const filterStatus = searchParams.get('status') ?? ''
   const filterText = searchParams.get('q') ?? ''
@@ -75,8 +81,13 @@ export function RequestListPage() {
 
   const viewAll = currentUser.role === 'approver' || currentUser.role === 'accounting'
 
-  useEffect(() => {
+  function loadRequests() {
     getRequests(currentUser.id, viewAll).then(r => { setRequests(r); setLoading(false) })
+  }
+
+  useEffect(() => {
+    loadRequests()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser])
 
   const counts = {
@@ -110,10 +121,20 @@ export function RequestListPage() {
     setSort(prev => prev?.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' })
   }
 
-  async function handleExport(e: React.MouseEvent, id: string) {
-    e.stopPropagation()
+  async function handleExport(id: string) {
     const req = await getRequestById(id)
     if (req) exportPDF(req)
+  }
+
+  async function handleDeleteClick(id: string) {
+    const req = await getRequestById(id)
+    if (req) setDeleteTarget(req)
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    await deleteRequest(deleteTarget.id, currentUser)
+    loadRequests()
   }
 
   const rejectedBanner = currentUser.role === 'sales' && counts.rejected > 0
@@ -220,13 +241,17 @@ export function RequestListPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: '#FEF2F2', color: '#7F1D1D' }}>
               <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
               <span style={{ fontSize: 14, flex: 1 }}>มี {counts.rejected} คำขอที่ถูกปฏิเสธ — กรุณาแก้ไขและส่งใหม่</span>
-              <Button variant="ghost" size="sm" onClick={() => setSearchParams({ status: 'rejected' })}>ดูคำขอที่ถูกปฏิเสธ</Button>
+              {/* secondary, not ghost — ghost is transparent with a
+                  transparent border, invisible against a tinted banner bg
+                  and unrecognizable as a button. secondary's solid white +
+                  visible border reads as a real, clickable control here. */}
+              <Button variant="secondary" size="sm" onClick={() => setSearchParams({ status: 'rejected' })}>ดูคำขอที่ถูกปฏิเสธ</Button>
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: '#FFFBEB', color: '#92400E' }}>
               <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
               <span style={{ fontSize: 14, flex: 1 }}>มี {counts.pending} คำขอที่รอคุณพิจารณา</span>
-              <Button variant="ghost" size="sm" onClick={() => setSearchParams({ status: 'pending' })}>ดูคำขอที่รอพิจารณา</Button>
+              <Button variant="secondary" size="sm" onClick={() => setSearchParams({ status: 'pending' })}>ดูคำขอที่รอพิจารณา</Button>
             </div>
           )
         )}
@@ -278,19 +303,38 @@ export function RequestListPage() {
                   </td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', color: '#586782', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatDate(req.updatedAt)}</td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>
-                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-                      {currentUser.role === 'sales' && (req.status === 'draft' || req.status === 'rejected' || req.status === 'pending') && (
-                        <Link to={`/requests/${req.id}/edit`} onClick={e => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={req.status === 'rejected' ? <RefreshIcon size={15} /> : <EditIcon size={15} />}
-                            aria-label="แก้ไขคำขอ"
-                          />
-                        </Link>
-                      )}
-                      <Button variant="ghost" size="sm" icon={<PrinterIcon size={15} />} aria-label="พิมพ์ / Export PDF" onClick={e => handleExport(e, req.id)} />
-                    </div>
+                    {(() => {
+                      const isSales = currentUser.role === 'sales'
+                      const isRejected = req.status === 'rejected'
+                      const canEdit = isSales && (req.status === 'draft' || req.status === 'pending' || isRejected)
+                      // Edit/Print consolidated into one kebab menu (Exzy_WorkX
+                      // 1317:2856 "option_dropdown" + 934:7551's dropdown list)
+                      // — order is deliberate: the common, safe actions first,
+                      // the one destructive action last and visually split off.
+                      const kebabItems: KebabMenuItem[] = []
+                      if (canEdit && !isRejected) {
+                        kebabItems.push({ label: 'แก้ไข', icon: <EditIcon size={15} />, onClick: () => navigate(`/requests/${req.id}/edit`) })
+                      }
+                      kebabItems.push({ label: 'พิมพ์ / Export PDF', icon: <PrinterIcon size={15} />, onClick: () => handleExport(req.id) })
+                      if (isSales && req.status === 'draft') {
+                        kebabItems.push({ label: 'ลบคำขอ', icon: <TrashIcon size={15} />, onClick: () => handleDeleteClick(req.id), danger: true })
+                      }
+
+                      return (
+                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', alignItems: 'center' }}>
+                          {/* Rejected requests get their own visible, labeled
+                              button right in the row — not tucked in the
+                              kebab — so "this one needs you to go fix it" is
+                              unmissable, distinct from routine edit/print. */}
+                          {canEdit && isRejected && (
+                            <Link to={`/requests/${req.id}/edit`}>
+                              <Button variant="secondary" size="sm" icon={<RefreshIcon size={14} />}>ส่งใหม่</Button>
+                            </Link>
+                          )}
+                          <KebabMenu items={kebabItems} ariaLabel={`ตัวเลือกสำหรับ ${req.requestNo}`} />
+                        </div>
+                      )
+                    })()}
                   </td>
                 </tr>
               ))}
@@ -298,6 +342,13 @@ export function RequestListPage() {
           </table>
         )}
       </div>
+
+      <DeleteRequestModal
+        open={deleteTarget !== null}
+        request={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onDelete={confirmDelete}
+      />
     </div>
   )
 }

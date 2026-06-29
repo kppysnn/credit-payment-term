@@ -518,6 +518,10 @@ export function saveMockRequest(req: Request): void {
   }
 }
 
+export function deleteMockRequest(id: string): void {
+  _requests = _requests.filter(r => r.id !== id)
+}
+
 let _counter = MOCK_REQUESTS.length + 1
 
 export function generateRequestNo(): string {
