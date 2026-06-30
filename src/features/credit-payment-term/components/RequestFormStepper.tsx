@@ -625,12 +625,18 @@ export function RequestFormStepper({
       const isCustom = customCtRows[i] || (days !== '' && !CREDIT_TERM_PRESETS.includes(numVal(days)))
       if (isCustom) {
         return (
+          // Sized so the Input+button pair adds up to the same ~92px the
+          // dropdown below uses (66 + 4 gap + 22 button) — at the old 56px
+          // the box had so little room (padding alone is 24px of it) that
+          // the "วัน" placeholder was effectively invisible, and switching
+          // modes visibly shifted the control since the two widths didn't
+          // match.
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <Input type="number" min="0" value={days}
               onChange={e => updateInstRow(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : '')}
               placeholder="วัน" error={errors[errKey]}
               className={compact ? 'no-spinner' : undefined}
-              style={compact ? { width: 56, textAlign: 'right', height: 32 } : { textAlign: 'right', flex: 1 }} />
+              style={compact ? { width: 66, textAlign: 'right', height: 32 } : { textAlign: 'right', flex: 1 }} />
             <button type="button"
               onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', CREDIT_TERM_PRESETS[0]) }}
               style={{ width: compact ? 22 : 28, height: compact ? 32 : 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
