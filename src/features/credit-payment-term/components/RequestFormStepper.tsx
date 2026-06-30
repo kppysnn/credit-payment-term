@@ -608,7 +608,7 @@ export function RequestFormStepper({
             else { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', v === '' ? '' : Number(v)) }
           }}
           error={errors[errKey]}
-          style={compact ? { width: '100%', height: 32, fontSize: 12, paddingLeft: 8, paddingRight: 26 } : selectStyle}
+          style={compact ? { width: 92, height: 32, fontSize: 12, paddingLeft: 8, paddingRight: 22 } : selectStyle}
         >
           <option value="">— วัน —</option>
           {CREDIT_TERM_PRESETS.map(d => <option key={d} value={d}>{d} วัน</option>)}
@@ -863,6 +863,20 @@ export function RequestFormStepper({
                 </button>
               </div>
             </div>
+            {amountInputMode && (() => {
+              const slice = insts.slice(0, instCount)
+              const filledAmt = slice.reduce((s, r) => r.installmentPercent !== '' ? s + calcInstallmentAmount(sellingTotal, numVal(r.installmentPercent)) : s, 0)
+              const emptyCount = slice.filter(r => r.installmentPercent === '').length
+              const remaining = sellingTotal - filledAmt
+              return (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', marginBottom: 8, background: '#F2F6F8', borderRadius: 4, fontSize: 12, color: '#586782' }}>
+                  <span>ยอดคงเหลือที่ยังไม่ได้กรอก</span>
+                  <span style={{ fontWeight: 700, color: remaining < 0 ? '#F3554F' : '#004081' }}>
+                    {formatCurrency(remaining)}{emptyCount > 0 ? ` จาก ${emptyCount} งวด` : ''}
+                  </span>
+                </div>
+              )
+            })()}
             <div style={{ border: '1px solid #D0D6DF', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ maxHeight: 320, overflowY: 'auto' }}>
                 {/* table-layout: fixed — without it, the body's widest cell
@@ -882,12 +896,16 @@ export function RequestFormStepper({
                           amount right (universal currency convention). With
                           the credit-term column on, the 3 original columns
                           shrink to make room rather than keeping equal thirds. */}
-                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8', width: !ctUniform ? '16%' : '33.34%' }}>งวดที่</th>
-                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: !ctUniform ? '22%' : '33.33%' }}>สัดส่วน (%)</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8', width: !ctUniform ? '14%' : '33.34%' }}>งวดที่</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: !ctUniform ? '20%' : '33.33%' }}>สัดส่วน (%)</th>
                       {!ctUniform && (
-                        <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: '32%' }}>เครดิตเทอม (วัน)</th>
+                        // Just wide enough for the dropdown itself (92px,
+                        // see creditTermRowControl) — it was previously
+                        // stretched to fill a much wider column than "30
+                        // วัน" ever needs, the rest now goes to มูลค่า below.
+                        <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: '22%' }}>เครดิตเทอม (วัน)</th>
                       )}
-                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'right', background: '#F2F6F8', width: !ctUniform ? '30%' : '33.33%' }}>มูลค่า (THB)</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'right', background: '#F2F6F8', width: !ctUniform ? '44%' : '33.33%' }}>มูลค่า (THB)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -935,10 +953,22 @@ export function RequestFormStepper({
                                       const digits = e.target.value.replace(/\D/g, '')
                                       setAmountRow(i, digits ? Number(digits) : 0)
                                     }}
-                                    placeholder="0"
+                                    placeholder={row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 ? formatThousands(Math.round(suggestedAmt)) : '0'}
                                     style={{ width: 110, textAlign: 'right', height: 32 }} />
+                                  {/* A real click target, not auto-fill-on-focus —
+                                      mutating state synchronously inside onFocus
+                                      raced against the browser's own native input
+                                      handling on the very next keystroke (confirmed
+                                      with real keyboard typing, not just .fill()),
+                                      corrupting the value. This sidesteps that
+                                      entirely: nothing touches state until the
+                                      user deliberately clicks. */}
                                   {row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 && (
-                                    <div style={{ marginTop: 3, fontSize: 10, color: '#586782', fontWeight: 400 }}>แนะนำ {formatThousands(Math.round(suggestedAmt))}</div>
+                                    <button type="button"
+                                      onClick={() => setAmountRow(i, Math.round(suggestedAmt))}
+                                      style={{ display: 'block', marginTop: 3, marginLeft: 'auto', background: 'none', border: 'none', padding: 0, fontSize: 10, color: '#4AADAD', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
+                                      ใช้ {formatThousands(Math.round(suggestedAmt))}
+                                    </button>
                                   )}
                                 </div>
                               ) : (
