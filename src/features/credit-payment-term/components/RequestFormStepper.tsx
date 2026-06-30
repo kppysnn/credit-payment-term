@@ -953,6 +953,12 @@ export function RequestFormStepper({
                                       const digits = e.target.value.replace(/\D/g, '')
                                       setAmountRow(i, digits ? Number(digits) : 0)
                                     }}
+                                    // Muted on purpose (overrides the app-wide
+                                    // placeholder color via .suggested-placeholder
+                                    // in globals.css) — at the normal placeholder
+                                    // contrast this read as an already-typed
+                                    // value instead of a suggestion.
+                                    className={row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 ? 'suggested-placeholder' : undefined}
                                     placeholder={row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 ? formatThousands(Math.round(suggestedAmt)) : '0'}
                                     style={{ width: 110, textAlign: 'right', height: 32 }} />
                                   {/* A real click target, not auto-fill-on-focus —
@@ -962,12 +968,15 @@ export function RequestFormStepper({
                                       with real keyboard typing, not just .fill()),
                                       corrupting the value. This sidesteps that
                                       entirely: nothing touches state until the
-                                      user deliberately clicks. */}
+                                      user deliberately clicks. The number itself
+                                      already shows as the placeholder above, so
+                                      this label only needs to explain the action,
+                                      not repeat the figure. */}
                                   {row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 && (
                                     <button type="button"
                                       onClick={() => setAmountRow(i, Math.round(suggestedAmt))}
                                       style={{ display: 'block', marginTop: 3, marginLeft: 'auto', background: 'none', border: 'none', padding: 0, fontSize: 10, color: '#4AADAD', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
-                                      ใช้ {formatThousands(Math.round(suggestedAmt))}
+                                      คลิกเพื่อกรอกอัตโนมัติ
                                     </button>
                                   )}
                                 </div>

@@ -95,6 +95,15 @@ body {
   opacity: 1;
 }
 
+/* Scoped override for the one case where a placeholder isn't a hint like
+   "0" or "พิมพ์จำนวนวัน" but an actual suggested number (กรอกอิสระ) — at
+   --color-secondary it read as already-filled-in data, not a suggestion.
+   Muted here on purpose, opposite of the rule above. */
+.suggested-placeholder::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
