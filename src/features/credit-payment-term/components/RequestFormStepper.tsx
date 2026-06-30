@@ -624,37 +624,47 @@ export function RequestFormStepper({
       const errKey = `${prefix}Inst${i}.ct`
       const isCustom = customCtRows[i] || (days !== '' && !CREDIT_TERM_PRESETS.includes(numVal(days)))
       if (isCustom) {
+        // Compact (table) mode: the X button is positioned absolutely,
+        // outside the input's own box, instead of sitting beside it in a
+        // flex row. A flex row's auto-centering point shifts depending on
+        // its TOTAL content width — input plus button together would
+        // center a few px off from where the 92px-wide dropdown centers
+        // alone, even with the input itself at the same 92px. Pinning the
+        // input to exactly the dropdown's width and box position, with the
+        // button purely overlaid after it, is the only way both controls
+        // land in the exact same place when a row switches modes.
+        if (compact) {
+          return (
+            <div style={{ position: 'relative', display: 'inline-block', width: 92 }}>
+              <Input type="number" min="0" value={days}
+                onChange={e => updateInstRow(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : '')}
+                placeholder="วัน" error={errors[errKey]}
+                className="no-spinner"
+                style={{ width: '100%', textAlign: 'right', height: 32 }} />
+              <button type="button"
+                onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', CREDIT_TERM_PRESETS[0]) }}
+                style={{ position: 'absolute', top: 0, left: '100%', marginLeft: 4, width: 22, height: 32, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                aria-label="เลือกจากรายการแทน">
+                <FiX size={13} />
+              </button>
+            </div>
+          )
+        }
         return (
-          // inline-flex, not flex — the actual cause of the "shifts left"
-          // bug. A block-level flex div stretches to fill the table cell
-          // and left-aligns its content by default, which completely
-          // ignores the parent <td>'s textAlign: center (that only ever
-          // applies to inline-level children). inline-flex makes this a
-          // single shrink-to-fit unit, the same way the dropdown Select
-          // already centers correctly — sizing the Input wide enough for
-          // the "วัน" placeholder to render was a real fix too, but on its
-          // own it couldn't have centered this.
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            {/* Same width as the dropdown it replaces (92px) — the input
-                itself is the thing that should read as "the same control,
-                different mode", not a smaller box. The "วัน" suffix stays
-                visible once a number's been typed too, not just as a
-                placeholder before — a bare "10" doesn't say what unit
-                that's in. The X button afterward isn't squeezed to make
-                room; it's extra, on top of the input's own full width. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Input type="number" min="0" value={days}
               onChange={e => updateInstRow(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : '')}
               placeholder="วัน" error={errors[errKey]}
-              className={compact ? 'no-spinner' : undefined}
-              style={compact ? { width: 92, textAlign: 'right', height: 32 } : { textAlign: 'right', flex: 1 }} />
-            <span style={{ color: '#586782', fontSize: compact ? 11 : 13, fontWeight: 400, flexShrink: 0 }}>วัน</span>
+              style={{ textAlign: 'right', flex: 1 }} />
             <button type="button"
               onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', CREDIT_TERM_PRESETS[0]) }}
-              style={{ width: compact ? 22 : 28, height: compact ? 32 : 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
+              style={{ width: 28, height: 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
               onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
               aria-label="เลือกจากรายการแทน">
-              <FiX size={compact ? 13 : 16} />
+              <FiX size={16} />
             </button>
           </div>
         )
