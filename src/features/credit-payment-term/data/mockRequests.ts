@@ -279,9 +279,15 @@ export const MOCK_REQUESTS: Request[] = [
     version: 1,
     createdAt: '2026-06-12T08:30:00.000Z',
     updatedAt: '2026-06-12T08:30:00.000Z',
-    salesEmail: 'sales2@company.com',
-    salesName: 'วิชัย สุขสบาย',
-    salesId: 'u002',
+    // Owner changed to u001 (2026-06-30) -- u001 is the only sales identity
+    // reachable through the DEV role switcher (getMockUser('sales') always
+    // resolves to the first 'sales' entry in MOCK_USERS). With this draft
+    // previously owned by u002, there was no row anywhere in the mock data
+    // that the testable "Sales" user could see with the full Edit+Print+
+    // Delete kebab state -- draft is the only status that shows all three.
+    salesEmail: 'sales@company.com',
+    salesName: 'สมหญิง รักงาน',
+    salesId: 'u001',
     proposalNo: 'PRO-2026-003',
     saleType: 'hardware_software_installation',
     customerInfo: {
@@ -358,8 +364,8 @@ export const MOCK_REQUESTS: Request[] = [
         requestId: 'req003',
         version: 1,
         action: 'created',
-        actorEmail: 'sales2@company.com',
-        actorName: 'วิชัย สุขสบาย',
+        actorEmail: 'sales@company.com',
+        actorName: 'สมหญิง รักงาน',
         fromStatus: '',
         toStatus: 'draft',
         createdAt: '2026-06-12T08:30:00.000Z',

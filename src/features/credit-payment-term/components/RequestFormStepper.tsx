@@ -682,7 +682,12 @@ export function RequestFormStepper({
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ position: 'sticky', top: 0 }}>
-                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8' }}>งวดที่</th>
+                      {/* Explicit width (matches RequestDetailPage's own
+                          installmentTable column for the same data) —
+                          without it, auto-layout handed this column ~200px
+                          of slack for a 1-2 digit value, the same class of
+                          imbalance as the % column fix below. */}
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8', width: 70 }}>งวดที่</th>
                       {/* Centered, not right — matches the read-only Payment
                           Schedule table's "%" column convention (RequestDetailPage),
                           and a fixed, content-hugging width instead of a wide one:
