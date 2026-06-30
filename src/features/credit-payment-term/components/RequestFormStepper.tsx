@@ -807,7 +807,13 @@ export function RequestFormStepper({
             {/* Installment cards */}
             <div>
               <div style={{ fontSize: 12, color: '#586782', fontWeight: 400, marginBottom: 8 }}>รายละเอียดงวด</div>
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${instCount}, minmax(0, 1fr))`, gap: 8 }}>
+              {/* No box, no fill, no divider — boxing each small grid cell
+                  the same way the standalone Card component boxes a whole
+                  section (1px border + hover-lift) read as a mismatched,
+                  bolted-on pattern rather than this app's own. A wider gap
+                  (24px, not 8px) plus the numbered badge and the amount's
+                  own size/weight do the separating instead. */}
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${instCount}, minmax(0, 1fr))`, gap: 24 }}>
                 {insts.slice(0, instCount).map((row, i) => {
                   const hasAnyFilled = insts.slice(0, instCount).some(r => r.installmentPercent !== '')
                   const pct = numVal(row.installmentPercent)
@@ -818,15 +824,12 @@ export function RequestFormStepper({
                   const pctErrRowKey = `${prefix}Inst${i}.pct`
                   return (
                     <div key={i} style={{
-                      // White, not the old #F2F6F8 fill — that was nearly
-                      // indistinguishable from the #F8F9FA block body it
-                      // sits on, so every card read as one undifferentiated
-                      // pale-blue mass. A real border now does the job of
-                      // marking each card as its own unit instead.
-                      background: errors[pctErrRowKey] ? '#FEF2F2' : '#FFFFFF',
-                      border: `1.5px solid ${errors[pctErrRowKey] ? '#F3554F' : '#D0D6DF'}`,
-                      borderRadius: 4,
-                      padding: '12px',
+                      // Error state still gets a tinted background — that's
+                      // a real semantic signal (something's wrong), not the
+                      // decorative framing this was just stripped of.
+                      background: errors[pctErrRowKey] ? '#FEF2F2' : 'transparent',
+                      borderRadius: errors[pctErrRowKey] ? 4 : 0,
+                      padding: errors[pctErrRowKey] ? '10px 12px' : 0,
                       display: 'flex', flexDirection: 'column', gap: 8,
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -868,10 +871,10 @@ export function RequestFormStepper({
                       </FormGroup>
                       {!ctUniform && creditTermRowControl(i, row, false)}
                       {totalAmt > 0 && (
-                        // The figure each card exists to show — sized up
-                        // and set off by its own divider so it reads as
-                        // the card's headline, not just another line of text.
-                        <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 16, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto', paddingTop: 8, borderTop: '1px solid #F2F6F8' }}>
+                        // The figure each card exists to show — sized up so
+                        // it reads as the headline on size/weight alone,
+                        // no divider line needed to set it apart.
+                        <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 16, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto', paddingTop: 8 }}>
                           {formatCurrency(totalAmt)}
                         </div>
                       )}
