@@ -107,6 +107,19 @@ export interface Request extends SectionComments {
   status: RequestStatus
   approvalResult?: ApprovalResult
   history: ApprovalHistoryEntry[]
+
+  // Snapshot of the content fields as they stood immediately before the most
+  // recent resubmission — set once by resubmitRequest (creditTermService.ts),
+  // never touched anywhere else. Lets the approver see which sections sales
+  // actually changed since the rejection, without a full version-history /
+  // diff system. Only content fields are captured (not id/status/history/
+  // timestamps), since those always differ trivially and aren't useful for
+  // an "anything actually different?" comparison.
+  previousSnapshot?: Pick<Request,
+    'customerInfo' | 'quotationItems' |
+    'installmentCount' | 'installments' |
+    'swInstallmentCount' | 'swInstallments'
+  >
 }
 
 export interface RequestListItem {

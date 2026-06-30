@@ -6,6 +6,7 @@ import { exportPDF } from '../services/exportService'
 import type { Request, PaymentInstallment, QuotationItem } from '../types/request'
 import { SALE_TYPE_LABELS } from '../types/request'
 import { CUSTOMER_TYPE_LABELS } from '../types/customer'
+import type { RequestCustomerInfo } from '../types/customer'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { StatusTimeline } from '../../../components/ui/StatusTimeline'
 import { FieldDisplay, FieldGrid } from '../../../components/ui/Card'
@@ -22,6 +23,36 @@ import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
 import { FiSlash, FiCheckCircle, FiXCircle } from 'react-icons/fi'
 import { EditIcon, RefreshIcon, PrinterIcon } from '../../../components/icons/FigmaIcons'
+
+// Strip fields that change on every resubmit *regardless* of what sales
+// actually edited, before comparing against previousSnapshot — otherwise
+// every section reads as "changed" on every resubmission, even an
+// unedited one. Two known sources of false positives, both from
+// EditRequestPage's buildPatch() round-trip (form-flat-fields -> Request):
+// itemId is regenerated for every quotation item every time (irrelevant,
+// internal), and optional string/number fields round-trip through the
+// form's `?? ''` / `?? 0` fallbacks, turning an absent field into an
+// explicit empty one. Comparing only the fields a user could have actually
+// typed into, with the same fallback applied on both sides, fixes both.
+function normalizeItemsForCompare(items: QuotationItem[]) {
+  return items.map(i => ({ type: i.type, name: i.name, sellingPrice: i.sellingPrice, cost: i.cost }))
+}
+// creditTermDays deliberately excluded per-row: the form only exposes ONE
+// shared "Credit Term" field per quotation block (RequestFormStepper.tsx),
+// so buildPatch (EditRequestPage.tsx) always overwrites every row's
+// creditTermDays with that single value on every resubmit -- even an
+// unedited one, for data that happened to have per-row variation already
+// (e.g. mock req004). Comparing it per-row produced a false "changed" on a
+// pure no-op resubmit. The shared value itself is still compared separately
+// via sharedCreditTermDays below, since that's the actual editable field.
+function normalizeInstallmentsForCompare(installments: PaymentInstallment[]) {
+  return installments.map(i => ({ installmentPercent: i.installmentPercent, paymentCondition: i.paymentCondition }))
+}
+function normalizeCustomerInfoForCompare(ci: RequestCustomerInfo) {
+  if (ci.type === 'new') return { type: ci.type, companyName: ci.data.companyName, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
+  if (ci.type === 'existing') return { type: ci.type, customerId: ci.data.customerId, companyName: ci.data.companyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
+  return { type: ci.type, resellerId: ci.data.resellerId, resellerCompanyName: ci.data.resellerCompanyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '', endCustomerCompanyName: ci.data.endCustomerCompanyName }
+}
 
 export function RequestDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -68,6 +99,38 @@ export function RequestDetailPage() {
   const serviceSelling = serviceItems.reduce((sum, item) => sum + item.sellingPrice, 0)
   const hardwareCost = hardwareItems.reduce((sum, item) => sum + item.cost, 0)
   const serviceCost = serviceItems.reduce((sum, item) => sum + item.cost, 0)
+
+  // Per-section "did sales actually change this since the rejection" flags
+  // for the approver re-reviewing a resubmission — see Request.previousSnapshot.
+  // Only ever true right after a resubmit (snapshot is undefined otherwise,
+  // e.g. on a first-time pending request, so every flag is false by default).
+  // Deliberately a coarse "any field in this section differs" check, not a
+  // field-level diff — cheap, and enough to tell the approver where to look.
+  const prev = req.previousSnapshot
+  const customerInfoChanged = !!prev &&
+    JSON.stringify(normalizeCustomerInfoForCompare(req.customerInfo)) !== JSON.stringify(normalizeCustomerInfoForCompare(prev.customerInfo))
+  const hardwareChanged = !!prev && (
+    JSON.stringify(normalizeItemsForCompare(hardwareItems)) !== JSON.stringify(normalizeItemsForCompare(prev.quotationItems.filter(i => i.type === 'hardware'))) ||
+    req.installmentCount !== prev.installmentCount ||
+    (req.installments[0]?.creditTermDays ?? 0) !== (prev.installments[0]?.creditTermDays ?? 0) ||
+    JSON.stringify(normalizeInstallmentsForCompare(req.installments)) !== JSON.stringify(normalizeInstallmentsForCompare(prev.installments))
+  )
+  const swChanged = !!prev && (
+    JSON.stringify(normalizeItemsForCompare(serviceItems)) !== JSON.stringify(normalizeItemsForCompare(prev.quotationItems.filter(i => i.type === 'software' || i.type === 'installation'))) ||
+    req.swInstallmentCount !== prev.swInstallmentCount ||
+    (req.swInstallments?.[0]?.creditTermDays ?? 0) !== (prev.swInstallments?.[0]?.creditTermDays ?? 0) ||
+    JSON.stringify(normalizeInstallmentsForCompare(req.swInstallments ?? [])) !== JSON.stringify(normalizeInstallmentsForCompare(prev.swInstallments ?? []))
+  )
+  const changedBadge = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: '#004081', background: '#D9F0F0', borderRadius: 4, padding: '2px 8px' }}>
+      มีการแก้ไขจากครั้งก่อน
+    </span>
+  )
+  const changedBadgeOnGradient = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: '#FFFFFF', background: 'rgba(255,255,255,0.22)', borderRadius: 4, padding: '2px 8px' }}>
+      มีการแก้ไขจากครั้งก่อน
+    </span>
+  )
   const summaryAmount = (value: number, color = '#586782', size?: number, weight: number = 700) => (
     <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: weight, color, fontSize: size }}>
       {formatCurrency(value)}
@@ -238,10 +301,13 @@ export function RequestDetailPage() {
   // top-rounded only (it caps the block from above) and the body gets a
   // soft tint (#F8F9FA) with bottom rounding, so header+body together form
   // one visually contiguous unit purely through color, no line needed.
-  const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], extra?: React.ReactNode) => (
+  const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], extra?: React.ReactNode, changed?: boolean) => (
     <div>
       <div style={{ background: gradient, borderRadius: '4px 4px 0 0', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>{label}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>{label}</span>
+          {changed && changedBadgeOnGradient}
+        </span>
         <span style={{ fontSize: 13 }}>
           <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.78)' }}>Quotation No. </span>
           <span style={{ fontWeight: 600, color: '#FFFFFF' }}>{quotationNo}</span>
@@ -370,7 +436,7 @@ export function RequestDetailPage() {
             </Section>
 
             {/* Customer Info */}
-            <Section title="ข้อมูลลูกค้า">
+            <Section title="ข้อมูลลูกค้า" actions={customerInfoChanged ? changedBadge : undefined}>
               <FieldGrid cols={3}>
                 <FieldDisplay label="ประเภทลูกค้า" value={CUSTOMER_TYPE_LABELS[req.customerInfo.type]} />
                 {req.customerInfo.type === 'existing' && (
@@ -407,11 +473,11 @@ export function RequestDetailPage() {
 
             {/* Hardware quotation: items + its own payment schedule */}
             {hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments,
-              sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, true, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
+              sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, true, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'), hardwareChanged)}
 
             {/* Software & Installation quotation: items + its own payment schedule */}
             {serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [],
-              sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, true, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'))}
+              sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, true, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'), swChanged)}
 
             {/* Overall total */}
             <Section title="สรุปยอดรวม">

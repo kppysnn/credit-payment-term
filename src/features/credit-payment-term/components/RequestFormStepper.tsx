@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Request } from '../types/request'
 import type { CurrentUser } from '../types/user'
 import type { Customer, CustomerType } from '../types/customer'
@@ -7,6 +7,7 @@ import { type SaleType, type PaymentCondition } from '../types/request'
 import { Section } from '../../../components/ui/Section'
 import { Button } from '../../../components/ui/Button'
 import { Checkbox } from '../../../components/ui/Checkbox'
+import { Modal } from '../../../components/ui/Modal'
 import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
 import { searchCustomers } from '../services/customerService'
@@ -133,6 +134,12 @@ export function RequestFormStepper({
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [confirmed, setConfirmed] = useState(false)
+  // Snapshot of collectData() taken once right after mount (see effect near
+  // collectData below) — only meaningful in resubmit mode, where it lets
+  // handleSubmit detect "sales changed literally nothing since the
+  // rejection" and ask for one extra confirmation before sending.
+  const initialSnapshotRef = useRef<string | null>(null)
+  const [noChangeConfirmOpen, setNoChangeConfirmOpen] = useState(false)
 
   const [existingDropdownOpen, setExistingDropdownOpen] = useState(false)
   const [existingResults, setExistingResults] = useState<Customer[]>([])
@@ -259,6 +266,11 @@ export function RequestFormStepper({
     return { ...formData, hwCreditTermDays, hwInstallmentCount, hwInstallments, swCreditTermDays, swInstallmentCount, swInstallments }
   }
 
+  useEffect(() => {
+    if (isResubmit) initialSnapshotRef.current = JSON.stringify(collectData())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function validate(): boolean {
     const e: Record<string, string> = {}
     if (!proposalNo.trim()) e.proposalNo = 'กรุณาระบุ'
@@ -291,6 +303,15 @@ export function RequestFormStepper({
     finally { setDraftLoading(false) }
   }
 
+  async function doSubmit() {
+    setSubmitLoading(true); setSubmitError('')
+    try {
+      if (isResubmit && onResubmit) await onResubmit(collectData())
+      else await onSubmit(collectData())
+    } catch (err: unknown) { setSubmitError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด') }
+    finally { setSubmitLoading(false) }
+  }
+
   async function handleSubmit() {
     if (!validate()) {
       setSubmitError('กรุณากรอกข้อมูลให้ครบถ้วน — เลื่อนไปยังช่องที่ผิดพลาดให้แล้ว')
@@ -300,12 +321,15 @@ export function RequestFormStepper({
       })
       return
     }
-    setSubmitLoading(true); setSubmitError('')
-    try {
-      if (isResubmit && onResubmit) await onResubmit(collectData())
-      else await onSubmit(collectData())
-    } catch (err: unknown) { setSubmitError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด') }
-    finally { setSubmitLoading(false) }
+    // Resubmitting with literally nothing changed since the rejection is
+    // allowed (the fix may have happened outside the form — a phone call
+    // confirming a price, say) but is unusual enough to deserve one extra
+    // confirmation rather than going straight through silently.
+    if (isResubmit && initialSnapshotRef.current !== null && JSON.stringify(collectData()) === initialSnapshotRef.current) {
+      setNoChangeConfirmOpen(true)
+      return
+    }
+    await doSubmit()
   }
 
   /* ── Shared helpers ── */
@@ -1038,6 +1062,25 @@ export function RequestFormStepper({
       </div>
 
       </div>
+
+      {isResubmit && (
+        <Modal
+          open={noChangeConfirmOpen}
+          onClose={() => setNoChangeConfirmOpen(false)}
+          title="ยืนยันการส่งคำขอ"
+          size="sm"
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setNoChangeConfirmOpen(false)} disabled={submitLoading}>กลับไปแก้ไข</Button>
+              <Button onClick={() => { setNoChangeConfirmOpen(false); doSubmit() }} loading={submitLoading}>ยืนยันส่งคำขอ</Button>
+            </>
+          }
+        >
+          <p style={{ margin: 0, fontSize: 13, color: '#586782', lineHeight: 1.65 }}>
+            คำขอนี้ยังไม่มีการแก้ไขข้อมูลใดๆ จากครั้งก่อนที่ถูกปฏิเสธ ต้องการส่งคำขออนุมัติอีกครั้งโดยไม่แก้ไขข้อมูลใช่หรือไม่?
+          </p>
+        </Modal>
+      )}
     </div>
   )
 }

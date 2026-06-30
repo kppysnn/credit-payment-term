@@ -213,6 +213,18 @@ export async function resubmitRequest(id: string, data: Partial<Request>, actor:
     version: newVersion,
     updatedAt: now,
     history: [...existing.history, entry],
+    // Snapshot of the content as it stood right before this resubmission —
+    // lets the approver see which sections actually changed (see
+    // Request.previousSnapshot). Captured from `existing`, not `updated`,
+    // since this must reflect the pre-edit state.
+    previousSnapshot: {
+      customerInfo: existing.customerInfo,
+      quotationItems: existing.quotationItems,
+      installmentCount: existing.installmentCount,
+      installments: existing.installments,
+      swInstallmentCount: existing.swInstallmentCount,
+      swInstallments: existing.swInstallments,
+    },
   }
   saveMockRequest(updated)
   return updated
