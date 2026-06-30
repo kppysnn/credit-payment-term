@@ -23,7 +23,7 @@ export type SaleType = 'hardware' | 'hardware_software_installation' | 'lump_sum
 export const SALE_TYPE_LABELS: Record<SaleType, string> = {
   hardware: 'Quotation เดียว',
   hardware_software_installation: 'แยกตาม Quotation',
-  lump_sum: 'เหมารวม (Lump Sum)',
+  lump_sum: 'Lump Sum',
 }
 
 export type PaymentCondition =

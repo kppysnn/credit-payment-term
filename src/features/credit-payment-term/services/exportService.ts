@@ -184,7 +184,7 @@ function buildQuotationGroup(no: string, title: string, items: QuotationItem[], 
         </tbody>
         <tfoot>
           <tr>
-            <td>รวม ${title}</td>
+            <td>${title.startsWith('รวม') ? title : `รวม ${title}`}</td>
             <td class="mono" style="text-align:right">${cost.toLocaleString()}</td>
             <td class="mono amount" style="text-align:right">${selling.toLocaleString()}</td>
           </tr>
@@ -204,7 +204,7 @@ function buildQuotationGroup(no: string, title: string, items: QuotationItem[], 
       <tbody>
         ${installments.map(i => `<tr>
           <td>${i.installmentNo}</td>
-          <td style="text-align:center">${i.installmentPercent}%</td>
+          <td style="text-align:center">${i.installmentPercent.toFixed(2)}%</td>
           ${perRowCt ? `<td style="text-align:center">Net ${i.creditTermDays}</td>` : ''}
           <td class="mono" style="text-align:right">${i.installmentAmount.toLocaleString()}</td>
         </tr>`).join('')}

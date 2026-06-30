@@ -258,7 +258,7 @@ export function RequestDetailPage() {
     </div>
   )
 
-  const totalStrip = (label: string, cost: number, selling: number) => labeledBand(`รวม ${label}`, (
+  const totalStrip = (label: string, cost: number, selling: number) => labeledBand(label.startsWith('รวม') ? label : `รวม ${label}`, (
     <span style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
       <span style={{ fontSize: 12, color: '#586782', fontWeight: 400 }}>
         ราคาทุน <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 500, color: '#586782' }}>{formatCurrency(cost)}</span>
@@ -304,7 +304,7 @@ export function RequestDetailPage() {
             {installments.map(inst => (
               <tr key={inst.installmentNo} style={{ borderTop: '1px solid #F2F6F8' }}>
                 <td style={{ padding: '12px 14px' }}>{inst.installmentNo}</td>
-                <td style={{ padding: '12px 14px', color: '#505050', textAlign: 'center' }}>{inst.installmentPercent}%</td>
+                <td style={{ padding: '12px 14px', color: '#505050', textAlign: 'center' }}>{inst.installmentPercent.toFixed(2)}%</td>
                 {perRowCt && <td style={{ padding: '12px 14px', color: '#505050', textAlign: 'center' }}>{formatCreditTerm(inst.creditTermDays)}</td>}
                 <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(inst.installmentAmount, '#004081', undefined, 400)}</td>
               </tr>

@@ -7,6 +7,7 @@ import { type SaleType, type PaymentCondition } from '../types/request'
 import { Section } from '../../../components/ui/Section'
 import { Button } from '../../../components/ui/Button'
 import { Checkbox } from '../../../components/ui/Checkbox'
+import { Toggle } from '../../../components/ui/Toggle'
 import { Modal } from '../../../components/ui/Modal'
 import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
@@ -28,7 +29,7 @@ interface Props {
 const SALE_TYPES = [
   { value: 'hardware', label: 'Quotation เดียว' },
   { value: 'hardware_software_installation', label: 'แยก Quotation' },
-  { value: 'lump_sum', label: 'เหมารวม (Lump Sum)' },
+  { value: 'lump_sum', label: 'Lump Sum' },
 ]
 const CUSTOMER_TYPES: CustomerType[] = ['new', 'existing', 'reseller']
 const CREDIT_TERM_PRESETS = [7, 15, 30, 60, 90, 120]
@@ -74,13 +75,15 @@ function equalSplitPercents(n: number): number[] {
   return percents
 }
 
-// True once a request's saved installments actually carry different credit
-// terms — lets the form re-derive "เครดิตเทอมต่องวด" mode on edit-load instead
-// of needing a separate persisted flag (the per-row value already exists in
-// PaymentInstallment.creditTermDays regardless of mode).
-function hasVaryingCreditTerm(installments?: Array<{ creditTermDays: number }>): boolean {
-  if (!installments || installments.length < 2) return false
-  return new Set(installments.map(i => i.creditTermDays)).size > 1
+// UNIFORM_MODE (true) = one shared Credit Term value applied to every
+// installment. CUSTOM_MODE (false) = each installment carries its own day
+// count. True once a request's saved installments actually carry different
+// credit terms — lets the form re-derive which mode to start in on edit-load
+// instead of needing a separate persisted flag (the per-row value already
+// exists in PaymentInstallment.creditTermDays regardless of mode).
+function isCreditTermUniform(installments?: Array<{ creditTermDays: number }>): boolean {
+  if (!installments || installments.length < 2) return true
+  return new Set(installments.map(i => i.creditTermDays)).size <= 1
 }
 
 function formatThousands(v: unknown): string {
@@ -187,9 +190,10 @@ export function RequestFormStepper({
   // be typed directly, back-calculating installmentPercent instead of the
   // other way around. Off by default (percent stays the editable column).
   const [hwAmountInputMode, setHwAmountInputMode] = useState(false)
-  // "เครดิตเทอมต่องวด" — per-row credit term instead of one shared value.
-  // Re-derived from saved data on edit-load (see hasVaryingCreditTerm).
-  const [hwCreditTermPerInstallment, setHwCreditTermPerInstallment] = useState(hasVaryingCreditTerm(req?.installments))
+  // "ใช้เครดิตเทอมเดียวกันทุกงวด" — UNIFORM_MODE (true, default) vs
+  // CUSTOM_MODE (false, per-row). Re-derived from saved data on edit-load.
+  const [hwCreditTermUniform, setHwCreditTermUniform] = useState(isCreditTermUniform(req?.installments))
+  const [hwCustomCtRows, setHwCustomCtRows] = useState<Record<number, boolean>>({})
 
   // ── SW payment state ──
   const [swCreditTermDays, setSwCreditTermDays] = useState<number | ''>(
@@ -208,7 +212,8 @@ export function RequestFormStepper({
   const [swCountDraft, setSwCountDraft] = useState<number | ''>(req?.swInstallmentCount ?? 1)
   const [swCustomPercentRows, setSwCustomPercentRows] = useState<Record<number, boolean>>({})
   const [swAmountInputMode, setSwAmountInputMode] = useState(false)
-  const [swCreditTermPerInstallment, setSwCreditTermPerInstallment] = useState(hasVaryingCreditTerm(req?.swInstallments))
+  const [swCreditTermUniform, setSwCreditTermUniform] = useState(isCreditTermUniform(req?.swInstallments))
+  const [swCustomCtRows, setSwCustomCtRows] = useState<Record<number, boolean>>({})
 
   const fd = formData
   const saleType = String(fd.saleType || '') as SaleType
@@ -285,8 +290,8 @@ export function RequestFormStepper({
   function collectData(): Record<string, unknown> {
     return {
       ...formData,
-      hwCreditTermDays, hwInstallmentCount, hwInstallments, hwCreditTermPerInstallment,
-      swCreditTermDays, swInstallmentCount, swInstallments, swCreditTermPerInstallment,
+      hwCreditTermDays, hwInstallmentCount, hwInstallments, hwCreditTermUniform,
+      swCreditTermDays, swInstallmentCount, swInstallments, swCreditTermUniform,
     }
   }
 
@@ -307,23 +312,29 @@ export function RequestFormStepper({
       if (!rs?.endCustomerCompanyName?.trim()) e['res.endCustomerCompanyName'] = 'กรุณาระบุลูกค้าปลายทาง'
     }
     if (isLumpSum ? totalSelling <= 0 : hwSelling <= 0) e.hwSell = isLumpSum ? 'กรุณาระบุราคาขายอย่างน้อย 1 รายการ' : 'กรุณาระบุราคาขาย Hardware'
-    if (hwCreditTermPerInstallment) {
+    if (!hwCreditTermUniform) {
       hwInstallments.slice(0, hwInstallmentCount).forEach((row, i) => { if (row.creditTermDays === '' || numVal(row.creditTermDays) < 0) e[`hwInst${i}.ct`] = 'ระบุวัน' })
     } else if (hwCreditTermDays === '' || numVal(hwCreditTermDays) < 0) {
       e.hwCreditTermDays = 'กรุณาระบุ Credit Term'
     }
     const hwTotalPct = calcTotalInstallmentPercent(hwInstallments.slice(0, hwInstallmentCount))
-    hwInstallments.slice(0, hwInstallmentCount).forEach((row, i) => { if (!row.installmentPercent) e[`hwInst${i}.pct`] = 'ระบุ%' })
+    hwInstallments.slice(0, hwInstallmentCount).forEach((row, i) => {
+      if (!row.installmentPercent) e[`hwInst${i}.pct`] = 'ระบุ%'
+      else if (numVal(row.installmentPercent) < 0) e[`hwInst${i}.pct`] = 'ยอดเกิน 100%'
+    })
     if (Math.abs(hwTotalPct - 100) >= 0.01 && hwInstallmentCount > 0) e.hwTotalPct = `รวม ${hwTotalPct.toFixed(1)}% ≠ 100%`
 
     if (!isLumpSum) {
-      if (swCreditTermPerInstallment) {
+      if (!swCreditTermUniform) {
         swInstallments.slice(0, swInstallmentCount).forEach((row, i) => { if (row.creditTermDays === '' || numVal(row.creditTermDays) < 0) e[`swInst${i}.ct`] = 'ระบุวัน' })
       } else if (swCreditTermDays === '' || numVal(swCreditTermDays) < 0) {
         e.swCreditTermDays = 'กรุณาระบุ Credit Term'
       }
       const swTotalPct = calcTotalInstallmentPercent(swInstallments.slice(0, swInstallmentCount))
-      swInstallments.slice(0, swInstallmentCount).forEach((row, i) => { if (!row.installmentPercent) e[`swInst${i}.pct`] = 'ระบุ%' })
+      swInstallments.slice(0, swInstallmentCount).forEach((row, i) => {
+        if (!row.installmentPercent) e[`swInst${i}.pct`] = 'ระบุ%'
+        else if (numVal(row.installmentPercent) < 0) e[`swInst${i}.pct`] = 'ยอดเกิน 100%'
+      })
       if (Math.abs(swTotalPct - 100) >= 0.01 && swInstallmentCount > 0) e.swTotalPct = `รวม ${swTotalPct.toFixed(1)}% ≠ 100%`
     }
 
@@ -470,8 +481,10 @@ export function RequestFormStepper({
     const setCustomPctRows = prefix === 'hw' ? setHwCustomPercentRows : setSwCustomPercentRows
     const amountInputMode    = prefix === 'hw' ? hwAmountInputMode    : swAmountInputMode
     const setAmountInputMode = prefix === 'hw' ? setHwAmountInputMode : setSwAmountInputMode
-    const ctPerInstallment    = prefix === 'hw' ? hwCreditTermPerInstallment    : swCreditTermPerInstallment
-    const setCtPerInstallment = prefix === 'hw' ? setHwCreditTermPerInstallment : setSwCreditTermPerInstallment
+    const ctUniform    = prefix === 'hw' ? hwCreditTermUniform    : swCreditTermUniform
+    const setCtUniform = prefix === 'hw' ? setHwCreditTermUniform : setSwCreditTermUniform
+    const customCtRows    = prefix === 'hw' ? hwCustomCtRows    : swCustomCtRows
+    const setCustomCtRows = prefix === 'hw' ? setHwCustomCtRows : setSwCustomCtRows
 
     const creditTermIsCustom = isCustomCT || (ctDays !== '' && !CREDIT_TERM_PRESETS.includes(numVal(ctDays)))
     const countIsCustom = isCustomCount || !INSTALLMENT_COUNT_PRESETS.includes(instCount)
@@ -508,14 +521,36 @@ export function RequestFormStepper({
       setInsts(updated)
     }
 
-    // Turning per-installment credit term on seeds every row from the single
-    // value that was in use so far, instead of starting every row at 0/blank.
-    function toggleCreditTermPerInstallment(next: boolean) {
-      if (next) {
+    // Switching from UNIFORM_MODE to CUSTOM_MODE seeds every row from the
+    // single value that was in use so far, instead of starting every row at
+    // 0/blank.
+    function toggleCreditTermMode(uniform: boolean) {
+      if (!uniform) {
         const seed = ctDays === '' ? 0 : numVal(ctDays)
         setInsts(insts.map(row => ({ ...row, creditTermDays: row.creditTermDays === '' ? seed : row.creditTermDays })))
       }
-      setCtPerInstallment(next)
+      setCtUniform(uniform)
+    }
+
+    // กรอกอิสระ (free-amount entry): editing any row except the last one
+    // recomputes the last row as whatever's left over, so the rows always
+    // sum to exactly 100% by construction — no manual recalculation needed.
+    // The last row itself is read-only display, not editable.
+    function setAmountRow(i: number, amount: number) {
+      const lastIdx = instCount - 1
+      const updated = [...insts]
+      const ensureRow = (idx: number) => { if (!updated[idx]) updated[idx] = { installmentPercent: '', creditTermDays: 0, paymentCondition: 'on_delivery' } }
+      ensureRow(i)
+      const pct = sellingTotal > 0 ? (amount / sellingTotal) * 100 : 0
+      updated[i] = { ...updated[i], installmentPercent: amount === 0 ? '' : pct }
+      if (i !== lastIdx && lastIdx >= 0) {
+        ensureRow(lastIdx)
+        const sumOthers = updated.slice(0, lastIdx).reduce((s, r) => s + calcInstallmentAmount(sellingTotal, numVal(r.installmentPercent)), 0)
+        const remainder = sellingTotal - sumOthers
+        const remainderPct = sellingTotal > 0 ? (remainder / sellingTotal) * 100 : 0
+        updated[lastIdx] = { ...updated[lastIdx], installmentPercent: remainderPct }
+      }
+      setInsts(updated)
     }
 
     // Curated split presets exist for 1-4; beyond that there's no hand-picked
@@ -527,13 +562,57 @@ export function RequestFormStepper({
       applyPreset(curated ?? equalSplitPercents(clamped))
     }
 
+    // Per-row credit term control (CUSTOM_MODE only) — same dropdown +
+    // "ระบุเอง" pattern as the single block-level Credit Term field above,
+    // just sized down for the table's tighter column when compact.
+    function creditTermRowControl(i: number, row: InstRow, compact: boolean) {
+      const days = row.creditTermDays
+      const errKey = `${prefix}Inst${i}.ct`
+      const isCustom = customCtRows[i] || (days !== '' && !CREDIT_TERM_PRESETS.includes(numVal(days)))
+      if (isCustom) {
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Input type="number" min="0" value={days}
+              onChange={e => updateInstRow(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : '')}
+              placeholder="วัน" error={errors[errKey]}
+              className={compact ? 'no-spinner' : undefined}
+              style={compact ? { width: 56, textAlign: 'right', height: 32 } : { textAlign: 'right', flex: 1 }} />
+            <button type="button"
+              onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', CREDIT_TERM_PRESETS[0]) }}
+              style={{ width: compact ? 22 : 28, height: compact ? 32 : 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              aria-label="เลือกจากรายการแทน">
+              <FiX size={compact ? 13 : 16} />
+            </button>
+          </div>
+        )
+      }
+      return (
+        <Select
+          value={days === '' ? '' : (CREDIT_TERM_PRESETS.includes(numVal(days)) ? String(days) : 'custom')}
+          onChange={e => {
+            const v = e.target.value
+            if (v === 'custom') { setCustomCtRows(prev => ({ ...prev, [i]: true })); updateInstRow(i, 'creditTermDays', '') }
+            else { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', v === '' ? '' : Number(v)) }
+          }}
+          error={errors[errKey]}
+          style={compact ? { width: '100%', height: 32, fontSize: 12, paddingLeft: 8, paddingRight: 26 } : selectStyle}
+        >
+          <option value="">— วัน —</option>
+          {CREDIT_TERM_PRESETS.map(d => <option key={d} value={d}>{d} วัน</option>)}
+          <option value="custom">ระบุเอง</option>
+        </Select>
+      )
+    }
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 16px 20px' }}>
 
         {/* Credit Term + Count */}
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <FormGroup label="Credit Term" required={!ctPerInstallment} error={errors[ctErrKey]} style={{ width: 200 }}>
-            {ctPerInstallment ? (
+          <FormGroup label="Credit Term" required={ctUniform} error={errors[ctErrKey]} style={{ width: 200 }}>
+            {!ctUniform ? (
               <div style={{ height: 38, display: 'flex', alignItems: 'center', fontSize: 13, color: '#929EB4', fontStyle: 'italic' }}>
                 กำหนดแยกต่องวด
               </div>
@@ -633,10 +712,10 @@ export function RequestFormStepper({
           </FormGroup>
         </div>
 
-        <Checkbox
-          checked={ctPerInstallment}
-          onChange={toggleCreditTermPerInstallment}
-          label={<span style={{ fontSize: 13, color: '#586782', fontWeight: 400 }}>เครดิตเทอมต่องวด — กำหนดจำนวนวันแยกแต่ละงวด</span>}
+        <Toggle
+          checked={ctUniform}
+          onChange={toggleCreditTermMode}
+          label={<span style={{ fontSize: 13, color: '#586782', fontWeight: 400 }}>ใช้เครดิตเทอมเดียวกันทุกงวด</span>}
         />
 
         {!manyInstallments ? (
@@ -728,16 +807,7 @@ export function RequestFormStepper({
                           </>
                         )}
                       </FormGroup>
-                      {ctPerInstallment && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Input type="number" min="0" value={row.creditTermDays}
-                            onChange={e => updateInstRow(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : '')}
-                            placeholder="วัน"
-                            error={errors[`${prefix}Inst${i}.ct`]}
-                            style={{ textAlign: 'right', flex: 1 }} />
-                          <span style={{ color: '#586782', fontSize: 12, fontWeight: 400 }}>วัน</span>
-                        </div>
-                      )}
+                      {!ctUniform && creditTermRowControl(i, row, false)}
                       {totalAmt > 0 && (
                         <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 13, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto' }}>
                           {formatCurrency(totalAmt)}
@@ -781,6 +851,11 @@ export function RequestFormStepper({
                 </button>
               </div>
             </div>
+            {amountInputMode && (
+              <div style={{ fontSize: 11, color: '#929EB4', marginTop: -4 }}>
+                งวดสุดท้ายคำนวณยอดคงเหลือให้อัตโนมัติ ไม่ต้องคิดเองให้ครบ 100%
+              </div>
+            )}
             <div style={{ border: '1px solid #D0D6DF', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ maxHeight: 320, overflowY: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -795,25 +870,27 @@ export function RequestFormStepper({
                           amount right (universal currency convention). With
                           the credit-term column on, the 3 original columns
                           shrink to make room rather than keeping equal thirds. */}
-                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8', width: ctPerInstallment ? '20%' : '33.34%' }}>งวดที่</th>
-                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: ctPerInstallment ? '24%' : '33.33%' }}>สัดส่วน (%)</th>
-                      {ctPerInstallment && (
-                        <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: '26%' }}>เครดิตเทอม (วัน)</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8', width: !ctUniform ? '16%' : '33.34%' }}>งวดที่</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: !ctUniform ? '22%' : '33.33%' }}>สัดส่วน (%)</th>
+                      {!ctUniform && (
+                        <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', width: '32%' }}>เครดิตเทอม (วัน)</th>
                       )}
-                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'right', background: '#F2F6F8', width: ctPerInstallment ? '30%' : '33.33%' }}>มูลค่า (THB)</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'right', background: '#F2F6F8', width: !ctUniform ? '30%' : '33.33%' }}>มูลค่า (THB)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {insts.slice(0, instCount).map((row, i) => {
                       const pct = numVal(row.installmentPercent)
-                      const totalAmt = sellingTotal > 0 && pct > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
+                      const totalAmt = sellingTotal > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
                       const pctErrRowKey = `${prefix}Inst${i}.pct`
+                      const isLastRow = i === instCount - 1
+                      const isOverallocated = pct < 0
                       return (
                         <tr key={i} style={{ borderTop: '1px solid #F2F6F8', background: errors[pctErrRowKey] ? '#FEF2F2' : undefined }}>
                           <td style={{ padding: '6px 14px', color: '#586782' }}>{i + 1}</td>
                           <td style={{ padding: '6px 14px', textAlign: 'center' }}>
                             {amountInputMode ? (
-                              <span style={{ fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{pct ? `${pct.toFixed(2)}%` : '—'}</span>
+                              <span style={{ fontVariantNumeric: 'tabular-nums', color: isOverallocated ? '#F3554F' : '#586782' }}>{pct ? `${pct.toFixed(2)}%` : '—'}</span>
                             ) : (
                               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                 {/* no-spinner: the native up/down arrows ate into
@@ -829,27 +906,30 @@ export function RequestFormStepper({
                               </div>
                             )}
                           </td>
-                          {ctPerInstallment && (
+                          {!ctUniform && (
                             <td style={{ padding: '6px 14px', textAlign: 'center' }}>
-                              <Input type="number" min="0" value={row.creditTermDays}
-                                onChange={e => updateInstRow(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : '')}
-                                placeholder="0"
-                                error={errors[`${prefix}Inst${i}.ct`]}
-                                className="no-spinner"
-                                style={{ width: 64, textAlign: 'right', height: 32 }} />
+                              {creditTermRowControl(i, row, true)}
                             </td>
                           )}
-                          <td style={{ padding: '6px 14px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#004081', fontWeight: 500 }}>
+                          <td style={{ padding: '6px 14px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: isOverallocated ? '#F3554F' : '#004081', fontWeight: 500 }}>
                             {amountInputMode ? (
-                              <Input type="text" inputMode="numeric" value={formatThousands(totalAmt || '')}
-                                onChange={e => {
-                                  const digits = e.target.value.replace(/\D/g, '')
-                                  const amt = digits ? Number(digits) : 0
-                                  const newPct = sellingTotal > 0 ? (amt / sellingTotal) * 100 : 0
-                                  updateInstRow(i, 'installmentPercent', amt === 0 ? '' : newPct)
-                                }}
-                                placeholder="0"
-                                style={{ width: 110, textAlign: 'right', height: 32 }} />
+                              isLastRow ? (
+                                // Auto-balanced remainder — read-only by design
+                                // (see setAmountRow), styled like the disabled
+                                // fields spec (bg #F2F6F8) so it reads as "not
+                                // yours to type into" at a glance.
+                                <div style={{ width: 110, marginLeft: 'auto', height: 32, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 10px', borderRadius: 6, background: '#F2F6F8', color: isOverallocated ? '#F3554F' : '#586782' }}>
+                                  {formatThousands(Math.round(totalAmt))}
+                                </div>
+                              ) : (
+                                <Input type="text" inputMode="numeric" value={formatThousands(totalAmt || '')}
+                                  onChange={e => {
+                                    const digits = e.target.value.replace(/\D/g, '')
+                                    setAmountRow(i, digits ? Number(digits) : 0)
+                                  }}
+                                  placeholder="0"
+                                  style={{ width: 110, textAlign: 'right', height: 32 }} />
+                              )
                             ) : (
                               totalAmt > 0 ? formatCurrency(totalAmt) : '—'
                             )}
@@ -888,7 +968,7 @@ export function RequestFormStepper({
           marginTop: 6, padding: '12px 14px', borderRadius: 4,
           background: '#F2F6F8',
         }}>
-          <span style={{ fontSize: 13, color: '#586782', fontWeight: 400 }}>รวม {summaryLabel}</span>
+          <span style={{ fontSize: 13, color: '#586782', fontWeight: 400 }}>{summaryLabel.startsWith('รวม') ? summaryLabel : `รวม ${summaryLabel}`}</span>
           <span style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, color: '#586782', fontWeight: 400 }}>
               ราคาทุน <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 500, color: '#586782' }}>{formatCurrency(costTotal)}</span>

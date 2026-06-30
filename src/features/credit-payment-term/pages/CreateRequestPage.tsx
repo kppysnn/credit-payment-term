@@ -50,7 +50,10 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
   // HW installments (lump sum reuses this slot as the single combined plan,
   // sized on totalSelling instead of hwSp — see RequestFormStepper's isLumpSum branch)
   const hwCreditTermDays = numVal(data.hwCreditTermDays)
-  const hwCreditTermPerInstallment = Boolean(data.hwCreditTermPerInstallment)
+  // UNIFORM_MODE (default, true unless the form explicitly turned it off) —
+  // applies the one shared value to every row; CUSTOM_MODE reads each row's
+  // own creditTermDays instead.
+  const hwCreditTermUniform = data.hwCreditTermUniform !== false
   const hwInstallmentCount = numVal(data.hwInstallmentCount) || 1
   const rawHwInst = (data.hwInstallments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
   const hwBase = isLumpSum ? totalSelling : (hwSp > 0 ? hwSp : totalSelling)
@@ -58,7 +61,7 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
     installmentNo: i + 1,
     installmentPercent: numVal(row.installmentPercent),
     installmentAmount: calcInstallmentAmount(hwBase, numVal(row.installmentPercent)),
-    creditTermDays: hwCreditTermPerInstallment ? numVal(row.creditTermDays) : hwCreditTermDays,
+    creditTermDays: hwCreditTermUniform ? hwCreditTermDays : numVal(row.creditTermDays),
     paymentCondition: (row.paymentCondition || 'on_delivery') as PaymentInstallment['paymentCondition'],
   }))
 
@@ -69,7 +72,7 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
   let swInstallmentCount: number | undefined
   if (!isLumpSum && (swSp > 0 || instSp > 0)) {
     const swCreditTermDays = numVal(data.swCreditTermDays)
-    const swCreditTermPerInstallment = Boolean(data.swCreditTermPerInstallment)
+    const swCreditTermUniform = data.swCreditTermUniform !== false
     const swCount = numVal(data.swInstallmentCount) || 1
     swInstallmentCount = swCount
     const rawSwInst = (data.swInstallments as Array<{ installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: string }>) ?? []
@@ -78,7 +81,7 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
       installmentNo: i + 1,
       installmentPercent: numVal(row.installmentPercent),
       installmentAmount: calcInstallmentAmount(swTotal, numVal(row.installmentPercent)),
-      creditTermDays: swCreditTermPerInstallment ? numVal(row.creditTermDays) : swCreditTermDays,
+      creditTermDays: swCreditTermUniform ? swCreditTermDays : numVal(row.creditTermDays),
       paymentCondition: (row.paymentCondition || 'on_delivery') as PaymentInstallment['paymentCondition'],
     }))
   }
