@@ -340,7 +340,7 @@ export function RequestFormStepper({
     const hwTotalPct = calcTotalInstallmentPercent(hwInstallments.slice(0, hwInstallmentCount))
     hwInstallments.slice(0, hwInstallmentCount).forEach((row, i) => {
       if (!row.installmentPercent) e[`hwInst${i}.pct`] = 'ระบุ%'
-      else if (numVal(row.installmentPercent) < 0) e[`hwInst${i}.pct`] = 'ยอดเกิน 100%'
+      else if (numVal(row.installmentPercent) < 0) e[`hwInst${i}.pct`] = 'ติดลบ'
     })
     if (Math.abs(hwTotalPct - 100) >= 0.01 && hwInstallmentCount > 0) e.hwTotalPct = `รวม ${hwTotalPct.toFixed(1)}% ≠ 100%`
 
@@ -353,7 +353,7 @@ export function RequestFormStepper({
       const swTotalPct = calcTotalInstallmentPercent(swInstallments.slice(0, swInstallmentCount))
       swInstallments.slice(0, swInstallmentCount).forEach((row, i) => {
         if (!row.installmentPercent) e[`swInst${i}.pct`] = 'ระบุ%'
-        else if (numVal(row.installmentPercent) < 0) e[`swInst${i}.pct`] = 'ยอดเกิน 100%'
+        else if (numVal(row.installmentPercent) < 0) e[`swInst${i}.pct`] = 'ติดลบ'
       })
       if (Math.abs(swTotalPct - 100) >= 0.01 && swInstallmentCount > 0) e.swTotalPct = `รวม ${swTotalPct.toFixed(1)}% ≠ 100%`
     }
@@ -584,6 +584,26 @@ export function RequestFormStepper({
         const isLast = j === emptyIdxs.length - 1
         updated[idx] = { ...updated[idx], installmentPercent: isLast ? Math.round((remainingPct - base * (emptyIdxs.length - 1)) * 100) / 100 : base }
       })
+      setInsts(updated)
+    }
+
+    // Covers the case distributeRemaining can't: nothing left blank to
+    // absorb a shortfall into, or the rows are over 100% (a negative
+    // "remaining" can't be spread across blanks in any sensible way).
+    // Recomputes the LAST row as exactly whatever the other rows don't
+    // already account for, so the table always has one explicit, single-
+    // click way back to balanced — never automatic, only on click. If the
+    // other rows alone already exceed 100%, this can land the last row
+    // below 0%; that's surfaced via the same red styling as any other
+    // invalid row rather than silently clamped, since clamping would hide
+    // that the OTHER rows are what actually need fixing.
+    function adjustLastRowToBalance() {
+      if (instCount < 1) return
+      const lastIdx = instCount - 1
+      const othersPct = insts.slice(0, lastIdx).reduce((s, r) => s + numVal(r.installmentPercent), 0)
+      const updated = [...insts]
+      if (!updated[lastIdx]) updated[lastIdx] = { installmentPercent: '', creditTermDays: '', paymentCondition: 'on_delivery' }
+      updated[lastIdx] = { ...updated[lastIdx], installmentPercent: Math.round((100 - othersPct) * 100) / 100 }
       setInsts(updated)
     }
 
@@ -886,33 +906,52 @@ export function RequestFormStepper({
                 </button>
               </div>
             </div>
-            {/* Per-row "click to apply" doesn't scale once instCount runs
-                into the hundreds — this combines the same live remaining-
-                amount readout with ONE bulk action that fills every row
-                still blank at once (see distributeRemaining), instead of
-                requiring a click per row. */}
-            {amountInputMode && (() => {
+            {/* Balance-status banner — applies in both percent-direct and
+                กรอกอิสระ modes, not just the latter: editing ANY row in a
+                100+ row table can knock the total off 100%, and the only
+                other feedback (the progress bar) sits below a table that
+                can be hundreds of rows tall. Three states:
+                  1. balanced (within the same 0.01-point tolerance the
+                     submit validation uses) — hidden, nothing to flag.
+                  2. short of 100% with rows still blank — bulk-fill those
+                     blanks evenly (distributeRemaining).
+                  3. short OR over 100% with no blank row to absorb it (every
+                     row already has some value, possibly from #2 followed by
+                     a manual edit) — recompute just the last row so the
+                     total lands on exactly 100% (adjustLastRowToBalance).
+                Both actions are explicit, single-click, and never run on
+                their own — editing a row never silently changes another. */}
+            {manyInstallments && (() => {
               const slice = insts.slice(0, instCount)
-              const filledAmt = slice.reduce((s, r) => r.installmentPercent !== '' ? s + calcInstallmentAmount(sellingTotal, numVal(r.installmentPercent)) : s, 0)
               const emptyCount = slice.filter(r => r.installmentPercent === '').length
-              const remaining = sellingTotal - filledAmt
-              // Once nothing's left to fill, this banner's job is done — the
-              // "รวมสัดส่วนงวด" progress bar below is the authority on
-              // completion from here. Without this guard, sub-cent rounding
-              // noise (well within the 0.01-point submit tolerance) could
-              // linger here as a confusing non-zero "remaining" figure.
-              if (emptyCount === 0) return null
+              const totalPctNow = calcTotalInstallmentPercent(slice)
+              const diffPct = Math.round((100 - totalPctNow) * 100) / 100
+              if (Math.abs(diffPct) < 0.01) return null
+              const diffAmt = sellingTotal > 0 ? calcInstallmentAmount(sellingTotal, Math.abs(diffPct)) : 0
+              const isOver = diffPct < 0
+              const canDistribute = !isOver && emptyCount > 0
               return (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '10px 12px', marginBottom: 8, background: '#F2F6F8', borderRadius: 4, flexWrap: 'wrap' }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+                  padding: '10px 12px', marginBottom: 8, borderRadius: 4, flexWrap: 'wrap',
+                  background: isOver ? '#FEF2F2' : '#F2F6F8',
+                  border: isOver ? '1px solid #FCA5A5' : 'none',
+                }}>
                   <div>
-                    <div style={{ fontSize: 11, color: '#586782' }}>ยอดคงเหลือที่ยังไม่ได้กรอก</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: remaining < 0 ? '#F3554F' : '#004081' }}>
-                      {formatCurrency(remaining)}{emptyCount > 0 ? ` · ${emptyCount} งวด` : ''}
+                    <div style={{ fontSize: 11, color: isOver ? '#7F1D1D' : '#586782' }}>
+                      {isOver ? 'ยอดรวมเกิน 100%' : 'ยอดคงเหลือที่ยังไม่ได้กรอก'}
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isOver ? '#F3554F' : '#004081' }}>
+                      {formatCurrency(diffAmt)}{emptyCount > 0 ? ` · ${emptyCount} งวด` : ''}
                     </div>
                   </div>
-                  {emptyCount > 0 && remaining > 0 && (
+                  {canDistribute ? (
                     <button type="button" onClick={distributeRemaining} style={splitBtn(false)}>
                       แบ่งให้งวดที่เหลือเท่ากัน
+                    </button>
+                  ) : (
+                    <button type="button" onClick={adjustLastRowToBalance} style={splitBtn(false)}>
+                      ปรับงวดสุดท้ายให้ยอดตรง 100%
                     </button>
                   )}
                 </div>
@@ -960,12 +999,18 @@ export function RequestFormStepper({
                         const pct = numVal(row.installmentPercent)
                         const totalAmt = sellingTotal > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
                         const pctErrRowKey = `${prefix}Inst${i}.pct`
+                        // Live, not just on submit-attempt — adjustLastRowToBalance
+                        // can legitimately push a row negative (see its own
+                        // comment), and that needs to be obvious the moment it
+                        // happens, not just after a failed submit.
+                        const isNegative = pct < 0
+                        const negativeError = isNegative ? 'ติดลบ' : undefined
                         return (
-                          <tr key={i} style={{ borderTop: '1px solid #F2F6F8', background: errors[pctErrRowKey] ? '#FEF2F2' : undefined }}>
+                          <tr key={i} style={{ borderTop: '1px solid #F2F6F8', background: (errors[pctErrRowKey] || isNegative) ? '#FEF2F2' : undefined }}>
                             <td style={{ padding: '6px 14px', color: '#586782' }}>{i + 1}</td>
                             <td style={{ padding: '6px 14px', textAlign: 'center' }}>
                               {amountInputMode ? (
-                                <span style={{ fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{pct ? `${pct.toFixed(2)}%` : '—'}</span>
+                                <span style={{ fontVariantNumeric: 'tabular-nums', color: isNegative ? '#F3554F' : '#586782' }}>{pct ? `${pct.toFixed(2)}%` : '—'}</span>
                               ) : (
                                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                   {/* no-spinner: the native up/down arrows ate into
@@ -974,7 +1019,7 @@ export function RequestFormStepper({
                                   <Input type="number" min="0" max="100" value={row.installmentPercent}
                                     onChange={e => updateInstRow(i, 'installmentPercent', e.target.value !== '' ? Number(e.target.value) : '')}
                                     placeholder="0"
-                                    error={errors[pctErrRowKey]}
+                                    error={errors[pctErrRowKey] || negativeError}
                                     className="no-spinner"
                                     style={{ width: 64, textAlign: 'right', height: 32 }} />
                                   <span style={{ color: '#586782', fontSize: 12 }}>%</span>
@@ -986,7 +1031,7 @@ export function RequestFormStepper({
                                 {creditTermRowControl(i, row, true)}
                               </td>
                             )}
-                            <td style={{ padding: '6px 14px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#004081', fontWeight: 500 }}>
+                            <td style={{ padding: '6px 14px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: isNegative ? '#F3554F' : '#004081', fontWeight: 500 }}>
                               {amountInputMode ? (
                                 <Input type="text" inputMode="numeric" value={formatThousands(totalAmt || '')}
                                   onChange={e => {
@@ -1003,9 +1048,10 @@ export function RequestFormStepper({
                                   // which is what actually scales to many rows).
                                   className={row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 ? 'suggested-placeholder' : undefined}
                                   placeholder={row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 ? formatThousands(Math.round(suggestedAmt)) : '0'}
+                                  error={negativeError}
                                   style={{ width: 110, textAlign: 'right', height: 32 }} />
                               ) : (
-                                totalAmt > 0 ? formatCurrency(totalAmt) : '—'
+                                totalAmt !== 0 ? formatCurrency(totalAmt) : '—'
                               )}
                             </td>
                           </tr>
