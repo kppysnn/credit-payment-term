@@ -591,12 +591,12 @@ export function RequestFormStepper({
     // absorb a shortfall into, or the rows are over 100% (a negative
     // "remaining" can't be spread across blanks in any sensible way).
     // Recomputes the LAST row as exactly whatever the other rows don't
-    // already account for, so the table always has one explicit, single-
-    // click way back to balanced — never automatic, only on click. If the
-    // other rows alone already exceed 100%, this can land the last row
-    // below 0%; that's surfaced via the same red styling as any other
-    // invalid row rather than silently clamped, since clamping would hide
-    // that the OTHER rows are what actually need fixing.
+    // already account for, so the table has one explicit, single-click way
+    // back to balanced — never automatic, only on click. The banner only
+    // renders the button that calls this when the result is guaranteed
+    // non-negative (see canAdjustLastRow above); offering a "fix" that
+    // actually just moves the same error onto a different row isn't a fix,
+    // so that case shows guidance text instead of this button.
     function adjustLastRowToBalance() {
       if (instCount < 1) return
       const lastIdx = instCount - 1
@@ -910,17 +910,24 @@ export function RequestFormStepper({
                 กรอกอิสระ modes, not just the latter: editing ANY row in a
                 100+ row table can knock the total off 100%, and the only
                 other feedback (the progress bar) sits below a table that
-                can be hundreds of rows tall. Three states:
+                can be hundreds of rows tall. Four states:
                   1. balanced (within the same 0.01-point tolerance the
                      submit validation uses) — hidden, nothing to flag.
                   2. short of 100% with rows still blank — bulk-fill those
                      blanks evenly (distributeRemaining).
-                  3. short OR over 100% with no blank row to absorb it (every
-                     row already has some value, possibly from #2 followed by
-                     a manual edit) — recompute just the last row so the
-                     total lands on exactly 100% (adjustLastRowToBalance).
-                Both actions are explicit, single-click, and never run on
-                their own — editing a row never silently changes another. */}
+                  3. short, or over by less than the last row alone covers —
+                     recompute just the last row so the total lands on
+                     exactly 100% (adjustLastRowToBalance). Always a valid,
+                     non-negative result by construction (see below).
+                  4. over by MORE than the last row can absorb — no button:
+                     "fixing" this by forcing the last row negative isn't
+                     actually a fix, it just relocates the same error
+                     somewhere else and calls it solved. Spells out the
+                     exact amount to remove instead, since the system can't
+                     know which row(s) the user meant to type something
+                     smaller into.
+                Every action here is explicit, single-click, and never runs
+                on its own — editing a row never silently changes another. */}
             {manyInstallments && (() => {
               const slice = insts.slice(0, instCount)
               const emptyCount = slice.filter(r => r.installmentPercent === '').length
@@ -930,6 +937,16 @@ export function RequestFormStepper({
               const diffAmt = sellingTotal > 0 ? calcInstallmentAmount(sellingTotal, Math.abs(diffPct)) : 0
               const isOver = diffPct < 0
               const canDistribute = !isOver && emptyCount > 0
+              // Mirrors adjustLastRowToBalance's own math so the banner can
+              // tell upfront whether that action would actually land on a
+              // valid (non-negative) result, instead of finding out after
+              // the click. Under-allocation always resolves non-negative
+              // here by construction (the last row can only grow to cover
+              // a shortfall); only "over by more than the last row holds"
+              // fails this check.
+              const lastIdx = instCount - 1
+              const othersPct = slice.slice(0, lastIdx).reduce((s, r) => s + numVal(r.installmentPercent), 0)
+              const canAdjustLastRow = !canDistribute && Math.round((100 - othersPct) * 100) / 100 >= 0
               return (
                 <div style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
@@ -944,12 +961,18 @@ export function RequestFormStepper({
                     <div style={{ fontSize: 15, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isOver ? '#F3554F' : '#004081' }}>
                       {formatCurrency(diffAmt)}{emptyCount > 0 ? ` · ${emptyCount} งวด` : ''}
                     </div>
+                    {isOver && !canAdjustLastRow && (
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#7F1D1D', maxWidth: 360 }}>
+                        เกินกว่าที่จะปรับงวดสุดท้ายให้พอดีได้ในคลิกเดียว — กรุณาลดยอดในงวดใดงวดหนึ่ง (หรือหลายงวดรวมกัน) ลงทั้งหมด {formatCurrency(diffAmt)} เพื่อให้ครบ 100% พอดี
+                      </div>
+                    )}
                   </div>
-                  {canDistribute ? (
+                  {canDistribute && (
                     <button type="button" onClick={distributeRemaining} style={splitBtn(false)}>
                       แบ่งให้งวดที่เหลือเท่ากัน
                     </button>
-                  ) : (
+                  )}
+                  {canAdjustLastRow && (
                     <button type="button" onClick={adjustLastRowToBalance} style={splitBtn(false)}>
                       ปรับงวดสุดท้ายให้ยอดตรง 100%
                     </button>
