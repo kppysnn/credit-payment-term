@@ -290,74 +290,117 @@ export function QuotationInformationStep({ data, onChange, onNext, onBack }: Pro
         <div>
           {sectionHeader('งวดชำระ')}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#001122', whiteSpace: 'nowrap' }}>จำนวนงวด</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {[1, 2, 3, 4].map(n => (
-                <button key={n} onClick={() => onChange({ installmentCount: n })} style={{
-                  width: 38, height: 38, borderRadius: 6, border: `2px solid ${installmentCount === n ? '#004081' : '#D0D6DF'}`,
-                  background: installmentCount === n ? '#004081' : '#fff',
-                  color: installmentCount === n ? '#fff' : '#586782',
-                  fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'all 0.15s',
-                }}>{n}</button>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#586782', marginBottom: 2, whiteSpace: 'nowrap' }}>จำนวนงวด</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {([
+                { n: 1, hint: '100%' },
+                { n: 2, hint: '30/70' },
+                { n: 3, hint: '30/30/40' },
+                { n: 4, hint: '25×4' },
+              ] as const).map(({ n, hint }) => (
+                <div key={n} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <button onClick={() => onChange({ installmentCount: n })} style={{
+                    width: 42, height: 42, borderRadius: 6,
+                    border: `2px solid ${installmentCount === n ? '#004081' : '#D0D6DF'}`,
+                    background: installmentCount === n ? '#004081' : '#fff',
+                    color: installmentCount === n ? '#fff' : '#586782',
+                    fontWeight: 700, fontSize: 15, cursor: 'pointer', transition: 'all 0.15s',
+                  }}>{n}</button>
+                  <span style={{ fontSize: 10, color: '#929EB4', fontWeight: 600, whiteSpace: 'nowrap' }}>{hint}</span>
+                </div>
               ))}
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {installments.slice(0, installmentCount).map((row, i) => {
-              const amount = totalSelling > 0 && numVal(row.installmentPercent) > 0
-                ? calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)) : 0
-              return (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '28px 80px 1fr 1fr auto', gap: '0 10px', alignItems: 'center', padding: '10px 14px', background: '#F2F6F8', border: `1px solid ${(errors[`inst${i}.pct`] || errors[`inst${i}.cond`]) ? '#F3554F' : '#D0D6DF'}`, borderRadius: 6 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                  <FormGroup error={errors[`inst${i}.pct`]}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Input type="number" min="1" max="100" value={row.installmentPercent}
-                        onChange={e => updateInst(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
-                        style={{ textAlign: 'right', width: 56 }} error={errors[`inst${i}.pct`]} />
-                      <span style={{ color: '#586782', fontSize: 13, fontWeight: 600 }}>%</span>
-                    </div>
-                  </FormGroup>
-                  <FormGroup>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Input type="number" min="0" value={row.creditTermDays}
-                          onChange={e => updateInst(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : 0)}
-                          placeholder="วัน" style={{ width: 80, textAlign: 'right' }} />
-                        <span style={{ color: '#586782', fontSize: 12, whiteSpace: 'nowrap' }}>วัน</span>
-                        {numVal(row.creditTermDays) > 0 && (
-                          <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 600 }}>{formatCreditTerm(numVal(row.creditTermDays))}</span>
+          <div style={{ border: '1px solid #D0D6DF', borderRadius: 6, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #D0D6DF' }}>
+                  {TH('#', { width: 40, textAlign: 'center' as const })}
+                  {TH('% งวด', { width: 90 })}
+                  {TH('Credit Term', { width: 150 })}
+                  {TH('เงื่อนไขการชำระ')}
+                  {TH('จำนวนเงิน', { textAlign: 'right' as const, width: 130 })}
+                </tr>
+              </thead>
+              <tbody>
+                {installments.slice(0, installmentCount).map((row, i) => {
+                  const amount = totalSelling > 0 && numVal(row.installmentPercent) > 0
+                    ? calcInstallmentAmount(totalSelling, numVal(row.installmentPercent)) : 0
+                  const hasRowError = !!(errors[`inst${i}.pct`] || errors[`inst${i}.cond`])
+                  return (
+                    <tr key={i} style={{ borderBottom: '1px solid #F2F6F8', background: hasRowError ? 'rgba(243,85,79,0.03)' : undefined }}>
+                      <td style={{ padding: '8px 10px', verticalAlign: 'middle', textAlign: 'center' as const }}>
+                        <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, margin: '0 auto' }}>{i + 1}</div>
+                      </td>
+                      <td style={{ padding: '8px 10px', verticalAlign: 'top' }}>
+                        <FormGroup error={errors[`inst${i}.pct`]}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Input type="number" min="1" max="100" value={row.installmentPercent}
+                              onChange={e => updateInst(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
+                              error={errors[`inst${i}.pct`]}
+                              style={{ textAlign: 'right', width: 56 }} />
+                            <span style={{ color: '#586782', fontSize: 13, fontWeight: 600 }}>%</span>
+                          </div>
+                        </FormGroup>
+                      </td>
+                      <td style={{ padding: '8px 10px', verticalAlign: 'top' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Input type="number" min="0" value={row.creditTermDays}
+                              onChange={e => updateInst(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : 0)}
+                              placeholder="วัน" style={{ width: 72, textAlign: 'right' }} />
+                            <span style={{ color: '#586782', fontSize: 12, whiteSpace: 'nowrap' }}>วัน</span>
+                          </div>
+                          {numVal(row.creditTermDays) > 0 && (
+                            <span style={{ fontSize: 11, color: '#66C5C5', fontWeight: 600 }}>{formatCreditTerm(numVal(row.creditTermDays))}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 10px', verticalAlign: 'top' }}>
+                        <FormGroup error={errors[`inst${i}.cond`]}>
+                          <Select value={row.paymentCondition} onChange={e => updateInst(i, 'paymentCondition', e.target.value)} error={errors[`inst${i}.cond`]}>
+                            <option value="">— เงื่อนไข —</option>
+                            {(Object.entries(PAYMENT_CONDITION_LABELS) as [PaymentCondition, string][]).map(([k, v]) => (
+                              <option key={k} value={k}>{v}</option>
+                            ))}
+                          </Select>
+                        </FormGroup>
+                      </td>
+                      <td style={{ padding: '8px 10px', verticalAlign: 'middle', textAlign: 'right' as const }}>
+                        {amount > 0 && (
+                          <span style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#004081', whiteSpace: 'nowrap' }}>
+                            {formatCurrency(amount)}
+                          </span>
                         )}
-                      </div>
-                    </div>
-                  </FormGroup>
-                  <FormGroup error={errors[`inst${i}.cond`]}>
-                    <Select value={row.paymentCondition} onChange={e => updateInst(i, 'paymentCondition', e.target.value)} error={errors[`inst${i}.cond`]}>
-                      <option value="">— เงื่อนไข —</option>
-                      {(Object.entries(PAYMENT_CONDITION_LABELS) as [PaymentCondition, string][]).map(([k, v]) => (
-                        <option key={k} value={k}>{v}</option>
-                      ))}
-                    </Select>
-                  </FormGroup>
-                  {amount > 0 && (
-                    <div style={{ fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#004081', whiteSpace: 'nowrap', paddingLeft: 4 }}>
-                      {formatCurrency(amount)}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+              <tfoot>
+                <tr style={{ background: '#F2F6F8', borderTop: '2px solid #D0D6DF' }}>
+                  <td colSpan={2} style={{ padding: '10px 12px', fontSize: 13 }}>
+                    <span style={{ color: '#586782' }}>รวม: </span>
+                    <span style={{ fontWeight: 700, color: pctOk ? '#82C566' : '#F3554F' }}>{totalPct.toFixed(0)}%</span>
+                    {pctOk && <span style={{ color: '#82C566' }}> ✓</span>}
+                    {!pctOk && totalPct > 0 && <span style={{ color: '#F3554F' }}> ⚠</span>}
+                  </td>
+                  <td style={{ padding: '10px 12px', fontSize: 13 }}>
+                    <span style={{ color: '#586782' }}>Max: </span>
+                    <span style={{ fontWeight: 700 }}>{formatCreditTerm(maxCreditTerm)}</span>
+                  </td>
+                  <td />
+                  <td style={{ padding: '10px 12px', textAlign: 'right' as const, fontFamily: 'JetBrains Mono, Noto Sans Thai, monospace', fontSize: 13, fontWeight: 700, color: '#001122' }}>
+                    {totalSelling > 0 ? formatCurrency(totalSelling) : '—'}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
-          {/* Summary bar */}
-          <div style={{ display: 'flex', gap: 20, padding: '10px 14px', background: pctOk && installmentCount > 0 ? 'rgba(102,197,197,0.08)' : 'rgba(243,85,79,0.06)', border: `1px solid ${pctOk && installmentCount > 0 ? '#66C5C5' : '#F3554F'}`, borderRadius: 6, marginTop: 10, fontSize: 13 }}>
-            <span>รวม: <strong style={{ color: pctOk ? '#66C5C5' : '#F3554F' }}>{totalPct.toFixed(0)}%</strong>{pctOk ? ' ✓' : ' ⚠'}</span>
-            <span style={{ color: '#929EB4' }}>·</span>
-            <span>Max Credit Term: <strong>{formatCreditTerm(maxCreditTerm)}</strong></span>
-            {totalSelling > 0 && <><span style={{ color: '#929EB4' }}>·</span><span>Total: <strong>{formatCurrency(totalSelling)}</strong></span></>}
-          </div>
-          {errors.totalPct && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 5 }}>{errors.totalPct}</div>}
+          {errors.totalPct && <div style={{ fontSize: 12, color: '#F3554F', marginTop: 6 }}>{errors.totalPct}</div>}
         </div>
 
       </div>
