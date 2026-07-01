@@ -795,83 +795,90 @@ export function RequestFormStepper({
               </div>
             </div>
 
-            {/* Installment cards */}
+            {/* Installment table */}
             <div>
               <div style={{ fontSize: 12, color: '#586782', fontWeight: 400, marginBottom: 8 }}>รายละเอียดงวด</div>
-              {/* No box, no fill, no divider — boxing each small grid cell
-                  the same way the standalone Card component boxes a whole
-                  section (1px border + hover-lift) read as a mismatched,
-                  bolted-on pattern rather than this app's own. A wider gap
-                  (24px, not 8px) plus the numbered badge and the amount's
-                  own size/weight do the separating instead. */}
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${instCount}, minmax(0, 1fr))`, gap: 24 }}>
-                {insts.slice(0, instCount).map((row, i) => {
-                  const hasAnyFilled = insts.slice(0, instCount).some(r => r.installmentPercent !== '')
-                  const pct = numVal(row.installmentPercent)
-                  const pctIsCustom = customPctRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
-                  const pctSelectValue = row.installmentPercent === '' ? (customPctRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
-                  const suggestedPct = Math.max(0, Math.min(100, 100 - (totalPct - pct)))
-                  const totalAmt = sellingTotal > 0 && pct > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
-                  const pctErrRowKey = `${prefix}Inst${i}.pct`
-                  return (
-                    <div key={i} style={{
-                      // Error state still gets a tinted background — that's
-                      // a real semantic signal (something's wrong), not the
-                      // decorative framing this was just stripped of.
-                      background: errors[pctErrRowKey] ? '#FEF2F2' : 'transparent',
-                      borderRadius: errors[pctErrRowKey] ? 4 : 0,
-                      padding: errors[pctErrRowKey] ? '10px 12px' : 0,
-                      display: 'flex', flexDirection: 'column', gap: 8,
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                        <span style={{ fontSize: 11, color: '#586782', fontWeight: 400 }}>งวดที่ {i + 1}</span>
-                      </div>
-                      <FormGroup error={errors[pctErrRowKey]}>
-                        {pctIsCustom ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                              <Input type="number" min="1" max="100" value={row.installmentPercent}
-                                onChange={e => updateInstRow(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
-                                placeholder="0"
-                                style={{ textAlign: 'right', flex: 1 }} error={errors[pctErrRowKey]} />
-                              <span style={{ color: '#586782', fontSize: 12, fontWeight: 400 }}>%</span>
-                            </div>
-                            {row.installmentPercent === '' && hasAnyFilled && suggestedPct > 0 && (
-                              <div style={{ fontSize: 10, color: '#586782', fontWeight: 400 }}>แนะนำ {suggestedPct}%</div>
-                            )}
-                          </div>
-                        ) : (
-                          <>
-                            <Select value={pctSelectValue}
-                              onChange={e => {
-                                const isCustom = e.target.value === 'custom'
-                                setCustomPctRows(prev => ({ ...prev, [i]: isCustom }))
-                                updateInstRow(i, 'installmentPercent', isCustom || e.target.value === '' ? '' : Number(e.target.value))
-                              }}
-                              error={errors[pctErrRowKey]} style={selectStyle}>
-                              <option value="">— เลือก % —</option>
-                              {INSTALLMENT_PERCENT_PRESETS.map(p => <option key={p} value={p}>{p}%</option>)}
-                              <option value="custom">ระบุเอง</option>
-                            </Select>
-                            {row.installmentPercent === '' && hasAnyFilled && suggestedPct > 0 && (
-                              <div style={{ marginTop: 3, fontSize: 10, color: '#586782', fontWeight: 400 }}>แนะนำ {suggestedPct}%</div>
-                            )}
-                          </>
-                        )}
-                      </FormGroup>
-                      {!ctUniform && creditTermRowControl(i, row, false)}
-                      {totalAmt > 0 && (
-                        // The figure each card exists to show — sized up so
-                        // it reads as the headline on size/weight alone,
-                        // no divider line needed to set it apart.
-                        <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 16, fontWeight: 700, color: '#004081', textAlign: 'right', marginTop: 'auto', paddingTop: 8 }}>
-                          {formatCurrency(totalAmt)}
-                        </div>
+              <div style={{ border: '1px solid #D0D6DF', borderRadius: 4, overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8', borderBottom: '2px solid #D0D6DF', width: !ctUniform ? '14%' : '20%' }}>งวดที่</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', borderBottom: '2px solid #D0D6DF', width: !ctUniform ? '28%' : '40%' }}>สัดส่วน (%)</th>
+                      {!ctUniform && (
+                        <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'center', background: '#F2F6F8', borderBottom: '2px solid #D0D6DF', width: '22%' }}>เครดิตเทอม (วัน)</th>
                       )}
-                    </div>
-                  )
-                })}
+                      <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'right', background: '#F2F6F8', borderBottom: '2px solid #D0D6DF', width: !ctUniform ? '36%' : '40%' }}>มูลค่า (THB)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {insts.slice(0, instCount).map((row, i) => {
+                      const hasAnyFilled = insts.slice(0, instCount).some(r => r.installmentPercent !== '')
+                      const pct = numVal(row.installmentPercent)
+                      const pctIsCustom = customPctRows[i] || (row.installmentPercent !== '' && !INSTALLMENT_PERCENT_PRESETS.includes(pct))
+                      const pctSelectValue = row.installmentPercent === '' ? (customPctRows[i] ? 'custom' : '') : (INSTALLMENT_PERCENT_PRESETS.includes(pct) ? String(pct) : 'custom')
+                      const suggestedPct = Math.max(0, Math.min(100, 100 - (totalPct - pct)))
+                      const totalAmt = sellingTotal > 0 && pct > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
+                      const pctErrRowKey = `${prefix}Inst${i}.pct`
+                      const rowBg = errors[pctErrRowKey] ? '#FEF2F2' : (i % 2 === 1 ? '#FAFBFC' : undefined)
+                      return (
+                        <tr key={i} style={{ borderTop: i > 0 ? '1px solid #F2F6F8' : undefined, background: rowBg }}>
+                          <td style={{ padding: '8px 14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#004081', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+                              <span style={{ fontSize: 11, color: '#586782', fontWeight: 400 }}>งวดที่ {i + 1}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '8px 14px', textAlign: 'center' }}>
+                            <FormGroup error={errors[pctErrRowKey]}>
+                              {pctIsCustom ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                                    <Input type="number" min="1" max="100" value={row.installmentPercent}
+                                      onChange={e => updateInstRow(i, 'installmentPercent', e.target.value ? Number(e.target.value) : '')}
+                                      placeholder="0"
+                                      error={errors[pctErrRowKey]}
+                                      className="no-spinner"
+                                      style={{ textAlign: 'right', width: 64, height: 32 }} />
+                                    <span style={{ color: '#586782', fontSize: 12, fontWeight: 400 }}>%</span>
+                                  </div>
+                                  {row.installmentPercent === '' && hasAnyFilled && suggestedPct > 0 && (
+                                    <div style={{ fontSize: 10, color: '#586782', fontWeight: 400 }}>แนะนำ {suggestedPct}%</div>
+                                  )}
+                                </div>
+                              ) : (
+                                <>
+                                  <Select value={pctSelectValue}
+                                    onChange={e => {
+                                      const isCustom = e.target.value === 'custom'
+                                      setCustomPctRows(prev => ({ ...prev, [i]: isCustom }))
+                                      updateInstRow(i, 'installmentPercent', isCustom || e.target.value === '' ? '' : Number(e.target.value))
+                                    }}
+                                    error={errors[pctErrRowKey]}
+                                    style={{ ...selectStyle, height: 32, fontSize: 12 }}>
+                                    <option value="">— เลือก % —</option>
+                                    {INSTALLMENT_PERCENT_PRESETS.map(p => <option key={p} value={p}>{p}%</option>)}
+                                    <option value="custom">ระบุเอง</option>
+                                  </Select>
+                                  {row.installmentPercent === '' && hasAnyFilled && suggestedPct > 0 && (
+                                    <div style={{ marginTop: 3, fontSize: 10, color: '#586782', fontWeight: 400 }}>แนะนำ {suggestedPct}%</div>
+                                  )}
+                                </>
+                              )}
+                            </FormGroup>
+                          </td>
+                          {!ctUniform && (
+                            <td style={{ padding: '8px 14px', textAlign: 'center' }}>
+                              {creditTermRowControl(i, row, true)}
+                            </td>
+                          )}
+                          <td style={{ padding: '8px 14px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#004081', fontWeight: 500 }}>
+                            {totalAmt > 0 ? formatCurrency(totalAmt) : '—'}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </>
