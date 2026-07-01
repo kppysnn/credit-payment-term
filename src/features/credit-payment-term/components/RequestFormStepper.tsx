@@ -664,7 +664,7 @@ export function RequestFormStepper({
 
         {/* Credit Term + Count */}
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <FormGroup label="Credit Term" required={ctUniform} error={errors[ctErrKey]} style={{ width: 200 }} hint={ctUniform ? 'จำนวนวันที่ลูกค้าชำระหลังรับสินค้า/บริการ' : undefined}>
+          <FormGroup label="Credit Term" required={ctUniform} error={errors[ctErrKey]} style={{ width: 200 }}>
             {!ctUniform ? (
               <div style={{ height: 38, display: 'flex', alignItems: 'center', fontSize: 13, color: '#929EB4', fontStyle: 'italic' }}>
                 กำหนดแยกต่องวด
