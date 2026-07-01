@@ -120,25 +120,6 @@ function segBtn(active: boolean): React.CSSProperties {
   }
 }
 
-// Matches the W+ Library "Button" component (909:1125), Primary/Secondary
-// states at size S, exactly: solid navy (not the app's usual teal->navy
-// gradient) at 8px radius — deliberately different from the rest of this
-// form's controls per that direct reference.
-function splitBtn(active: boolean): React.CSSProperties {
-  return {
-    height: 32,
-    padding: '0 16px',
-    borderRadius: 8,
-    fontSize: 14,
-    fontWeight: 400,
-    fontFamily: 'inherit',
-    cursor: 'pointer',
-    border: active ? 'none' : '1px solid #D0D6DF',
-    background: active ? '#004081' : '#FFFFFF',
-    color: active ? '#FFFFFF' : '#586782',
-    transition: 'background 0.15s, color 0.15s, border-color 0.15s',
-  }
-}
 
 // Matches the W+ Library "RadioCheckbox" component (909:1495) exactly: the ring
 // stays neutral gray in every state — only the inner dot appears, navy, when
@@ -571,41 +552,6 @@ export function RequestFormStepper({
     // one action. Same last-row-absorbs-the-rounding-remainder technique as
     // equalSplitPercents, just scoped to the empty rows' share of 100%
     // instead of the whole 100%.
-    function distributeRemaining() {
-      const slice = insts.slice(0, instCount)
-      const emptyIdxs = slice.reduce<number[]>((acc, r, idx) => { if (r.installmentPercent === '') acc.push(idx); return acc }, [])
-      if (emptyIdxs.length === 0 || sellingTotal <= 0) return
-      const filledPct = slice.reduce((s, r) => r.installmentPercent !== '' ? s + numVal(r.installmentPercent) : s, 0)
-      const remainingPct = 100 - filledPct
-      if (remainingPct <= 0) return
-      const base = Math.floor((remainingPct / emptyIdxs.length) * 100) / 100
-      const updated = [...insts]
-      emptyIdxs.forEach((idx, j) => {
-        const isLast = j === emptyIdxs.length - 1
-        updated[idx] = { ...updated[idx], installmentPercent: isLast ? Math.round((remainingPct - base * (emptyIdxs.length - 1)) * 100) / 100 : base }
-      })
-      setInsts(updated)
-    }
-
-    // Covers the case distributeRemaining can't: nothing left blank to
-    // absorb a shortfall into, or the rows are over 100% (a negative
-    // "remaining" can't be spread across blanks in any sensible way).
-    // Recomputes the LAST row as exactly whatever the other rows don't
-    // already account for, so the table has one explicit, single-click way
-    // back to balanced — never automatic, only on click. The banner only
-    // renders the button that calls this when the result is guaranteed
-    // non-negative (see canAdjustLastRow above); offering a "fix" that
-    // actually just moves the same error onto a different row isn't a fix,
-    // so that case shows guidance text instead of this button.
-    function adjustLastRowToBalance() {
-      if (instCount < 1) return
-      const lastIdx = instCount - 1
-      const othersPct = insts.slice(0, lastIdx).reduce((s, r) => s + numVal(r.installmentPercent), 0)
-      const updated = [...insts]
-      if (!updated[lastIdx]) updated[lastIdx] = { installmentPercent: '', creditTermDays: '', paymentCondition: 'on_delivery' }
-      updated[lastIdx] = { ...updated[lastIdx], installmentPercent: Math.round((100 - othersPct) * 100) / 100 }
-      setInsts(updated)
-    }
 
     // Curated split presets exist for 1-4; beyond that there's no hand-picked
     // option to fall back to, so the split starts as an even share across all
@@ -807,7 +753,7 @@ export function RequestFormStepper({
         <Toggle
           checked={!ctUniform}
           onChange={on => toggleCreditTermMode(!on)}
-          label={<span style={{ fontSize: 13, color: '#586782', fontWeight: 400 }}>ระบุเองทุกงวด</span>}
+          label={<span style={{ fontSize: 13, color: '#586782', fontWeight: 400 }}>ระบุเครดิตเทอมแยกแต่ละงวด</span>}
         />
 
         {!manyInstallments ? (
@@ -935,100 +881,20 @@ export function RequestFormStepper({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <span style={{ fontSize: 12, color: '#586782', fontWeight: 400 }}>รายละเอียดงวด ({instCount} งวด)</span>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button type="button" style={splitBtn(!amountInputMode)}
-                  onClick={() => { applyPreset(equalSplitPercents(instCount)); setAmountInputMode(false) }}>
-                  แบ่งเท่ากันทุกงวด
-                </button>
-                {/* Flips which column is the editable source — the % column
-                    keeps owning installmentPercent either way (see
-                    onChange below), so the existing 100%-sum validation and
-                    progress bar downstream need no changes for this mode.
-                    Starts every row blank rather than seeding an equal
-                    split — typing one amount then shows the others a live
-                    "แนะนำ" suggestion (the remainder split evenly across
-                    whatever's still blank) instead of a default value the
-                    user has to notice and undo. */}
-                <button type="button" style={splitBtn(amountInputMode)}
-                  onClick={() => { setInsts(insts.map(r => ({ ...r, installmentPercent: '' }))); setAmountInputMode(true) }}>
-                  กรอกอิสระ
-                </button>
-              </div>
+              <Toggle
+                checked={amountInputMode}
+                onChange={on => {
+                  if (on) {
+                    setInsts(insts.map(r => ({ ...r, installmentPercent: '' })))
+                    setAmountInputMode(true)
+                  } else {
+                    applyPreset(equalSplitPercents(instCount))
+                    setAmountInputMode(false)
+                  }
+                }}
+                label={<span style={{ fontSize: 13 }}>กรอกอิสระ</span>}
+              />
             </div>
-            {/* Balance-status banner — applies in both percent-direct and
-                กรอกอิสระ modes, not just the latter: editing ANY row in a
-                100+ row table can knock the total off 100%, and the only
-                other feedback (the progress bar) sits below a table that
-                can be hundreds of rows tall. Four states:
-                  1. balanced (within the same 0.01-point tolerance the
-                     submit validation uses) — hidden, nothing to flag.
-                  2. short of 100% with rows still blank — bulk-fill those
-                     blanks evenly (distributeRemaining).
-                  3. short, or over by less than the last row alone covers —
-                     recompute just the last row so the total lands on
-                     exactly 100% (adjustLastRowToBalance). Always a valid,
-                     non-negative result by construction (see below).
-                  4. over by MORE than the last row can absorb — no button:
-                     "fixing" this by forcing the last row negative isn't
-                     actually a fix, it just relocates the same error
-                     somewhere else and calls it solved. Spells out the
-                     exact amount to remove instead, since the system can't
-                     know which row(s) the user meant to type something
-                     smaller into.
-                Every action here is explicit, single-click, and never runs
-                on its own — editing a row never silently changes another. */}
-            {manyInstallments && (() => {
-              const slice = insts.slice(0, instCount)
-              const emptyCount = slice.filter(r => r.installmentPercent === '').length
-              const totalPctNow = calcTotalInstallmentPercent(slice)
-              const diffPct = Math.round((100 - totalPctNow) * 100) / 100
-              if (Math.abs(diffPct) < 0.01) return null
-              const diffAmt = sellingTotal > 0 ? calcInstallmentAmount(sellingTotal, Math.abs(diffPct)) : 0
-              const isOver = diffPct < 0
-              const canDistribute = !isOver && emptyCount > 0
-              // Mirrors adjustLastRowToBalance's own math so the banner can
-              // tell upfront whether that action would actually land on a
-              // valid (non-negative) result, instead of finding out after
-              // the click. Under-allocation always resolves non-negative
-              // here by construction (the last row can only grow to cover
-              // a shortfall); only "over by more than the last row holds"
-              // fails this check.
-              const lastIdx = instCount - 1
-              const othersPct = slice.slice(0, lastIdx).reduce((s, r) => s + numVal(r.installmentPercent), 0)
-              const canAdjustLastRow = !canDistribute && Math.round((100 - othersPct) * 100) / 100 >= 0
-              return (
-                <div style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
-                  padding: '10px 12px', marginBottom: 8, borderRadius: 4, flexWrap: 'wrap',
-                  background: isOver ? '#FEF2F2' : '#F2F6F8',
-                  border: isOver ? '1px solid #FCA5A5' : 'none',
-                }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: isOver ? '#7F1D1D' : '#586782' }}>
-                      {isOver ? 'ยอดรวมเกิน 100%' : 'ยอดคงเหลือที่ยังไม่ได้กรอก'}
-                    </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: isOver ? '#F3554F' : '#004081' }}>
-                      {formatCurrency(diffAmt)}{emptyCount > 0 ? ` · ${emptyCount} งวด` : ''}
-                    </div>
-                    {isOver && !canAdjustLastRow && (
-                      <div style={{ marginTop: 4, fontSize: 12, color: '#7F1D1D', maxWidth: 360 }}>
-                        เกินกว่าที่จะปรับงวดสุดท้ายให้พอดีได้ในคลิกเดียว — กรุณาลดยอดในงวดใดงวดหนึ่ง (หรือหลายงวดรวมกัน) ลงทั้งหมด {formatCurrency(diffAmt)} เพื่อให้ครบ 100% พอดี
-                      </div>
-                    )}
-                  </div>
-                  {canDistribute && (
-                    <button type="button" onClick={distributeRemaining} style={splitBtn(false)}>
-                      แบ่งให้งวดที่เหลือเท่ากัน
-                    </button>
-                  )}
-                  {canAdjustLastRow && (
-                    <button type="button" onClick={adjustLastRowToBalance} style={splitBtn(false)}>
-                      ปรับงวดสุดท้ายให้ยอดตรง 100%
-                    </button>
-                  )}
-                </div>
-              )
-            })()}
             <div style={{ border: '1px solid #D0D6DF', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ maxHeight: 320, overflowY: 'auto' }}>
                 {/* table-layout: fixed — without it, the body's widest cell
@@ -1068,10 +934,6 @@ export function RequestFormStepper({
                   <tbody>
                     {(() => {
                       const slice = insts.slice(0, instCount)
-                      const hasAnyFilledAmt = slice.some(r => r.installmentPercent !== '')
-                      const filledAmt = slice.reduce((s, r) => r.installmentPercent !== '' ? s + calcInstallmentAmount(sellingTotal, numVal(r.installmentPercent)) : s, 0)
-                      const emptyCount = slice.filter(r => r.installmentPercent === '').length
-                      const suggestedAmt = emptyCount > 0 ? (sellingTotal - filledAmt) / emptyCount : 0
                       return slice.map((row, i) => {
                         const pct = numVal(row.installmentPercent)
                         const totalAmt = sellingTotal > 0 ? calcInstallmentAmount(sellingTotal, pct) : 0
@@ -1120,16 +982,7 @@ export function RequestFormStepper({
                                     const digits = e.target.value.replace(/\D/g, '')
                                     setAmountRow(i, digits ? Number(digits) : 0)
                                   }}
-                                  // Muted on purpose (overrides the app-wide
-                                  // placeholder color via .suggested-placeholder
-                                  // in globals.css) — at the normal placeholder
-                                  // contrast this read as an already-typed value
-                                  // instead of a hint. Purely informational now
-                                  // (no per-row click target — see
-                                  // distributeRemaining for the bulk equivalent,
-                                  // which is what actually scales to many rows).
-                                  className={row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 ? 'suggested-placeholder' : undefined}
-                                  placeholder={row.installmentPercent === '' && hasAnyFilledAmt && suggestedAmt > 0 ? formatThousands(Math.round(suggestedAmt)) : '0'}
+                                  placeholder="0"
                                   error={negativeError}
                                   style={{ width: 110, textAlign: 'right', height: 32 }} />
                               ) : (
