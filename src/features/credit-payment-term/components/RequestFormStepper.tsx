@@ -153,7 +153,6 @@ export function RequestFormStepper({
   // rejection" and ask for one extra confirmation before sending.
   const initialSnapshotRef = useRef<string | null>(null)
   const [noChangeConfirmOpen, setNoChangeConfirmOpen] = useState(false)
-  const [activeStep, setActiveStep] = useState(0)
   const isDirtyRef = useRef(false)
 
   const [existingDropdownOpen, setExistingDropdownOpen] = useState(false)
@@ -299,25 +298,6 @@ export function RequestFormStepper({
   useEffect(() => {
     if (isResubmit) initialSnapshotRef.current = JSON.stringify(collectData())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const STEP_LABELS = ['ข้อมูลคำขอ', 'ข้อมูลลูกค้า', 'ใบเสนอราคา', 'สรุปและยืนยัน']
-  const STEP_IDS = ['section-info', 'section-customer', 'section-quotation', 'section-summary']
-
-  useEffect(() => {
-    function onScroll() {
-      const mid = window.scrollY + window.innerHeight * 0.4
-      let current = 0
-      STEP_IDS.forEach((id, i) => {
-        const el = document.getElementById(id)
-        if (el && el.getBoundingClientRect().top + window.scrollY <= mid) current = i
-      })
-      setActiveStep(current)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -951,29 +931,6 @@ export function RequestFormStepper({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 760, margin: '0 auto' }}>
 
-      {/* Step progress indicator — on mobile only the number + abbreviated
-          label show to prevent wrapping. The full label appears on ≥640px. */}
-      <div style={{ display: 'flex', gap: 0 }}>
-        {STEP_LABELS.map((label, i) => (
-          <div
-            key={i}
-            role="button"
-            tabIndex={0}
-            aria-label={`ไปยัง ${label}`}
-            onClick={() => document.getElementById(STEP_IDS[i])?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById(STEP_IDS[i])?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } }}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '0 4px', minWidth: 0, cursor: 'pointer' }}
-          >
-            <div style={{ width: '100%', height: 3, borderRadius: 2, background: i < activeStep ? '#66C5C5' : i === activeStep ? '#004081' : '#D0D6DF', transition: 'background 0.3s' }} />
-            {isMobile ? (
-              <span style={{ fontSize: 11, fontWeight: i === activeStep ? 600 : 400, color: i < activeStep ? '#66C5C5' : i === activeStep ? '#004081' : '#929EB4', transition: 'color 0.3s' }}>{i + 1}</span>
-            ) : (
-              <span style={{ fontSize: 11, fontWeight: i === activeStep ? 600 : 400, color: i < activeStep ? '#66C5C5' : i === activeStep ? '#004081' : '#929EB4', transition: 'color 0.3s', whiteSpace: 'nowrap' }}>{i + 1}. {label}</span>
-            )}
-          </div>
-        ))}
-      </div>
-
       {/* One white panel for the whole form, matching WorkX's own assembled
           form (Exzy_WorkX "Edit My work", 1190:5406) — a single continuous
           white surface, not a borderless page bg with each field floating
@@ -988,7 +945,7 @@ export function RequestFormStepper({
       <div id="section-info">
       <Section title="1. ข้อมูลคำขอ">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <FormGroup label="Proposal No." required error={errors.proposalNo} hint="เลขใบเสนอราคาจาก CRM เช่น PRO-2026-001">
+          <FormGroup label="Proposal No." required error={errors.proposalNo}>
             <Input value={String(fd.proposalNo || '')} onChange={e => update({ proposalNo: e.target.value })} placeholder="PRO-2026-001" error={errors.proposalNo} />
           </FormGroup>
 
@@ -1002,12 +959,9 @@ export function RequestFormStepper({
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {SALE_TYPES.map(t => (
-                <button key={t.value} type="button" onClick={() => update({ saleType: t.value })} style={{ ...segBtn(saleType === t.value), alignItems: 'flex-start', flex: isMobile ? '1 1 calc(50% - 4px)' : '1' }}>
+                <button key={t.value} type="button" onClick={() => update({ saleType: t.value })} style={{ ...segBtn(saleType === t.value), flex: isMobile ? '1 1 calc(50% - 4px)' : '1' }}>
                   <RadioDot active={saleType === t.value} />
-                  <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <span>{t.label}</span>
-                    <span style={{ fontSize: 11, fontWeight: 400, color: saleType === t.value ? '#66C5C5' : '#929EB4', lineHeight: 1.3 }}>{t.desc}</span>
-                  </span>
+                  {t.label}
                 </button>
               ))}
             </div>
