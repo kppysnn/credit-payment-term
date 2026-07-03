@@ -702,7 +702,7 @@ export function RequestFormStepper({
               hundreds of installments (long-term/multi-year payment plans),
               so this now mirrors Credit Term's own dropdown + "ระบุเอง"
               pattern right beside it instead of a fixed button row. */}
-          <FormGroup label="จำนวนงวด" style={{ width: 170 }}>
+          <FormGroup label="จำนวนงวด" style={{ width: 200 }}>
             {countIsCustom ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Input
@@ -835,7 +835,7 @@ export function RequestFormStepper({
                                 placeholder="0"
                                 error={errors[pctErrRowKey] || negativeError}
                                 className="no-spinner"
-                                style={{ width: 64, textAlign: 'right', height: 32 }} />
+                                style={{ width: 64, textAlign: 'center', height: 32 }} />
                               <span style={{ color: '#586782', fontSize: 12 }}>%</span>
                             </div>
                           )}
@@ -1187,7 +1187,11 @@ export function RequestFormStepper({
             )}
           </tbody>
           <tfoot>
-            <tr style={{ borderTop: '1px solid #D0D6DF', background: '#F8F9FA' }}>
+            {/* borderBottom closes the total row off as its own box — this is
+                the line that reads as "the edge of the grand-total" (paired
+                with the borderTop above it), instead of a second unattached
+                divider floating in the footer's own padding below it. */}
+            <tr style={{ borderTop: '1px solid #D0D6DF', borderBottom: '1px solid #D0D6DF', background: '#F8F9FA' }}>
               <td style={{ padding: '14px', fontWeight: 600, fontSize: 14, color: '#586782' }}>รวมทั้งหมด</td>
               <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(totalCost, '#586782', undefined, 500)}</td>
               <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081', 16, 700)}</td>
@@ -1198,7 +1202,10 @@ export function RequestFormStepper({
       </div>
 
       {/* ─── Footer ─── */}
-      <div style={{ paddingTop: 20, borderTop: '1px solid #D0D6DF' }}>
+      {/* No border-top here — the grand-total row's own bottom border/background
+          already reads as the boundary of "สรุปรวมทั้งหมด", so a second divider
+          floating 20px below it just orphaned into its own unattached line. */}
+      <div style={{ paddingTop: 20 }}>
         {submitError && <div style={{ marginBottom: 12, fontSize: 12, color: '#F3554F' }}>{submitError}</div>}
         <div style={{
           display: 'flex',
