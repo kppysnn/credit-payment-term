@@ -675,14 +675,17 @@ export function RequestFormStepper({
                   className="no-spinner"
                   style={{ width: '100%', paddingRight: 58 }}
                 />
-                <div style={{ position: 'absolute', top: 0, right: 8, height: 38, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ position: 'absolute', top: 0, right: 6, height: 38, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ color: '#586782', fontSize: 13, fontWeight: 400 }}>วัน</span>
+                  {/* Sized to match DatePicker's own clear-X exactly (size 11) — this
+                      button follows that same "overlay inside the box" pattern, so it
+                      should read as the same weight of control, not a heavier one. */}
                   <button type="button" onClick={() => { setIsCustomCT(false); setCtDays('') }}
-                    style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer', padding: 0 }}
+                    style={{ width: 18, height: 18, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer', padding: 0 }}
                     onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                     aria-label="เลือกจากรายการแทน">
-                    <XMarkIcon size={13} />
+                    <XMarkIcon size={11} />
                   </button>
                 </div>
               </div>
@@ -735,14 +738,16 @@ export function RequestFormStepper({
                   onBlur={() => { if (countDraft === '' || numVal(countDraft) < 1) setCountDraft(instCount) }}
                   placeholder="พิมพ์จำนวนงวด"
                   className="no-spinner"
-                  style={{ width: '100%', paddingRight: 34 }}
+                  style={{ width: '100%', paddingRight: 32 }}
                 />
+                {/* Sized to match DatePicker's own clear-X exactly (size 11) — see
+                    matching comment on the Credit Term field above. */}
                 <button type="button" onClick={() => { setIsCustomCount(false); changeCount(INSTALLMENT_COUNT_PRESETS[0]); setCountDraft(INSTALLMENT_COUNT_PRESETS[0]) }}
-                  style={{ position: 'absolute', top: 9, right: 8, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer', padding: 0 }}
+                  style={{ position: 'absolute', top: 10, right: 6, width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer', padding: 0 }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   aria-label="เลือกจากรายการแทน">
-                  <XMarkIcon size={13} />
+                  <XMarkIcon size={11} />
                 </button>
               </div>
             ) : (
