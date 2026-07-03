@@ -660,23 +660,31 @@ export function RequestFormStepper({
                 กำหนดแยกต่องวด
               </div>
             ) : creditTermIsCustom ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              // "วัน" + the "switch back to dropdown" X sit inside the input
+              // as an overlay (like the DatePicker's own clear button) instead
+              // of as flex siblings — that used to shrink the visible box to
+              // ~145px while the จำนวนงวด dropdown beside it filled the full
+              // 200px, so the pair read as visually unbalanced.
+              <div style={{ position: 'relative', width: '100%' }}>
                 <Input
                   type="number" min="0" autoFocus
                   value={ctDays}
                   onChange={e => setCtDays(e.target.value !== '' ? Number(e.target.value) : '')}
                   placeholder="พิมพ์จำนวนวัน"
                   error={errors[ctErrKey]}
-                  style={{ flex: 1 }}
+                  className="no-spinner"
+                  style={{ width: '100%', paddingRight: 58 }}
                 />
-                <span style={{ color: '#586782', fontSize: 13, fontWeight: 400, flexShrink: 0 }}>วัน</span>
-                <button type="button" onClick={() => { setIsCustomCT(false); setCtDays('') }}
-                  style={{ width: 28, height: 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                  aria-label="เลือกจากรายการแทน">
-                  <XMarkIcon size={16} />
-                </button>
+                <div style={{ position: 'absolute', top: 0, right: 8, height: 38, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: '#586782', fontSize: 13, fontWeight: 400 }}>วัน</span>
+                  <button type="button" onClick={() => { setIsCustomCT(false); setCtDays('') }}
+                    style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer', padding: 0 }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                    aria-label="เลือกจากรายการแทน">
+                    <XMarkIcon size={13} />
+                  </button>
+                </div>
               </div>
             ) : (
               <Select
@@ -704,7 +712,11 @@ export function RequestFormStepper({
               pattern right beside it instead of a fixed button row. */}
           <FormGroup label="จำนวนงวด" style={{ width: 200 }}>
             {countIsCustom ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              // Same inside-the-box overlay treatment as the Credit Term
+              // custom input beside it, for the same reason: keeps this box
+              // the full 200px width instead of shrinking around a flex-sibling
+              // X button.
+              <div style={{ position: 'relative', width: '100%' }}>
                 <Input
                   type="number" min="1" max={MAX_INSTALLMENTS} autoFocus
                   value={countDraft}
@@ -722,14 +734,15 @@ export function RequestFormStepper({
                   // cleanly to the last valid count if left blank/invalid.
                   onBlur={() => { if (countDraft === '' || numVal(countDraft) < 1) setCountDraft(instCount) }}
                   placeholder="พิมพ์จำนวนงวด"
-                  style={{ flex: 1 }}
+                  className="no-spinner"
+                  style={{ width: '100%', paddingRight: 34 }}
                 />
                 <button type="button" onClick={() => { setIsCustomCount(false); changeCount(INSTALLMENT_COUNT_PRESETS[0]); setCountDraft(INSTALLMENT_COUNT_PRESETS[0]) }}
-                  style={{ width: 28, height: 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
+                  style={{ position: 'absolute', top: 9, right: 8, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer', padding: 0 }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   aria-label="เลือกจากรายการแทน">
-                  <XMarkIcon size={16} />
+                  <XMarkIcon size={13} />
                 </button>
               </div>
             ) : (
