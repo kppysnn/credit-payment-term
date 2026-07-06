@@ -833,7 +833,12 @@ export function RequestFormStepper({
           </div>
           <div style={{ border: '1px solid #D0D6DF', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
+              {/* border-collapse: separate (not collapse) — with a sticky thead, collapsed
+                  borders let the header's own background paint a hairline past the divider
+                  it shares with the first body row, since the browser has to reconcile two
+                  cells' borders/backgrounds at the same collapsed edge. Separate borders make
+                  each row own its edge outright, so nothing bleeds past it. */}
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13, tableLayout: 'fixed' }}>
                 <thead>
                   <tr style={{ position: 'sticky', top: 0 }}>
                     <th style={{ padding: '10px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5, textAlign: 'left', background: '#F2F6F8', borderBottom: '2px solid #D0D6DF', width: !ctUniform ? '14%' : '33.34%' }}>งวดที่</th>
