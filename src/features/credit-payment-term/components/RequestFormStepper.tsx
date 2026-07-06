@@ -321,7 +321,18 @@ export function RequestFormStepper({
       if (!rs?.resellerCompanyName?.trim()) e['res.resellerCompanyName'] = 'กรุณาระบุหรือค้นหา Reseller'
       if (!rs?.endCustomerCompanyName?.trim()) e['res.endCustomerCompanyName'] = 'กรุณาระบุลูกค้าปลายทาง'
     }
-    if (isLumpSum ? totalSelling <= 0 : hwSelling <= 0) e.hwSell = isLumpSum ? 'กรุณาระบุราคาขายอย่างน้อย 1 รายการ' : 'กรุณาระบุราคาขาย Hardware'
+    // ราคาขาย is required per line item, not just Hardware — a quotation with
+    // an unpriced Software/Installation line used to submit silently, same as
+    // Hardware would if left blank, so the three are held to the same rule.
+    // Lump Sum keeps its own "combined total, not per-line" check, since the
+    // whole point of that mode is one price covering everything.
+    if (isLumpSum) {
+      if (totalSelling <= 0) e.hwSell = 'กรุณาระบุราคาขายอย่างน้อย 1 รายการ'
+    } else {
+      if (hwSelling <= 0) e.hwSell = 'กรุณาระบุราคาขาย Hardware'
+      if (numVal(fd.softwareSellingPrice) <= 0) e.swSell = 'กรุณาระบุราคาขาย Software'
+      if (numVal(fd.installationSellingPrice) <= 0) e.instSell = 'กรุณาระบุราคาขาย Installation'
+    }
     if (!hwCreditTermUniform) {
       hwInstallments.slice(0, hwInstallmentCount).forEach((row, i) => { if (row.creditTermDays === '' || numVal(row.creditTermDays) < 0) e[`hwInst${i}.ct`] = 'ระบุวัน' })
     } else if (hwCreditTermDays === '' || numVal(hwCreditTermDays) < 0) {
@@ -431,7 +442,8 @@ export function RequestFormStepper({
       </thead>
       <tbody>
         {rows.map(({ label, spKey, costKey }) => {
-          const sellError = spKey === 'hardwareSellingPrice' ? errors.hwSell : undefined
+          const sellErrorKey = spKey === 'hardwareSellingPrice' ? 'hwSell' : spKey === 'softwareSellingPrice' ? 'swSell' : 'instSell'
+          const sellError = errors[sellErrorKey]
           return (
             <tr key={spKey}>
               <td style={{ padding: '8px 0', fontSize: 13, fontWeight: 400, color: '#586782' }}>{label}</td>
