@@ -64,6 +64,7 @@ export function TagMultiSelect({ value, onChange, groups, allowCustom, customLab
     .map(g => ({ ...g, items: q ? g.items.filter(i => i.toLowerCase().includes(q)) : g.items }))
     .filter(g => g.items.length > 0)
   const noMatches = q !== '' && filteredGroups.length === 0
+  const showClearAll = value.length > 0
 
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
@@ -72,6 +73,9 @@ export function TagMultiSelect({ value, onChange, groups, allowCustom, customLab
         style={{
           display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6,
           width: '100%', minHeight: 38, padding: '5px 8px',
+          // Right padding reserves room for the clear-all button below so tags
+          // never wrap underneath it.
+          paddingRight: showClearAll ? 30 : 8,
           border: `1px solid ${error ? '#F3554F' : focused ? '#004081' : '#D0D6DF'}`,
           borderRadius: 8, background: '#fff', cursor: 'text', boxSizing: 'border-box',
           outline: focused ? '2px solid rgba(0,64,129,0.15)' : 'none', outlineOffset: 2,
@@ -114,6 +118,24 @@ export function TagMultiSelect({ value, onChange, groups, allowCustom, customLab
           style={{ flex: 1, minWidth: 90, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: '#505050', fontFamily: 'inherit', padding: '4px 2px' }}
         />
       </div>
+
+      {/* Clear-all — pinned to the box's top-right corner (not a flex sibling
+       * of the tags) so it stays put as tags wrap onto more rows below it,
+       * same "X replaces the trailing affordance" convention as DatePicker's
+       * own clear button. */}
+      {showClearAll && (
+        <button
+          type="button"
+          onMouseDown={e => { e.preventDefault(); onChange([]); setQuery('') }}
+          aria-label="ล้าง solution ทั้งหมด"
+          title="ล้างทั้งหมด"
+          style={{ position: 'absolute', top: 9, right: 8, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer', padding: 0 }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+        >
+          <XMarkIcon size={11} />
+        </button>
+      )}
 
       {open && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, marginTop: 6, background: '#fff', border: '1px solid #D0D6DF', borderRadius: 8, boxShadow: '0 4px 14px rgba(0,64,129,0.07)', maxHeight: 300, overflowY: 'auto' }}>
