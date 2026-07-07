@@ -11,7 +11,8 @@ import { DatePicker } from '../../../components/ui/DatePicker'
 import { KebabMenu, type KebabMenuItem } from '../../../components/ui/KebabMenu'
 import { DeleteRequestModal } from '../../../components/modals/DeleteRequestModal'
 import { CancelModal } from '../../../components/modals/CancelModal'
-import { SearchIcon, SortCarets, AddCircleIcon, EditIcon, PrinterIcon, TrashIcon, XMarkIcon, BanIcon } from '../../../components/icons/FigmaIcons'
+import { FaPenToSquare } from 'react-icons/fa6'
+import { SearchIcon, SortCarets, AddCircleIcon, PrinterIcon, TrashIcon, XMarkIcon, BanIcon } from '../../../components/icons/FigmaIcons'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
 import { exportPDF } from '../services/exportService'
@@ -178,7 +179,7 @@ export function RequestListPage() {
     const canEdit = isSales && (req.status === 'draft' || req.status === 'pending' || isRejected)
     const items: KebabMenuItem[] = []
     if (canEdit && !isRejected) {
-      items.push({ label: 'แก้ไข', icon: <EditIcon size={15} />, onClick: () => navigate(`/requests/${req.id}/edit`) })
+      items.push({ label: 'แก้ไข', icon: <FaPenToSquare size={15} />, onClick: () => navigate(`/requests/${req.id}/edit`) })
     }
     items.push({ label: 'พิมพ์', icon: <PrinterIcon size={15} />, onClick: () => handleExport(req.id) })
     if (isSales && req.status === 'draft') {
@@ -230,7 +231,7 @@ export function RequestListPage() {
             {canEdit && isRejected && (
               <Link to={`/requests/${req.id}/edit`} onClick={e => e.stopPropagation()}>
                 <Button
-                  variant="primary" size="sm" icon={<EditIcon size={14} />}
+                  variant="primary" size="sm" icon={<FaPenToSquare size={14} />}
                   style={{ background: '#004081' }}
                   onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
                 >
@@ -531,7 +532,7 @@ export function RequestListPage() {
                                   the solid-navy fill has to be re-asserted on
                                   leave too, not just set once on mount. */}
                               <Button
-                                variant="primary" size="sm" icon={<EditIcon size={14} />}
+                                variant="primary" size="sm" icon={<FaPenToSquare size={14} />}
                                 style={{ background: '#004081' }}
                                 onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
                               >

@@ -21,7 +21,8 @@ import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, 
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
-import { EditIcon, RefreshIcon, PrinterIcon, CheckCircleIcon, XCircleIcon, BanIcon } from '../../../components/icons/FigmaIcons'
+import { FaPenToSquare } from 'react-icons/fa6'
+import { RefreshIcon, PrinterIcon, CheckCircleIcon, XCircleIcon, BanIcon } from '../../../components/icons/FigmaIcons'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 
 // Strip fields that change on every resubmit *regardless* of what sales
@@ -380,7 +381,7 @@ export function RequestDetailPage() {
       <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Solution</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {solutions.map(s => (
-          <span key={s} style={{ display: 'inline-flex', alignItems: 'center', height: 24, padding: '0 8px', background: '#D9F0F0', borderRadius: 4, fontSize: 12, color: '#004081' }}>{s}</span>
+          <span key={s} style={{ display: 'inline-flex', alignItems: 'center', minHeight: 24, maxWidth: '100%', padding: '4px 8px', background: '#D9F0F0', borderRadius: 4, fontSize: 12, color: '#004081', lineHeight: 1.4, wordBreak: 'break-word' }}>{s}</span>
         ))}
       </div>
     </div>
@@ -478,7 +479,7 @@ export function RequestDetailPage() {
             )}
             {canEditRequest(currentUser, req) && (
               <Link to={`/requests/${req.id}/edit`}>
-                <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <RefreshIcon size={15} /> : <EditIcon size={15} />}>
+                <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <RefreshIcon size={15} /> : <FaPenToSquare size={15} />}>
                   {req.status === 'rejected' ? 'แก้ไขและส่งใหม่' : 'แก้ไข'}
                 </Button>
               </Link>

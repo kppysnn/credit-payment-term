@@ -143,38 +143,6 @@ export function PrinterIcon({ size = 15, color = 'currentColor', style }: IconPr
   )
 }
 
-/** Pencil/edit — Figma's "icon_Edit" (937:1064). The frame's border used to be
- * drawn as a single fill path via fillRule="evenodd" (outer rect minus inner
- * rect) — that construction silently dropped the entire right edge in every
- * browser tested (not a cross-machine rendering quirk; confirmed broken here
- * too once rendered in isolation), leaving the icon looking like an open "C"
- * instead of a frame with just the top-right corner open for the pencil.
- * Rebuilt as a single open stroke path tracing the same outer/inner bounds
- * the original fill used — same visual thickness and corner radius, just a
- * construction that can't have a fill region silently cancel out.
- *
- * The frame stroke was still reported missing/partial on some machines after
- * that fix — a 1px hairline at non-integer viewBox coordinates lands on a
- * half-pixel boundary, and browsers/monitors differ on how (or whether) they
- * antialias a stroke that thin, so it can vanish entirely at some device
- * pixel ratios while looking fine at others. Widened to 1.6 (matching this
- * file's other outline icons — XMarkIcon/MenuIcon use 1.8) and added
- * shapeRendering so the line always rasterizes instead of being a rounding
- * coin-flip. */
-export function EditIcon({ size = 15, color = 'currentColor', style }: IconProps) {
-  const n = Number(size)
-  return (
-    <svg width={n} height={n * (14.5 / 14.648)} viewBox="0 0 14.648 14.5" style={style}>
-      <path d="M14.5016 1.43934C14.6969 1.6346 14.6969 1.95118 14.5016 2.14645L13.4587 3.18933L11.4587 1.18933L12.5016 0.146447C12.6969 -0.0488156 13.0134 -0.0488154 13.2087 0.146447L14.5016 1.43934Z" fill={color} />
-      <path d="M12.7516 3.89644L10.7516 1.89644L3.93861 8.70943C3.88372 8.76432 3.84237 8.83123 3.81782 8.90487L3.01326 11.3186C2.94812 11.514 3.13405 11.6999 3.32949 11.6348L5.74317 10.8302C5.81681 10.8057 5.88372 10.7643 5.93861 10.7094L12.7516 3.89644Z" fill={color} />
-      <path
-        d="M8,1 L1.5,1 A0.5,0.5 0 0 0 1,1.5 L1,13.5 A0.5,0.5 0 0 0 1.5,14 L12.5,14 A0.5,0.5 0 0 0 13,13.5 L13,7"
-        fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" shapeRendering="geometricPrecision"
-      />
-    </svg>
-  )
-}
-
 /** Trash bin — Figma's "icon_delete_bin" (909:1413), exact path. */
 export function TrashIcon({ size = 15, color = 'currentColor', style }: IconProps) {
   const n = Number(size)

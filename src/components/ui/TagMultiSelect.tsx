@@ -71,7 +71,7 @@ export function TagMultiSelect({ value, onChange, groups, allowCustom, customLab
       <div
         onClick={() => { setOpen(true); inputRef.current?.focus() }}
         style={{
-          display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6,
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', alignContent: 'center', gap: 6,
           width: '100%', minHeight: 38, padding: '5px 8px',
           // Right padding reserves room for the clear-all button below so tags
           // never wrap underneath it.
