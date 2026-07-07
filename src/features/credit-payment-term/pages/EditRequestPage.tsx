@@ -86,6 +86,8 @@ function buildPatch(data: Record<string, unknown>, _user: { id: string; name: st
     saleType,
     customerInfo,
     quotationItems: items,
+    solutions: (data.solutions as string[] | undefined) ?? [],
+    swSolutions: (data.swSolutions as string[] | undefined) ?? [],
     installmentCount: hwInstallmentCount,
     installments,
     swInstallmentCount,

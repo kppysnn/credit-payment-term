@@ -96,6 +96,13 @@ export interface Request extends SectionComments {
 
   quotationItems: QuotationItem[]
 
+  // Which named solution(s) this quotation block is selling — free-standing
+  // metadata, not tied to a specific QuotationItem. `solutions` covers the
+  // Hardware block (or the single block in Lump Sum); `swSolutions` covers
+  // Software & Installation, mirroring the installments/swInstallments split.
+  solutions?: string[]
+  swSolutions?: string[]
+
   installmentCount: number
   paymentTermReason?: string
   creditTermReason?: string
@@ -118,6 +125,7 @@ export interface Request extends SectionComments {
   // an "anything actually different?" comparison.
   previousSnapshot?: Pick<Request,
     'customerInfo' | 'quotationItems' |
+    'solutions' | 'swSolutions' |
     'installmentCount' | 'installments' |
     'swInstallmentCount' | 'swInstallments'
   >

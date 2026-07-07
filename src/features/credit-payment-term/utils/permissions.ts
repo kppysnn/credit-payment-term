@@ -47,7 +47,10 @@ export function canRejectRequest(user: CurrentUser, req: Request): boolean {
 export function canCancelRequest(user: CurrentUser, req: Request): boolean {
   if (user.role !== 'sales') return false
   if (req.salesId !== user.id) return false
-  return req.status === 'draft' || req.status === 'pending'
+  // 'approved' is included so a request can be cancelled after the fact if
+  // the customer renegotiates post-approval — sales cancels this one and
+  // files a new request rather than editing an already-approved record.
+  return req.status === 'draft' || req.status === 'pending' || req.status === 'approved'
 }
 
 // Deliberately narrower than canCancelRequest: cancelling a pending request

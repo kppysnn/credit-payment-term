@@ -98,6 +98,8 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
     saleType,
     customerInfo,
     quotationItems: items,
+    solutions: (data.solutions as string[] | undefined) ?? [],
+    swSolutions: (data.swSolutions as string[] | undefined) ?? [],
     installmentCount: hwInstallmentCount,
     installments,
     swInstallmentCount,

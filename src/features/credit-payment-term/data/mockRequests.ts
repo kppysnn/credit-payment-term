@@ -51,6 +51,7 @@ export const MOCK_REQUESTS: Request[] = [
         marginPercent: 40.00,
       },
     ],
+    solutions: ['CCTV', 'Access Control'],
     installmentCount: 2,
     installments: [
       {
@@ -180,6 +181,8 @@ export const MOCK_REQUESTS: Request[] = [
         marginPercent: 40.00,
       },
     ],
+    solutions: ['CCTV'],
+    swSolutions: ['W+ Meet in Touch', 'W+ Co Desk'],
     installmentCount: 1,
     installments: [
       {
@@ -330,6 +333,8 @@ export const MOCK_REQUESTS: Request[] = [
         marginPercent: 50.00,
       },
     ],
+    solutions: ['Access Control', 'CCTV'],
+    swSolutions: ['Visitor Management System'],
     installmentCount: 1,
     installments: [
       {
@@ -422,6 +427,8 @@ export const MOCK_REQUESTS: Request[] = [
         marginPercent: 46.67,
       },
     ],
+    solutions: ['LED Display', 'Digital Signage'],
+    swSolutions: ['Interactive Whiteboard', 'Video Conference'],
     installmentCount: 1,
     installments: [
       {

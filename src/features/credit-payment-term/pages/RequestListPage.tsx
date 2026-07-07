@@ -184,7 +184,7 @@ export function RequestListPage() {
     if (isSales && req.status === 'draft') {
       items.push({ label: 'ลบคำขอ', icon: <TrashIcon size={15} />, onClick: () => handleDeleteClick(req.id), danger: true })
     }
-    if (isSales && req.status === 'pending') {
+    if (isSales && (req.status === 'pending' || req.status === 'approved')) {
       items.push({ label: 'ยกเลิกคำขอ', icon: <BanIcon size={15} />, onClick: () => handleCancelClick(req.id, req.customerName), danger: true })
     }
     return items

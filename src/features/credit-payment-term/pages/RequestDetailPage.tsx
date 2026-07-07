@@ -48,6 +48,11 @@ function normalizeItemsForCompare(items: QuotationItem[]) {
 function normalizeInstallmentsForCompare(installments: PaymentInstallment[]) {
   return installments.map(i => ({ installmentPercent: i.installmentPercent, paymentCondition: i.paymentCondition }))
 }
+// Sorted — which solutions are picked matters for "did this change", the
+// order they were clicked in doesn't.
+function normalizeSolutionsForCompare(solutions?: string[]) {
+  return [...(solutions ?? [])].sort()
+}
 function normalizeCustomerInfoForCompare(ci: RequestCustomerInfo) {
   if (ci.type === 'new') return { type: ci.type, companyName: ci.data.companyName, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
   if (ci.type === 'existing') return { type: ci.type, customerId: ci.data.customerId, companyName: ci.data.companyName, defaultCreditTerm: ci.data.defaultCreditTerm ?? 0, contactPerson: ci.data.contactPerson ?? '', contactPhone: ci.data.contactPhone ?? '' }
@@ -155,13 +160,15 @@ export function RequestDetailPage() {
     JSON.stringify(normalizeItemsForCompare(hardwareItems)) !== JSON.stringify(normalizeItemsForCompare(prev.quotationItems.filter(i => i.type === 'hardware'))) ||
     req.installmentCount !== prev.installmentCount ||
     (req.installments[0]?.creditTermDays ?? 0) !== (prev.installments[0]?.creditTermDays ?? 0) ||
-    JSON.stringify(normalizeInstallmentsForCompare(req.installments)) !== JSON.stringify(normalizeInstallmentsForCompare(prev.installments))
+    JSON.stringify(normalizeInstallmentsForCompare(req.installments)) !== JSON.stringify(normalizeInstallmentsForCompare(prev.installments)) ||
+    JSON.stringify(normalizeSolutionsForCompare(req.solutions)) !== JSON.stringify(normalizeSolutionsForCompare(prev.solutions))
   )
   const swChanged = !!prev && (
     JSON.stringify(normalizeItemsForCompare(serviceItems)) !== JSON.stringify(normalizeItemsForCompare(prev.quotationItems.filter(i => i.type === 'software' || i.type === 'installation'))) ||
     req.swInstallmentCount !== prev.swInstallmentCount ||
     (req.swInstallments?.[0]?.creditTermDays ?? 0) !== (prev.swInstallments?.[0]?.creditTermDays ?? 0) ||
-    JSON.stringify(normalizeInstallmentsForCompare(req.swInstallments ?? [])) !== JSON.stringify(normalizeInstallmentsForCompare(prev.swInstallments ?? []))
+    JSON.stringify(normalizeInstallmentsForCompare(req.swInstallments ?? [])) !== JSON.stringify(normalizeInstallmentsForCompare(prev.swInstallments ?? [])) ||
+    JSON.stringify(normalizeSolutionsForCompare(req.swSolutions)) !== JSON.stringify(normalizeSolutionsForCompare(prev.swSolutions))
   )
   // Lump sum renders hardware+software+installation as one merged block, so
   // its "changed since last rejection" flag is just the two section flags
@@ -366,9 +373,22 @@ export function RequestDetailPage() {
   // top-rounded only (it caps the block from above) and the body gets a
   // soft tint (#F8F9FA) with bottom rounding, so header+body together form
   // one visually contiguous unit purely through color, no line needed.
-  const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], extra?: React.ReactNode, changed?: boolean) => (
+  // Read-only tag chip — the Figma "tag-small / View" variant (no remove X;
+  // that state is only for the editable picker in RequestFormStepper).
+  const solutionTags = (solutions?: string[]) => solutions && solutions.length > 0 && (
+    <div style={{ padding: '14px 14px 0' }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Solution</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {solutions.map(s => (
+          <span key={s} style={{ display: 'inline-flex', alignItems: 'center', height: 24, padding: '0 8px', background: '#D9F0F0', borderRadius: 4, fontSize: 12, color: '#004081' }}>{s}</span>
+        ))}
+      </div>
+    </div>
+  )
+
+  const quotationBlock = (quotationNo: string, label: string, gradient: string, items: QuotationItem[], cost: number, selling: number, creditTermDays: number, installments: PaymentInstallment[], solutions?: string[], extra?: React.ReactNode, changed?: boolean) => (
     <div>
-      <div style={{ background: gradient, borderRadius: '4px 4px 0 0', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
+      <div style={{ background: gradient, borderRadius: '4px 4px 0 0', padding: '12px 14px', display: 'flex', flexWrap: isMobile ? 'wrap' : 'nowrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>{label}</span>
           {changed && changedBadgeOnGradient}
@@ -381,6 +401,7 @@ export function RequestDetailPage() {
       <div style={{ background: '#F8F9FA', borderRadius: '0 0 4px 4px', overflow: 'hidden' }}>
         {itemsTable(items)}
         {totalStrip(label, cost, selling)}
+        {solutionTags(solutions)}
         {installments.length > 0 && (
           <div style={{ paddingBottom: 16 }}>
             {installmentStrip(creditTermDays, installments)}
@@ -543,15 +564,15 @@ export function RequestDetailPage() {
             </Section>
 
             {/* Lump sum: one merged quotation block covering every item + the single payment schedule */}
-            {isLumpSum && req.quotationItems.length > 0 && quotationBlock(hardwareQuotationNo, 'รวมทุกรายการ', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', req.quotationItems, req.financial.totalCost, req.financial.totalSelling, req.installments[0]?.creditTermDays ?? 0, req.installments,
+            {isLumpSum && req.quotationItems.length > 0 && quotationBlock(hardwareQuotationNo, 'รวมทุกรายการ', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', req.quotationItems, req.financial.totalCost, req.financial.totalSelling, req.installments[0]?.creditTermDays ?? 0, req.installments, req.solutions,
               sectionComment('หมายเหตุ', hardwareComment, canComment, setHardwareComment, true, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของคำขอนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'), lumpSumChanged)}
 
             {/* Hardware quotation: items + its own payment schedule */}
-            {!isLumpSum && hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments,
+            {!isLumpSum && hardwareItems.length > 0 && quotationBlock(hardwareQuotationNo, 'Hardware', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', hardwareItems, hardwareCost, hardwareSelling, req.installments[0]?.creditTermDays ?? 0, req.installments, req.solutions,
               sectionComment('หมายเหตุสำหรับ Hardware', hardwareComment, canComment, setHardwareComment, true, req.approvalResult?.hardwareComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'), hardwareChanged)}
 
             {/* Software & Installation quotation: items + its own payment schedule */}
-            {!isLumpSum && serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [],
+            {!isLumpSum && serviceItems.length > 0 && quotationBlock(serviceQuotationNo, 'Software & Installation', 'linear-gradient(135deg, #66C5C5 0%, #004081 100%)', serviceItems, serviceCost, serviceSelling, req.swInstallments?.[0]?.creditTermDays ?? 0, req.swInstallments ?? [], req.swSolutions,
               sectionComment('หมายเหตุสำหรับ Software & Installation', swComment, canComment, setSwComment, true, req.approvalResult?.swComment, 'ระบุรายละเอียดเพิ่มเติมของหมวดนี้ เช่น เงื่อนไขการขาย เหตุผลด้านราคา หรือข้อควรพิจารณา'), swChanged)}
 
             {/* Overall total */}

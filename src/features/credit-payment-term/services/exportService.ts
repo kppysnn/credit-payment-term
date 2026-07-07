@@ -41,8 +41,19 @@ export function exportPDF(req: Request): void {
 const PRINT_STYLES = `
   @page { size: A4; margin: 16mm 18mm; }
   * { box-sizing: border-box; }
-  body { font-family: 'Poppins', 'Noto Sans Thai', system-ui, sans-serif; font-size: 12px; color: #505050; line-height: 1.6; margin: 0; }
-  .container { width: 100%; }
+  html { display: flex; justify-content: center; background: #F2F6F8; }
+  /* Pinned to A4's actual mm width instead of "width:100%" — that stretched
+     the whole document to fill whatever screen/window opened the popup, so
+     the layout (and, once the browser scaled that down to fit an A4 page on
+     print, the effective font size) came out different on every screen. This
+     keeps the on-screen preview and the printed page the same fixed size. */
+  body { font-family: 'Poppins', 'Noto Sans Thai', system-ui, sans-serif; font-size: 12px; color: #505050; line-height: 1.6; margin: 0; width: 210mm; min-height: 297mm; background: #fff; }
+  .container { width: 100%; padding: 16mm 18mm; }
+  @media print {
+    html { background: #fff; }
+    body { width: auto; min-height: 0; padding: 0; }
+    .container { padding: 0; }
+  }
 
   /* The single fix that matters most for "เนื้อหาเดียวกันถูกแยกหน้า": wrap any
      block that must never be torn across a page boundary in this. A row
@@ -89,6 +100,9 @@ const PRINT_STYLES = `
   .credit-term .mono { font-size: 12px; font-weight: 700; color: #004081; }
 
   .comment-box { padding: 10px; border: 1px solid #D0D6DF; border-top: none; }
+
+  .solution-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0 0; }
+  .solution-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; background: #D9F0F0; border-radius: 4px; font-size: 11px; color: #004081; }
 
   /* The one bold top-tier figure on the page, matching the live detail
      page's "สรุปยอดรวม" convention (one grand total, everything else lighter). */
@@ -145,9 +159,9 @@ function buildPrintHTML(req: Request): string {
   <div class="block">
     <div class="section-title">3. ใบเสนอราคาและ Payment Schedule</div>
     ${isLumpSum
-      ? (req.quotationItems.length > 0 ? buildQuotationGroup(hardwareQuotationNo, 'รวมทุกรายการ', req.quotationItems, req.financial.totalCost, req.financial.totalSelling, req.installments, req.hardwareComment) : '')
-      : `${hardwareItems.length > 0 ? buildQuotationGroup(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareCost, hardwareSelling, req.installments, req.hardwareComment) : ''}
-         ${serviceItems.length > 0 ? buildQuotationGroup(serviceQuotationNo, 'Software & Installation', serviceItems, serviceCost, serviceSelling, req.swInstallments ?? [], req.swComment) : ''}`}
+      ? (req.quotationItems.length > 0 ? buildQuotationGroup(hardwareQuotationNo, 'รวมทุกรายการ', req.quotationItems, req.financial.totalCost, req.financial.totalSelling, req.installments, req.hardwareComment, req.solutions) : '')
+      : `${hardwareItems.length > 0 ? buildQuotationGroup(hardwareQuotationNo, 'Hardware', hardwareItems, hardwareCost, hardwareSelling, req.installments, req.hardwareComment, req.solutions) : ''}
+         ${serviceItems.length > 0 ? buildQuotationGroup(serviceQuotationNo, 'Software & Installation', serviceItems, serviceCost, serviceSelling, req.swInstallments ?? [], req.swComment, req.swSolutions) : ''}`}
     ${isLumpSum
       ? buildGrandTotal(req, req.quotationItems.length > 0 ? [{ label: `${hardwareQuotationNo}  รวมทุกรายการ`, cost: req.financial.totalCost, selling: req.financial.totalSelling }] : [])
       : buildGrandTotal(req, [
@@ -169,7 +183,7 @@ function buildPrintHTML(req: Request): string {
 </div></body></html>`
 }
 
-function buildQuotationGroup(no: string, title: string, items: QuotationItem[], cost: number, selling: number, installments: PaymentInstallment[], comment?: string): string {
+function buildQuotationGroup(no: string, title: string, items: QuotationItem[], cost: number, selling: number, installments: PaymentInstallment[], comment?: string, solutions?: string[]): string {
   return `<div class="quote-group">
     <div class="quote-core keep">
       <div class="quote-head no-orphan-after"><span class="quote-no">${no}</span><span class="quote-label">${title}</span></div>
@@ -191,6 +205,7 @@ function buildQuotationGroup(no: string, title: string, items: QuotationItem[], 
         </tfoot>
       </table>
     </div>
+    ${solutions && solutions.length > 0 ? `<div class="solution-tags keep">${solutions.map(s => `<span class="solution-tag">${s}</span>`).join('')}</div>` : ''}
     ${installments.length > 0 ? (() => {
       // Per-row credit term column only when rows actually differ — mirrors
       // RequestDetailPage's installmentTable/hasPerRowCreditTerm convention.

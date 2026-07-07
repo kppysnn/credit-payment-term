@@ -220,6 +220,8 @@ export async function resubmitRequest(id: string, data: Partial<Request>, actor:
     previousSnapshot: {
       customerInfo: existing.customerInfo,
       quotationItems: existing.quotationItems,
+      solutions: existing.solutions,
+      swSolutions: existing.swSolutions,
       installmentCount: existing.installmentCount,
       installments: existing.installments,
       swInstallmentCount: existing.swInstallmentCount,
@@ -335,7 +337,7 @@ export async function cancelRequest(id: string, reason: string, actor: CurrentUs
   await _delay()
   const existing = getMockRequestById(id)
   if (!existing) throw new Error('Request not found')
-  const cancelable: RequestStatus[] = ['draft', 'pending']
+  const cancelable: RequestStatus[] = ['draft', 'pending', 'approved']
   if (!cancelable.includes(existing.status)) throw new Error('Cannot cancel this request')
   const now = new Date().toISOString()
   const entry: ApprovalHistoryEntry = {

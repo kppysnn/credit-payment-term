@@ -15,6 +15,8 @@ import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } fr
 import { searchCustomers } from '../services/customerService'
 import { FaFloppyDisk } from 'react-icons/fa6'
 import { XMarkIcon } from '../../../components/icons/FigmaIcons'
+import { TagMultiSelect } from '../../../components/ui/TagMultiSelect'
+import { SOLUTION_GROUPS, OTHER_SERVICE_LABEL } from '../data/mockSolutions'
 
 interface InstRow { installmentPercent: number | ''; creditTermDays: number | ''; paymentCondition: PaymentCondition | '' }
 
@@ -34,8 +36,17 @@ const SALE_TYPES = [
   { value: 'lump_sum', label: 'Lump Sum', desc: 'รวมทุกรายการ ไม่แยกใบ' },
 ]
 const CUSTOMER_TYPES: CustomerType[] = ['new', 'existing', 'reseller']
-const CREDIT_TERM_PRESETS = [7, 15, 30, 60, 90, 120]
-const CREDIT_TERM_HINTS: Record<number, string> = { 7: '1 สัปดาห์', 15: '15 วัน', 30: '1 เดือน', 60: '2 เดือน', 90: '3 เดือน', 120: '4 เดือน' }
+// 0 (ไม่มีเครดิตเทอม / จ่ายทันที) leads the list — it's a real, selectable
+// term, not a "cleared" state, so it sits in the same preset array as the
+// rest rather than as a separate special case.
+const CREDIT_TERM_PRESETS = [0, 7, 15, 30, 60, 90, 120]
+const CREDIT_TERM_HINTS: Record<number, string> = { 0: 'จ่ายทันที', 7: '1 สัปดาห์', 15: '15 วัน', 30: '1 เดือน', 60: '2 เดือน', 90: '3 เดือน', 120: '4 เดือน' }
+const creditTermOptionLabel = (days: number) => days === 0 ? 'ไม่มีเครดิตเทอม' : `${days} วัน`
+// The "switch back to dropdown" reset (clicking X out of custom credit-term
+// entry) should land on a real term, not silently jump to "no credit term"
+// just because that preset is now first in the list — kept as its own
+// constant so it stays decoupled from CREDIT_TERM_PRESETS' display order.
+const DEFAULT_CREDIT_TERM_PRESET = 7
 const INSTALLMENT_COUNT_PRESETS = [1, 2, 3, 4, 6, 12, 24, 36]
 const MAX_INSTALLMENTS = 360 // 30 years monthly — a ceiling against stray input, not a realistic expectation
 const INSTALLMENT_PRESETS: Record<number, Array<{ label: string; percents: number[] }>> = {
@@ -194,6 +205,7 @@ export function RequestFormStepper({
   // CUSTOM_MODE (false, per-row). Re-derived from saved data on edit-load.
   const [hwCreditTermUniform, setHwCreditTermUniform] = useState(isCreditTermUniform(req?.installments))
   const [hwCustomCtRows, setHwCustomCtRows] = useState<Record<number, boolean>>({})
+  const [hwSolutions, setHwSolutions] = useState<string[]>(req?.solutions ?? [])
 
   // ── SW payment state ──
   const [swCreditTermDays, setSwCreditTermDays] = useState<number | ''>(
@@ -213,6 +225,7 @@ export function RequestFormStepper({
   const [swAmountInputMode, setSwAmountInputMode] = useState(false)
   const [swCreditTermUniform, setSwCreditTermUniform] = useState(isCreditTermUniform(req?.swInstallments))
   const [swCustomCtRows, setSwCustomCtRows] = useState<Record<number, boolean>>({})
+  const [swSolutions, setSwSolutions] = useState<string[]>(req?.swSolutions ?? [])
 
   const fd = formData
   const saleType = String(fd.saleType || '') as SaleType
@@ -292,6 +305,7 @@ export function RequestFormStepper({
       ...formData,
       hwCreditTermDays, hwInstallmentCount, hwInstallments, hwCreditTermUniform,
       swCreditTermDays, swInstallmentCount, swInstallments, swCreditTermUniform,
+      solutions: hwSolutions, swSolutions,
     }
   }
 
@@ -484,6 +498,29 @@ export function RequestFormStepper({
     </span>
   )
 
+  // Sits between the cost/selling price table and Credit Term/จำนวนงวด —
+  // which solution(s) this quotation block is actually selling. One instance
+  // per block ('hw' also covers the single Lump Sum block; 'sw' is Software
+  // & Installation), same hw/sw split as the payment block beside it.
+  function solutionPicker(prefix: 'hw' | 'sw') {
+    const solutions = prefix === 'hw' ? hwSolutions : swSolutions
+    const setSolutions = prefix === 'hw' ? setHwSolutions : setSwSolutions
+    return (
+      <div style={{ padding: '16px 16px 0' }}>
+        <FormGroup label="Solution">
+          <TagMultiSelect
+            value={solutions}
+            onChange={setSolutions}
+            groups={SOLUTION_GROUPS}
+            allowCustom
+            customLabel={OTHER_SERVICE_LABEL}
+            placeholder="เลือก solution ที่ขาย"
+          />
+        </FormGroup>
+      </div>
+    )
+  }
+
   const quotationHeader = (quotationNo: string, groupLabel: string, gradient: string) => (
     <div style={{ background: gradient, borderRadius: '4px 4px 0 0', padding: '12px 14px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px 12px' }}>
       <span style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
@@ -614,7 +651,7 @@ export function RequestFormStepper({
               <div style={{ position: 'absolute', top: 0, left: '100%', marginLeft: 4, height: 32, display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap' }}>
                 <span style={{ color: '#586782', fontSize: 11, fontWeight: 400 }}>วัน</span>
                 <button type="button"
-                  onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', CREDIT_TERM_PRESETS[0]) }}
+                  onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', DEFAULT_CREDIT_TERM_PRESET) }}
                   style={{ width: 20, height: 32, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -633,7 +670,7 @@ export function RequestFormStepper({
               style={{ textAlign: 'right', flex: 1 }} />
             <span style={{ color: '#586782', fontSize: 13, fontWeight: 400, flexShrink: 0 }}>วัน</span>
             <button type="button"
-              onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', CREDIT_TERM_PRESETS[0]) }}
+              onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', DEFAULT_CREDIT_TERM_PRESET) }}
               style={{ width: 28, height: 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
               onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -655,7 +692,7 @@ export function RequestFormStepper({
           style={compact ? { width: 92, height: 32, fontSize: 12, paddingLeft: 8, paddingRight: 22 } : selectStyle}
         >
           <option value="">— วัน —</option>
-          {CREDIT_TERM_PRESETS.map(d => <option key={d} value={d}>{d} วัน</option>)}
+          {CREDIT_TERM_PRESETS.map(d => <option key={d} value={d}>{creditTermOptionLabel(d)}</option>)}
           <option value="custom">ระบุเอง</option>
         </Select>
       )
@@ -714,7 +751,7 @@ export function RequestFormStepper({
               >
                 <option value="">— เลือกวัน —</option>
                 {CREDIT_TERM_PRESETS.map(days => (
-                  <option key={days} value={days}>{days} วัน ({CREDIT_TERM_HINTS[days]})</option>
+                  <option key={days} value={days}>{days === 0 ? creditTermOptionLabel(days) : `${days} วัน (${CREDIT_TERM_HINTS[days]})`}</option>
                 ))}
                 <option value="custom">ระบุเอง</option>
               </Select>
@@ -1148,6 +1185,7 @@ export function RequestFormStepper({
                 { label: 'Installation', spKey: 'installationSellingPrice', costKey: 'installationCost' },
               ])}
             </div>
+            {solutionPicker('hw')}
             {renderPaymentBlock('hw', totalSelling, totalCost, 'รวมทุกรายการ')}
           </>
         ))
@@ -1159,6 +1197,7 @@ export function RequestFormStepper({
                 {rejectionQuote(initialRequest?.approvalResult?.hardwareComment)}
                 {priceTable([{ label: 'Hardware', spKey: 'hardwareSellingPrice', costKey: 'hardwareCost' }])}
               </div>
+              {solutionPicker('hw')}
               {renderPaymentBlock('hw', hwSelling, hwCost, 'Hardware')}
             </>
           ))}
@@ -1172,6 +1211,7 @@ export function RequestFormStepper({
                   { label: 'Installation', spKey: 'installationSellingPrice', costKey: 'installationCost' },
                 ])}
               </div>
+              {solutionPicker('sw')}
               {renderPaymentBlock('sw', serviceSelling, serviceCost, 'Software & Installation')}
             </>
           ))}
@@ -1256,7 +1296,7 @@ export function RequestFormStepper({
           />
           <div style={{ display: 'flex', justifyContent: isMobile ? 'stretch' : 'flex-end', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
             {!isPendingEdit && (
-              <Button variant="ghost" icon={<FaFloppyDisk size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}
+              <Button variant="secondary" icon={<FaFloppyDisk size={15} />} onClick={handleDraft} loading={draftLoading} disabled={submitLoading}
                 style={isMobile ? { width: '100%', justifyContent: 'center' } : {}}>
                 บันทึกแบบร่าง
               </Button>
