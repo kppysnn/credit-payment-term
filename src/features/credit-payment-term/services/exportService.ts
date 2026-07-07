@@ -7,6 +7,7 @@
 import type { Request, PaymentInstallment, QuotationItem } from '../types/request'
 import { SALE_TYPE_LABELS } from '../types/request'
 import { getStatusConfig } from '../utils/status'
+import { formatCreditTerm } from '../utils/formatters'
 
 export function printRequest(requestId: string): void {
   window.open(`/print/${requestId}`, '_blank')
@@ -212,7 +213,7 @@ function buildQuotationGroup(no: string, title: string, items: QuotationItem[], 
       const perRowCt = installments.length > 1 && new Set(installments.map(i => i.creditTermDays)).size > 1
       return `<div class="schedule-strip no-orphan-after">
       <span class="schedule-label">Payment Schedule</span>
-      ${perRowCt ? '' : `<span class="credit-term">Credit Term: <span class="mono">Net ${installments[0].creditTermDays}</span></span>`}
+      ${perRowCt ? '' : `<span class="credit-term">Credit Term: <span class="mono">${formatCreditTerm(installments[0].creditTermDays)}</span></span>`}
     </div>
     <table style="table-layout:fixed">
       <thead><tr><th style="width:${perRowCt ? '20%' : '33.34%'}">งวดที่</th><th style="width:${perRowCt ? '24%' : '33.33%'};text-align:center">%</th>${perRowCt ? '<th style="width:26%;text-align:center">เครดิตเทอม</th>' : ''}<th style="width:${perRowCt ? '30%' : '33.33%'};text-align:right">ยอดชำระ</th></tr></thead>
@@ -220,7 +221,7 @@ function buildQuotationGroup(no: string, title: string, items: QuotationItem[], 
         ${installments.map(i => `<tr>
           <td>${i.installmentNo}</td>
           <td style="text-align:center">${i.installmentPercent.toFixed(2)}%</td>
-          ${perRowCt ? `<td style="text-align:center">Net ${i.creditTermDays}</td>` : ''}
+          ${perRowCt ? `<td style="text-align:center">${formatCreditTerm(i.creditTermDays)}</td>` : ''}
           <td class="mono" style="text-align:right">${i.installmentAmount.toLocaleString()}</td>
         </tr>`).join('')}
       </tbody>

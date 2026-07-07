@@ -29,5 +29,5 @@ export function formatPercent(value: number): string {
 }
 
 export function formatCreditTerm(days: number): string {
-  return `Net ${days}`
+  return days === 0 ? 'No Credit' : `Net ${days}`
 }

@@ -12,6 +12,7 @@ import { Toggle } from '../../../components/ui/Toggle'
 import { Modal } from '../../../components/ui/Modal'
 import { FormGroup, Input, Select } from '../../../components/ui/FormField'
 import { formatCurrency, calcInstallmentAmount, calcTotalInstallmentPercent } from '../utils/calculations'
+import { formatCreditTerm } from '../utils/formatters'
 import { searchCustomers } from '../services/customerService'
 import { FaFloppyDisk } from 'react-icons/fa6'
 import { XMarkIcon } from '../../../components/icons/FigmaIcons'
@@ -41,7 +42,7 @@ const CUSTOMER_TYPES: CustomerType[] = ['new', 'existing', 'reseller']
 // rest rather than as a separate special case.
 const CREDIT_TERM_PRESETS = [0, 7, 15, 30, 60, 90, 120]
 const CREDIT_TERM_HINTS: Record<number, string> = { 0: 'จ่ายทันที', 7: '1 สัปดาห์', 15: '15 วัน', 30: '1 เดือน', 60: '2 เดือน', 90: '3 เดือน', 120: '4 เดือน' }
-const creditTermOptionLabel = (days: number) => days === 0 ? 'ไม่มีเครดิตเทอม' : `${days} วัน`
+const creditTermOptionLabel = (days: number) => days === 0 ? 'No Credit' : `${days} วัน`
 // The "switch back to dropdown" reset (clicking X out of custom credit-term
 // entry) should land on a real term, not silently jump to "no credit term"
 // just because that preset is now first in the list — kept as its own
@@ -437,7 +438,7 @@ export function RequestFormStepper({
                 by hand on every request regardless of what's on file here,
                 so showing it in the picker doesn't help the user decide and
                 just adds noise. */}
-            <div style={{ color: '#586782', fontSize: 12, marginTop: 2 }}>Net {c.defaultCreditTerm ?? 0} วัน</div>
+            <div style={{ color: '#586782', fontSize: 12, marginTop: 2 }}>{formatCreditTerm(c.defaultCreditTerm ?? 0)}</div>
           </button>
         )) : (
           <div style={{ padding: '10px 14px', color: '#586782', fontSize: 13 }}>ไม่พบข้อมูลลูกค้า</div>
@@ -1113,7 +1114,7 @@ export function RequestFormStepper({
                 </div>
               </FormGroup>
               {!!fd.existingCustomerId && (
-                <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(ec.defaultCreditTerm)} วัน</div>
+                <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: {formatCreditTerm(numVal(ec.defaultCreditTerm))}</div>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', marginTop: 12 }}>
                 <FormGroup label="ชื่อผู้ติดต่อ">
@@ -1152,7 +1153,7 @@ export function RequestFormStepper({
                   </div>
                 </FormGroup>
                 {rs.resellerId && (
-                  <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: Net {numVal(rs.defaultCreditTerm)} วัน</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#586782' }}>Default credit: {formatCreditTerm(numVal(rs.defaultCreditTerm))}</div>
                 )}
               </div>
               <FormGroup label="บริษัทลูกค้าปลายทาง (End Customer)" required error={errors['res.endCustomerCompanyName']}>
