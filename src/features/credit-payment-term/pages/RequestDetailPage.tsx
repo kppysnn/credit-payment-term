@@ -377,7 +377,7 @@ export function RequestDetailPage() {
   // Read-only tag chip — the Figma "tag-small / View" variant (no remove X;
   // that state is only for the editable picker in RequestFormStepper).
   const solutionTags = (solutions?: string[]) => solutions && solutions.length > 0 && (
-    <div style={{ padding: '14px 14px 0' }}>
+    <div style={{ padding: '14px 14px 14px' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#586782', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Solution</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {solutions.map(s => (

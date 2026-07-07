@@ -101,7 +101,7 @@ const PRINT_STYLES = `
 
   .comment-box { padding: 10px; border: 1px solid #D0D6DF; border-top: none; }
 
-  .solution-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0 0; }
+  .solution-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0; }
   .solution-tag { display: inline-flex; align-items: center; min-height: 22px; max-width: 100%; padding: 3px 8px; background: #D9F0F0; border-radius: 4px; font-size: 11px; color: #004081; line-height: 1.4; word-break: break-word; }
 
   /* The one bold top-tier figure on the page, matching the live detail
