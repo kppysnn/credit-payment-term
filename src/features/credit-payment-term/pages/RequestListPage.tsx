@@ -213,8 +213,10 @@ export function RequestListPage() {
   // Mobile card view for a single request row
   const renderCard = (req: RequestListItem) => {
     const isSales = currentUser.role === 'sales'
+    const isApprover = currentUser.role === 'approver'
     const isRejected = req.status === 'rejected'
     const isCancelled = req.status === 'cancelled'
+    const isPending = req.status === 'pending'
     const canEdit = isSales && (req.status === 'draft' || req.status === 'pending' || isRejected)
     // Desktop table already gives cancelled rows their own dedicated button
     // (not just the kebab) — the card view should read the same way instead
@@ -275,6 +277,20 @@ export function RequestListPage() {
               >
                 ยื่นอีกครั้ง
               </Button>
+            )}
+            {/* Same as the desktop table: only on pending rows (the one
+                status that actually needs the approver's attention), same
+                solid-navy override as the other row-level actions above. */}
+            {isApprover && isPending && (
+              <Link to={`/requests/${req.id}`} onClick={e => e.stopPropagation()}>
+                <Button
+                  size="sm"
+                  style={{ background: '#004081' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
+                >
+                  ดูรายละเอียด
+                </Button>
+              </Link>
             )}
             <KebabMenu items={kebabItems} ariaLabel={`ตัวเลือกสำหรับ ${req.requestNo}`} />
           </div>
