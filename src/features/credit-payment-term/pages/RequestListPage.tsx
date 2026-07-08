@@ -225,7 +225,10 @@ export function RequestListPage() {
             <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14, fontWeight: 600, color: '#004081' }}>{req.requestNo}</div>
             <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 11, color: '#586782', marginTop: 2 }}>{req.proposalNo}</div>
           </div>
-          <StatusBadge status={req.status} size="sm" subtitle={req.status === 'approved' ? req.approverName : undefined} version={req.version} />
+          {/* No version chip here (unlike the detail page) — keeping the
+              list rows to just the status keeps the table calmer; the
+              resubmission detail is one click away. */}
+          <StatusBadge status={req.status} size="sm" subtitle={req.status === 'approved' ? req.approverName : undefined} />
         </div>
 
         {/* Customer + sales */}
@@ -511,7 +514,10 @@ export function RequestListPage() {
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', color: '#505050', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{req.salesName}</td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', textAlign: 'left', fontVariantNumeric: 'tabular-nums', fontSize: 13, color: '#004081', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatCurrency(req.totalSelling)}</td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                    <StatusBadge status={req.status} size="sm" subtitle={req.status === 'approved' ? req.approverName : undefined} version={req.version} />
+                    {/* No version chip here (unlike the detail page) — keeping
+                        the list rows to just the status keeps the table
+                        calmer; the resubmission detail is one click away. */}
+                    <StatusBadge status={req.status} size="sm" subtitle={req.status === 'approved' ? req.approverName : undefined} />
                   </td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', color: '#586782', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatDate(req.updatedAt)}</td>
                   <td style={{ padding: '14px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }} onClick={e => e.stopPropagation()}>

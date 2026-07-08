@@ -834,6 +834,91 @@ export const MOCK_REQUESTS: Request[] = [
       },
     ],
   },
+  {
+    id: 'req007',
+    requestNo: 'CPT-2026-0007',
+    version: 1,
+    createdAt: '2026-06-25T09:00:00.000Z',
+    updatedAt: '2026-06-25T14:00:00.000Z',
+    salesEmail: 'sales@company.com',
+    salesName: 'สมหญิง รักงาน',
+    salesId: 'u001',
+    proposalNo: 'PRO-2026-007',
+    // Plain first-time submission -- req002/req006 are the only other
+    // 'pending' rows, and both are already-resubmitted v2s, so there was no
+    // mock row left showing what a first-round "still under initial review"
+    // pending request looks like (version 1, no rejection/approval history).
+    saleType: 'hardware',
+    customerInfo: {
+      type: 'new',
+      data: {
+        companyName: 'บริษัท กรีนพาวเวอร์ จำกัด',
+        contactPerson: 'คุณสุนทร พลังงาน',
+        contactPhone: '02-567-8901',
+      },
+    },
+    quotationItems: [
+      {
+        itemId: 'item015',
+        type: 'hardware',
+        name: 'Hardware',
+        sellingPrice: 320000,
+        cost: 250000,
+        grossProfit: 70000,
+        marginPercent: 21.88,
+      },
+    ],
+    solutions: ['Solar Monitoring'],
+    installmentCount: 2,
+    installments: [
+      {
+        installmentNo: 1,
+        installmentPercent: 50,
+        installmentAmount: 160000,
+        creditTermDays: 15,
+        paymentCondition: 'on_po',
+      },
+      {
+        installmentNo: 2,
+        installmentPercent: 50,
+        installmentAmount: 160000,
+        creditTermDays: 15,
+        paymentCondition: 'on_delivery',
+      },
+    ],
+    financial: {
+      totalSelling: 320000,
+      totalCost: 250000,
+      grossProfit: 70000,
+      marginPercent: 21.88,
+      maxCreditTerm: 15,
+    },
+    status: 'pending',
+    history: [
+      {
+        historyId: 'h020',
+        requestId: 'req007',
+        version: 1,
+        action: 'created',
+        actorEmail: 'sales@company.com',
+        actorName: 'สมหญิง รักงาน',
+        fromStatus: '',
+        toStatus: 'draft',
+        createdAt: '2026-06-25T09:00:00.000Z',
+      },
+      {
+        historyId: 'h021',
+        requestId: 'req007',
+        version: 1,
+        action: 'submitted',
+        actorEmail: 'sales@company.com',
+        actorName: 'สมหญิง รักงาน',
+        fromStatus: 'draft',
+        toStatus: 'pending',
+        createdAt: '2026-06-25T14:00:00.000Z',
+      },
+    ],
+  },
 ]
 
 let _requests = [...MOCK_REQUESTS]
