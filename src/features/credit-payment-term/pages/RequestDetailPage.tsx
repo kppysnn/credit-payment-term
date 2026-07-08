@@ -21,7 +21,7 @@ import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, 
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
-import { FaPenToSquare, FaArrowRight } from 'react-icons/fa6'
+import { FaPenToSquare } from 'react-icons/fa6'
 import { RefreshIcon, PrinterIcon, CheckCircleIcon, XCircleIcon, BanIcon, AddCircleIcon } from '../../../components/icons/FigmaIcons'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 
@@ -473,7 +473,7 @@ export function RequestDetailPage() {
               everything else here (print, edit, cancel) is just upkeep. */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: isMobile ? 'flex-start' : 'flex-end', width: isMobile ? '100%' : undefined }}>
             {currentUser.role === 'sales' && req.status === 'draft' && (
-              <Button size="sm" icon={<FaArrowRight size={14} />} loading={submitLoading} onClick={handleSubmit}>ส่งคำขออนุมัติ</Button>
+              <Button size="sm" loading={submitLoading} onClick={handleSubmit}>ส่งคำขออนุมัติ</Button>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isMobile ? 'flex-start' : 'flex-end', width: isMobile ? '100%' : undefined }}>
               <Button variant="secondary" size="sm" icon={<PrinterIcon size={15} />} onClick={() => exportPDF(req)}>Print / PDF</Button>
