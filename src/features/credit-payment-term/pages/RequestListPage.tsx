@@ -556,12 +556,13 @@ export function RequestListPage() {
                           {/* Cancelled requests get the same visible-button
                               treatment as rejected — the one useful action
                               left on a dead-end row shouldn't be buried in
-                              the kebab. Secondary (not primary/solid-navy):
-                              this is an optional convenience, not a "this one
-                              needs you" flag like resubmitting a rejection. */}
+                              the kebab. Same primary style + icon as the
+                              detail page's own duplicate button (RequestDetailPage.tsx)
+                              and the "สร้างคำขอใหม่" button above — it's the
+                              same underlying action, so it should look like it. */}
                           {canDuplicate && (
                             <Button
-                              variant="secondary" size="sm" icon={<FaCopy size={14} />}
+                              size="sm" icon={<AddCircleIcon size={14} />}
                               onClick={() => handleDuplicateClick(req.id)}
                             >
                               สร้างคำขอใหม่จากข้อมูลเดิม

@@ -21,8 +21,8 @@ import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, 
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
-import { FaPenToSquare, FaCopy } from 'react-icons/fa6'
-import { RefreshIcon, PrinterIcon, CheckCircleIcon, XCircleIcon, BanIcon } from '../../../components/icons/FigmaIcons'
+import { FaPenToSquare } from 'react-icons/fa6'
+import { RefreshIcon, PrinterIcon, CheckCircleIcon, XCircleIcon, BanIcon, AddCircleIcon } from '../../../components/icons/FigmaIcons'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 
 // Strip fields that change on every resubmit *regardless* of what sales
@@ -488,7 +488,7 @@ export function RequestDetailPage() {
               <Button variant="danger" size="sm" icon={<BanIcon size={15} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
             )}
             {canDuplicateRequest(currentUser, req) && (
-              <Button size="sm" icon={<FaCopy size={15} />} onClick={() => navigate('/requests/new', { state: { duplicateFrom: req } })}>
+              <Button size="sm" icon={<AddCircleIcon size={15} />} onClick={() => navigate('/requests/new', { state: { duplicateFrom: req } })}>
                 สร้างคำขอใหม่จากข้อมูลเดิม
               </Button>
             )}
