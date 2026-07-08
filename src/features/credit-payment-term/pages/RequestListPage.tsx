@@ -177,8 +177,11 @@ export function RequestListPage() {
   const showBanner = !anyFilterActive && (rejectedBanner || pendingBanner)
 
   // Build kebab items for a given row — shared between the table view (desktop)
-  // and the card view (mobile).
-  function buildKebabItems(req: RequestListItem): KebabMenuItem[] {
+  // and the card view (mobile). `hideDuplicate` lets a caller that already
+  // renders its own dedicated "สร้างคำขอใหม่จากข้อมูลเดิม" button (the desktop
+  // table) drop it from the kebab too, same as the rejected-row "แก้ไข" button
+  // below is never duplicated into the kebab either.
+  function buildKebabItems(req: RequestListItem, opts?: { hideDuplicate?: boolean }): KebabMenuItem[] {
     const isSales = currentUser.role === 'sales'
     const isRejected = req.status === 'rejected'
     const canEdit = isSales && (req.status === 'draft' || req.status === 'pending' || isRejected)
@@ -193,7 +196,7 @@ export function RequestListPage() {
     if (isSales && (req.status === 'pending' || req.status === 'approved')) {
       items.push({ label: 'ยกเลิกคำขอ', icon: <BanIcon size={15} />, onClick: () => handleCancelClick(req.id, req.customerName), danger: true })
     }
-    if (isSales && req.status === 'cancelled') {
+    if (isSales && req.status === 'cancelled' && !opts?.hideDuplicate) {
       items.push({ label: 'สร้างคำขอใหม่จากข้อมูลเดิม', icon: <FaCopy size={15} />, onClick: () => handleDuplicateClick(req.id) })
     }
     return items
@@ -515,12 +518,14 @@ export function RequestListPage() {
                     {(() => {
                       const isSales = currentUser.role === 'sales'
                       const isRejected = req.status === 'rejected'
+                      const isCancelled = req.status === 'cancelled'
                       const canEdit = isSales && (req.status === 'draft' || req.status === 'pending' || isRejected)
+                      const canDuplicate = isSales && isCancelled
                       // Edit/Print consolidated into one kebab menu (Exzy_WorkX
                       // 1317:2856 "option_dropdown" + 934:7551's dropdown list)
                       // — order is deliberate: the common, safe actions first,
                       // the one destructive action last and visually split off.
-                      const kebabItems = buildKebabItems(req)
+                      const kebabItems = buildKebabItems(req, { hideDuplicate: canDuplicate })
 
                       return (
                         <div style={{ display: 'flex', gap: 14, justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -547,6 +552,20 @@ export function RequestListPage() {
                                 แก้ไข
                               </Button>
                             </Link>
+                          )}
+                          {/* Cancelled requests get the same visible-button
+                              treatment as rejected — the one useful action
+                              left on a dead-end row shouldn't be buried in
+                              the kebab. Secondary (not primary/solid-navy):
+                              this is an optional convenience, not a "this one
+                              needs you" flag like resubmitting a rejection. */}
+                          {canDuplicate && (
+                            <Button
+                              variant="secondary" size="sm" icon={<FaCopy size={14} />}
+                              onClick={() => handleDuplicateClick(req.id)}
+                            >
+                              สร้างคำขอใหม่จากข้อมูลเดิม
+                            </Button>
                           )}
                           <KebabMenu items={kebabItems} ariaLabel={`ตัวเลือกสำหรับ ${req.requestNo}`} />
                         </div>
