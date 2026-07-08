@@ -21,7 +21,7 @@ import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, 
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
-import { FaPenToSquare } from 'react-icons/fa6'
+import { FaPenToSquare, FaPaperPlane } from 'react-icons/fa6'
 import { RefreshIcon, PrinterIcon, CheckCircleIcon, XCircleIcon, BanIcon, AddCircleIcon } from '../../../components/icons/FigmaIcons'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 
@@ -471,9 +471,6 @@ export function RequestDetailPage() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isMobile ? 'flex-start' : 'flex-end', width: isMobile ? '100%' : undefined }}>
             <Button variant="secondary" size="sm" icon={<PrinterIcon size={15} />} onClick={() => exportPDF(req)}>Print / PDF</Button>
 
-            {currentUser.role === 'sales' && req.status === 'draft' && (
-              <Button size="sm" loading={submitLoading} onClick={handleSubmit}>ส่งคำขออนุมัติ</Button>
-            )}
             {canEditRequest(currentUser, req) && (
               <Link to={`/requests/${req.id}/edit`}>
                 <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <RefreshIcon size={15} /> : <FaPenToSquare size={15} />}>
@@ -502,6 +499,14 @@ export function RequestDetailPage() {
             )}
             {canRejectRequest(currentUser, req) && (
               <Button variant="danger" size="sm" icon={<XCircleIcon size={15} color="currentColor" />} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
+            )}
+            {/* The one primary "move this forward" action always sits last/
+                rightmost — same spot "อนุมัติ" takes for an approver — so
+                submitting a draft reads as the obvious next step, not one of
+                a row of equally-weighted buttons. Icon added to match every
+                other button in this row having one. */}
+            {currentUser.role === 'sales' && req.status === 'draft' && (
+              <Button size="sm" icon={<FaPaperPlane size={14} />} loading={submitLoading} onClick={handleSubmit}>ส่งคำขออนุมัติ</Button>
             )}
           </div>
         </div>
