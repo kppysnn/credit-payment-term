@@ -23,12 +23,13 @@ const STATUSES: RequestStatus[] = ['draft', 'pending', 'approved', 'rejected', '
 
 type SortKey = 'requestNo' | 'customerName' | 'salesName' | 'totalSelling' | 'status' | 'updatedAt'
 
-// Shared width for the table row's one-off action button — "แก้ไข" (rejected),
-// "ยื่นอีกครั้ง" (cancelled) and "ดูรายละเอียด" (approver) only ever appear one
-// at a time per row (mutually exclusive by role/status), but different label
-// lengths made the column look uneven scrolling row to row. Fixing the width
-// keeps every row's button the same size regardless of which one it is.
-const ROW_ACTION_BTN_WIDTH = 132
+// Shared width for "แก้ไข" (rejected) / "ยื่นอีกครั้ง" (cancelled) — the two
+// only ever appear one at a time per row (mutually exclusive by status), but
+// different label lengths made the column look uneven scrolling row to row.
+// Sized to just fit "ยื่นอีกครั้ง" (the longer of the two, ~92px natural) plus
+// a few px of breathing room — not an arbitrary round number that leaves
+// "แก้ไข" swimming in extra padding.
+const ROW_ACTION_BTN_WIDTH = 96
 
 // Action column widened (10% -> 16%) to fit the rejected-row's own resubmit
 // button alongside the kebab menu — taken from "ลูกค้า" and "อัปเดต", the
@@ -533,6 +534,7 @@ export function RequestListPage() {
                       const isApprover = currentUser.role === 'approver'
                       const isRejected = req.status === 'rejected'
                       const isCancelled = req.status === 'cancelled'
+                      const isPending = req.status === 'pending'
                       const canEdit = isSales && (req.status === 'draft' || req.status === 'pending' || isRejected)
                       const canDuplicate = isSales && isCancelled
                       // Edit/Print consolidated into one kebab menu (Exzy_WorkX
@@ -588,21 +590,21 @@ export function RequestListPage() {
                               ยื่นอีกครั้ง
                             </Button>
                           )}
-                          {/* Approver rows have no kebab actions at all (only
-                              sales gets edit/duplicate/delete/cancel items) —
-                              clicking anywhere on the row already opens the
-                              detail page, but that wasn't obvious/discoverable
-                              enough on its own, so make the click target an
-                              explicit, always-visible button instead. Secondary
-                              (not the solid-navy above): this shows on every
-                              single row for an approver, not just a one-off
-                              status, so it should read as routine navigation,
-                              not a special call to action. */}
-                          {isApprover && (
+                          {/* Only on pending rows — this is the one status
+                              that actually needs the approver's attention
+                              (draft is invisible to them, everything else is
+                              already decided), so restricting the button to
+                              it makes "you need to open this one" unmissable
+                              instead of a routine button on every row. Same
+                              solid-navy override as "แก้ไข"/"ยื่นอีกครั้ง"
+                              above for the same reason: a one-off action on a
+                              specific status, not a page-level CTA. */}
+                          {isApprover && isPending && (
                             <Link to={`/requests/${req.id}`}>
                               <Button
-                                variant="secondary" size="sm"
-                                style={{ minWidth: ROW_ACTION_BTN_WIDTH }}
+                                size="sm"
+                                style={{ background: '#004081' }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
                               >
                                 ดูรายละเอียด
                               </Button>
