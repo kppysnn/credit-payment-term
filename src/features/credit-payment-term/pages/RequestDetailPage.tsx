@@ -494,7 +494,7 @@ export function RequestDetailPage() {
                 onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
                 onClick={() => navigate('/requests/new', { state: { duplicateFrom: req } })}
               >
-                สร้างคำขอใหม่จากข้อมูลเดิม
+                ยื่นอีกครั้ง
               </Button>
             )}
             {canApproveRequest(currentUser, req) && (

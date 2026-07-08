@@ -113,7 +113,7 @@ export function CreateRequestPage() {
   const { currentUser } = useCurrentUser()
   const navigate = useNavigate()
   const location = useLocation()
-  // Set only when arriving via "สร้างคำขอใหม่จากข้อมูลเดิม" on a cancelled
+  // Set only when arriving via "ยื่นอีกครั้ง" on a cancelled
   // request — prefills the stepper from that request's data (RequestFormStepper
   // already supports this via initialRequest, same mechanism EditRequestPage
   // uses). buildRequestFromFormData below always builds a fresh payload

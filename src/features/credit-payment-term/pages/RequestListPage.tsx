@@ -178,7 +178,7 @@ export function RequestListPage() {
 
   // Build kebab items for a given row — shared between the table view (desktop)
   // and the card view (mobile). `hideDuplicate` lets a caller that already
-  // renders its own dedicated "สร้างคำขอใหม่จากข้อมูลเดิม" button (the desktop
+  // renders its own dedicated "ยื่นอีกครั้ง" button (the desktop
   // table) drop it from the kebab too, same as the rejected-row "แก้ไข" button
   // below is never duplicated into the kebab either.
   function buildKebabItems(req: RequestListItem, opts?: { hideDuplicate?: boolean }): KebabMenuItem[] {
@@ -197,7 +197,7 @@ export function RequestListPage() {
       items.push({ label: 'ยกเลิกคำขอ', icon: <BanIcon size={15} />, onClick: () => handleCancelClick(req.id, req.customerName), danger: true })
     }
     if (isSales && req.status === 'cancelled' && !opts?.hideDuplicate) {
-      items.push({ label: 'สร้างคำขอใหม่จากข้อมูลเดิม', icon: <FaCopy size={15} />, onClick: () => handleDuplicateClick(req.id) })
+      items.push({ label: 'ยื่นอีกครั้ง', icon: <FaCopy size={15} />, onClick: () => handleDuplicateClick(req.id) })
     }
     return items
   }
@@ -577,7 +577,7 @@ export function RequestListPage() {
                               onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
                               onClick={() => handleDuplicateClick(req.id)}
                             >
-                              สร้างคำขอใหม่จากข้อมูลเดิม
+                              ยื่นอีกครั้ง
                             </Button>
                           )}
                           <KebabMenu items={kebabItems} ariaLabel={`ตัวเลือกสำหรับ ${req.requestNo}`} />
