@@ -11,7 +11,7 @@ import { DatePicker } from '../../../components/ui/DatePicker'
 import { KebabMenu, type KebabMenuItem } from '../../../components/ui/KebabMenu'
 import { DeleteRequestModal } from '../../../components/modals/DeleteRequestModal'
 import { CancelModal } from '../../../components/modals/CancelModal'
-import { FaPenToSquare, FaCopy, FaEye } from 'react-icons/fa6'
+import { FaPenToSquare, FaCopy } from 'react-icons/fa6'
 import { SearchIcon, SortCarets, AddCircleIcon, PrinterIcon, TrashIcon, XMarkIcon, BanIcon } from '../../../components/icons/FigmaIcons'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
@@ -601,7 +601,7 @@ export function RequestListPage() {
                           {isApprover && (
                             <Link to={`/requests/${req.id}`}>
                               <Button
-                                variant="secondary" size="sm" icon={<FaEye size={14} />}
+                                variant="secondary" size="sm"
                                 style={{ minWidth: ROW_ACTION_BTN_WIDTH }}
                               >
                                 ดูรายละเอียด
