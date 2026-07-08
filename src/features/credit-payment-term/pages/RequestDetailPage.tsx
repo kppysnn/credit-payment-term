@@ -488,7 +488,15 @@ export function RequestDetailPage() {
               <Button variant="danger" size="sm" icon={<BanIcon size={15} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
             )}
             {canDuplicateRequest(currentUser, req) && (
-              <Button size="sm" icon={<AddCircleIcon size={15} />} onClick={() => navigate('/requests/new', { state: { duplicateFrom: req } })}>
+              // Solid navy (#004081), not the page-level teal-navy gradient —
+              // matches RequestListPage's table-row duplicate button (same
+              // action, same look) and the rejected row's own "แก้ไข" override.
+              <Button
+                size="sm" icon={<AddCircleIcon size={15} />}
+                style={{ background: '#004081' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
+                onClick={() => navigate('/requests/new', { state: { duplicateFrom: req } })}
+              >
                 สร้างคำขอใหม่จากข้อมูลเดิม
               </Button>
             )}

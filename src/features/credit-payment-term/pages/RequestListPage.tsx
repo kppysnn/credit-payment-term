@@ -556,13 +556,19 @@ export function RequestListPage() {
                           {/* Cancelled requests get the same visible-button
                               treatment as rejected — the one useful action
                               left on a dead-end row shouldn't be buried in
-                              the kebab. Same primary style + icon as the
-                              detail page's own duplicate button (RequestDetailPage.tsx)
-                              and the "สร้างคำขอใหม่" button above — it's the
-                              same underlying action, so it should look like it. */}
+                              the kebab. Solid navy (#004081), not the page-level
+                              teal-navy gradient: the gradient is reserved for a
+                              single primary CTA per page (e.g. "สร้างคำขอใหม่"
+                              above); repeated per-row in a table it read as too
+                              loud. Same solid-navy override as the rejected
+                              row's "แก้ไข" button, and matches the detail page's
+                              own duplicate button (RequestDetailPage.tsx) —
+                              same action, same look. */}
                           {canDuplicate && (
                             <Button
                               size="sm" icon={<AddCircleIcon size={14} />}
+                              style={{ background: '#004081' }}
+                              onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
                               onClick={() => handleDuplicateClick(req.id)}
                             >
                               สร้างคำขอใหม่จากข้อมูลเดิม
