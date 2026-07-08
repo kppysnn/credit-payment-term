@@ -11,7 +11,7 @@ import { DatePicker } from '../../../components/ui/DatePicker'
 import { KebabMenu, type KebabMenuItem } from '../../../components/ui/KebabMenu'
 import { DeleteRequestModal } from '../../../components/modals/DeleteRequestModal'
 import { CancelModal } from '../../../components/modals/CancelModal'
-import { FaPenToSquare } from 'react-icons/fa6'
+import { FaPenToSquare, FaCopy } from 'react-icons/fa6'
 import { SearchIcon, SortCarets, AddCircleIcon, PrinterIcon, TrashIcon, XMarkIcon, BanIcon } from '../../../components/icons/FigmaIcons'
 import { formatCurrency } from '../utils/calculations'
 import { formatDate } from '../utils/formatters'
@@ -154,6 +154,11 @@ export function RequestListPage() {
     if (req) setCancelTarget({ request: req, customerName })
   }
 
+  async function handleDuplicateClick(id: string) {
+    const req = await getRequestById(id)
+    if (req) navigate('/requests/new', { state: { duplicateFrom: req } })
+  }
+
   async function confirmCancel(reason: string) {
     if (!cancelTarget) return
     await cancelRequest(cancelTarget.request.id, reason, currentUser)
@@ -187,6 +192,9 @@ export function RequestListPage() {
     }
     if (isSales && (req.status === 'pending' || req.status === 'approved')) {
       items.push({ label: 'ยกเลิกคำขอ', icon: <BanIcon size={15} />, onClick: () => handleCancelClick(req.id, req.customerName), danger: true })
+    }
+    if (isSales && req.status === 'cancelled') {
+      items.push({ label: 'สร้างคำขอใหม่จากข้อมูลเดิม', icon: <FaCopy size={15} />, onClick: () => handleDuplicateClick(req.id) })
     }
     return items
   }

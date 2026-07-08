@@ -64,6 +64,15 @@ export function canDeleteRequest(user: CurrentUser, req: Request): boolean {
   return req.status === 'draft'
 }
 
+// A cancelled request is a dead end — sales can't edit or resubmit it, so the
+// only way forward is a brand new request. This lets them start that new one
+// pre-filled from the cancelled request's data instead of retyping everything.
+export function canDuplicateRequest(user: CurrentUser, req: Request): boolean {
+  if (user.role !== 'sales') return false
+  if (req.salesId !== user.id) return false
+  return req.status === 'cancelled'
+}
+
 export function canExport(user: CurrentUser): boolean {
   return hasPermission(user, 'creditTerm.export')
 }

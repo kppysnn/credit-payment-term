@@ -17,11 +17,11 @@ import { Textarea } from '../../../components/ui/FormField'
 import { ApproveModal } from '../../../components/modals/ApproveModal'
 import { RejectModal } from '../../../components/modals/RejectModal'
 import { CancelModal } from '../../../components/modals/CancelModal'
-import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, canViewRequest } from '../utils/permissions'
+import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, canDuplicateRequest, canViewRequest } from '../utils/permissions'
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
-import { FaPenToSquare } from 'react-icons/fa6'
+import { FaPenToSquare, FaCopy } from 'react-icons/fa6'
 import { RefreshIcon, PrinterIcon, CheckCircleIcon, XCircleIcon, BanIcon } from '../../../components/icons/FigmaIcons'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 
@@ -486,6 +486,11 @@ export function RequestDetailPage() {
             )}
             {canCancelRequest(currentUser, req) && (
               <Button variant="danger" size="sm" icon={<BanIcon size={15} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
+            )}
+            {canDuplicateRequest(currentUser, req) && (
+              <Button size="sm" icon={<FaCopy size={15} />} onClick={() => navigate('/requests/new', { state: { duplicateFrom: req } })}>
+                สร้างคำขอใหม่จากข้อมูลเดิม
+              </Button>
             )}
             {canApproveRequest(currentUser, req) && (
               <Button size="sm" icon={<CheckCircleIcon size={15} color="currentColor" />} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>

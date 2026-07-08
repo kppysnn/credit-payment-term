@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
 import { RequestFormStepper } from '../components/RequestFormStepper'
 import { createRequest, submitRequest } from '../services/creditTermService'
@@ -112,6 +112,14 @@ function buildRequestFromFormData(data: Record<string, unknown>, user: { id: str
 export function CreateRequestPage() {
   const { currentUser } = useCurrentUser()
   const navigate = useNavigate()
+  const location = useLocation()
+  // Set only when arriving via "สร้างคำขอใหม่จากข้อมูลเดิม" on a cancelled
+  // request — prefills the stepper from that request's data (RequestFormStepper
+  // already supports this via initialRequest, same mechanism EditRequestPage
+  // uses). buildRequestFromFormData below always builds a fresh payload
+  // regardless of origin, so createRequest still assigns a brand-new
+  // id/requestNo/history — this is a copy, not a resurrection of the old one.
+  const duplicateFrom = (location.state as Record<string, unknown> | null)?.duplicateFrom as Request | undefined
 
   async function handleSaveDraft(data: Record<string, unknown>) {
     const payload = buildRequestFromFormData(data, currentUser)
@@ -132,9 +140,12 @@ export function CreateRequestPage() {
         <BackButton to="/requests" label="กลับไปหน้ารายการคำขอ" />
       </div>
       <div style={{ maxWidth: 760, margin: '0 auto 0' }}>
-        <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 500, color: '#586782' }}>สร้างคำขออนุมัติใหม่</h1>
+        <h1 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 500, color: '#586782' }}>
+          สร้างคำขออนุมัติใหม่{duplicateFrom && ` — จากข้อมูลเดิมของ ${duplicateFrom.requestNo}`}
+        </h1>
       </div>
       <RequestFormStepper
+        initialRequest={duplicateFrom}
         currentUser={currentUser}
         onSaveDraft={handleSaveDraft}
         onSubmit={handleSubmit}
