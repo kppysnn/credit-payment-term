@@ -21,7 +21,7 @@ import { canApproveRequest, canRejectRequest, canEditRequest, canCancelRequest, 
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 import { BackButton } from '../../../components/ui/BackButton'
-import { FaPenToSquare, FaPaperPlane } from 'react-icons/fa6'
+import { FaPenToSquare, FaArrowRight } from 'react-icons/fa6'
 import { RefreshIcon, PrinterIcon, CheckCircleIcon, XCircleIcon, BanIcon, AddCircleIcon } from '../../../components/icons/FigmaIcons'
 import { useBreakpoint } from '../../../hooks/useBreakpoint'
 
@@ -467,47 +467,47 @@ export function RequestDetailPage() {
             </p>
           </div>
 
-          {/* Actions — full-width row on mobile */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isMobile ? 'flex-start' : 'flex-end', width: isMobile ? '100%' : undefined }}>
-            <Button variant="secondary" size="sm" icon={<PrinterIcon size={15} />} onClick={() => exportPDF(req)}>Print / PDF</Button>
-
-            {canEditRequest(currentUser, req) && (
-              <Link to={`/requests/${req.id}/edit`}>
-                <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <RefreshIcon size={15} /> : <FaPenToSquare size={15} />}>
-                  {req.status === 'rejected' ? 'แก้ไขและส่งใหม่' : 'แก้ไข'}
-                </Button>
-              </Link>
-            )}
-            {canCancelRequest(currentUser, req) && (
-              <Button variant="danger" size="sm" icon={<BanIcon size={15} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
-            )}
-            {canDuplicateRequest(currentUser, req) && (
-              // Solid navy (#004081), not the page-level teal-navy gradient —
-              // matches RequestListPage's table-row duplicate button (same
-              // action, same look) and the rejected row's own "แก้ไข" override.
-              <Button
-                size="sm" icon={<AddCircleIcon size={15} />}
-                style={{ background: '#004081' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
-                onClick={() => navigate('/requests/new', { state: { duplicateFrom: req } })}
-              >
-                ยื่นอีกครั้ง
-              </Button>
-            )}
-            {canApproveRequest(currentUser, req) && (
-              <Button size="sm" icon={<CheckCircleIcon size={15} color="currentColor" />} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>
-            )}
-            {canRejectRequest(currentUser, req) && (
-              <Button variant="danger" size="sm" icon={<XCircleIcon size={15} color="currentColor" />} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
-            )}
-            {/* The one primary "move this forward" action always sits last/
-                rightmost — same spot "อนุมัติ" takes for an approver — so
-                submitting a draft reads as the obvious next step, not one of
-                a row of equally-weighted buttons. Icon added to match every
-                other button in this row having one. */}
+          {/* Actions — full-width on mobile. Submitting a draft gets its own
+              row above the rest, not just the rightmost slot in one row —
+              it's the one action that actually moves the request forward,
+              everything else here (print, edit, cancel) is just upkeep. */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: isMobile ? 'flex-start' : 'flex-end', width: isMobile ? '100%' : undefined }}>
             {currentUser.role === 'sales' && req.status === 'draft' && (
-              <Button size="sm" icon={<FaPaperPlane size={14} />} loading={submitLoading} onClick={handleSubmit}>ส่งคำขออนุมัติ</Button>
+              <Button size="sm" icon={<FaArrowRight size={14} />} loading={submitLoading} onClick={handleSubmit}>ส่งคำขออนุมัติ</Button>
             )}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isMobile ? 'flex-start' : 'flex-end', width: isMobile ? '100%' : undefined }}>
+              <Button variant="secondary" size="sm" icon={<PrinterIcon size={15} />} onClick={() => exportPDF(req)}>Print / PDF</Button>
+
+              {canEditRequest(currentUser, req) && (
+                <Link to={`/requests/${req.id}/edit`}>
+                  <Button variant="secondary" size="sm" icon={req.status === 'rejected' ? <RefreshIcon size={15} /> : <FaPenToSquare size={15} />}>
+                    {req.status === 'rejected' ? 'แก้ไขและส่งใหม่' : 'แก้ไข'}
+                  </Button>
+                </Link>
+              )}
+              {canCancelRequest(currentUser, req) && (
+                <Button variant="danger" size="sm" icon={<BanIcon size={15} />} onClick={() => setCancelOpen(true)}>ยกเลิก</Button>
+              )}
+              {canDuplicateRequest(currentUser, req) && (
+                // Solid navy (#004081), not the page-level teal-navy gradient —
+                // matches RequestListPage's table-row duplicate button (same
+                // action, same look) and the rejected row's own "แก้ไข" override.
+                <Button
+                  size="sm" icon={<AddCircleIcon size={15} />}
+                  style={{ background: '#004081' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
+                  onClick={() => navigate('/requests/new', { state: { duplicateFrom: req } })}
+                >
+                  ยื่นอีกครั้ง
+                </Button>
+              )}
+              {canApproveRequest(currentUser, req) && (
+                <Button size="sm" icon={<CheckCircleIcon size={15} color="currentColor" />} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>
+              )}
+              {canRejectRequest(currentUser, req) && (
+                <Button variant="danger" size="sm" icon={<XCircleIcon size={15} color="currentColor" />} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
+              )}
+            </div>
           </div>
         </div>
 
