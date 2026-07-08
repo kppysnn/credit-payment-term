@@ -1,12 +1,17 @@
 import type { RequestCustomerInfo } from './customer'
 import type { ApprovalHistoryEntry, ApprovalResult, SectionComments } from './approval'
 
+// No separate 'revised' status — a resubmitted-after-rejection request just
+// goes back to 'pending' (see resubmitRequest, creditTermService.ts), same as
+// a first-time submission. "This is a resubmission" is conveyed by `version`
+// (> 1) instead, shown as a v2/v3 chip next to the status badge, rather than
+// a whole extra status value that never actually got produced by any code
+// path here.
 export type RequestStatus =
   | 'draft'
   | 'pending'
   | 'approved'
   | 'rejected'
-  | 'revised'
   | 'cancelled'
 
 export const STATUS_LABELS: Record<RequestStatus, string> = {
@@ -14,7 +19,6 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
   pending: 'รออนุมัติ',
   approved: 'อนุมัติแล้ว',
   rejected: 'ไม่อนุมัติ',
-  revised: 'แก้ไขและส่งใหม่',
   cancelled: 'ยกเลิก',
 }
 

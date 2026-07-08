@@ -77,7 +77,7 @@ Components use the **hardcoded hex**, not `var(--color-*)`, in inline styles —
 | `--color-danger` | `#F3554F` |
 | `--color-info` | `#004081` |
 
-These are *not* all directly used as status icon colors — see §2.5 for the actual per-status mapping, which deviates from this table in two places (`approved` uses teal, not `--color-success` green; `cancelled`/`revised` use colors outside this table entirely).
+These are *not* all directly used as status icon colors — see §2.5 for the actual per-status mapping, which deviates from this table in two places (`approved` uses teal, not `--color-success` green; `cancelled` uses a color outside this table entirely).
 
 ### 2.5 Status Display — `StatusBadge` (corrected)
 
@@ -91,8 +91,9 @@ No background, no border, no pill — just `<Icon color={iconColor} /> <span sty
 | `pending` | `HourglassIcon` | `#FFCC00` (`--color-warning`) | `FigmaIcons.tsx`, exact Figma path |
 | `approved` | `CheckCircleIcon` | `#66C5C5` (teal) | `FigmaIcons.tsx` — **teal, not `--color-success` green.** Confirmed repeatedly against the real draft; do not "fix" this back to green. |
 | `rejected` | `XMarkIcon` | `#F3554F` | `FigmaIcons.tsx` — a bare crossed-bar X, **not** a circled X-mark |
-| `revised` | `RefreshIcon` | `#1E40AF` | `FigmaIcons.tsx`, exact `icon_refresh` (937:1108) path |
 | `cancelled` | `FiSlash` | `#6B7280` | react-icons/fi |
+
+There is no `revised` status — a resubmitted-after-rejection request goes back to `pending`; `RefreshIcon` now only appears on the rejected row's resubmit button (see §5 below), not as a status icon. The resubmission itself is surfaced via a `version` (v2/v3) chip on `StatusBadge` instead of a distinct status.
 
 Size: `sm` → icon 13px / label 12px. `md` (default) → icon 14px / label 13px. Optional `subtitle` line (e.g. approver name) at 11px / `#929EB4`.
 
@@ -481,7 +482,7 @@ Two sources. **Neither `lucide-react` nor `react-icons/fa6` exists anywhere in `
    | `PrinterIcon` | `icon_printer` (917:404) | |
    | `EditIcon` | `icon_Edit` (937:1064) | pencil |
    | `TrashIcon` | `icon_delete_bin` (909:1413) | kebab-menu "ลบคำขอ" item + `DeleteRequestModal` confirm button |
-   | `RefreshIcon` | `icon_refresh` (937:1108) | distinct path from any chevron-style refresh; used for `revised` status + resubmit actions |
+   | `RefreshIcon` | `icon_refresh` (937:1108) | distinct path from any chevron-style refresh; used for resubmit actions |
    | `MailSendIcon` | `icon_Mail_send` (937:1093) | 3-layer composite (envelope + badge circle + mirrored arrow), reconstructed at the source's original relative offsets — not simplified to one path |
 
 2. **`react-icons/fi`** (Feather, pure outline) — for everything without a literal Figma export yet: `FiSave`, `FiX`, `FiSlash`, `FiCheckCircle`, `FiXCircle`, `FiCheck`, `FiClock`, `FiFileText`, `FiGrid`, `FiClipboard`, `FiPlus` (Sidebar nav only — see note below), `FiAlertTriangle`, `FiInfo`.

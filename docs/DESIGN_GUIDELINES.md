@@ -31,7 +31,6 @@ Each status has a defined light tinted background + matching text + border:
 | pending | `#FFFBEB` | `#92400E` | `#FCD34D` |
 | approved | `#F0FDF4` | `#14532D` | `#86EFAC` |
 | rejected | `#FEF2F2` | `#7F1D1D` | `#FCA5A5` |
-| revised | `#EFF6FF` | `#1E40AF` | `#93C5FD` |
 | cancelled | `#F9FAFB` | `#6B7280` | `#D1D5DB` |
 
 ## Typography

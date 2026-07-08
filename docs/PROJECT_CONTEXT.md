@@ -47,8 +47,9 @@ Provide a single source of truth for:
 | pending | รออนุมัติ | No |
 | approved | อนุมัติแล้ว | No |
 | rejected | ไม่อนุมัติ | Yes (resubmit) |
-| revised | แก้ไขและส่งใหม่ | No |
 | cancelled | ยกเลิก | No |
+
+Note: there is no separate "revised" status. A resubmitted-after-rejection request goes back to `pending` (same as a first-time submission) — the fact that it's a resubmission is conveyed by `version` (> 1), shown as a v2/v3 chip on the `StatusBadge`, not by a distinct status value.
 
 ## Google Sheet storage concept
 

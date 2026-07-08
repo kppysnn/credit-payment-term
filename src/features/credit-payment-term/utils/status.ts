@@ -1,6 +1,6 @@
 import type { IconType } from 'react-icons'
 import { FaFileLines, FaBan } from 'react-icons/fa6'
-import { XMarkIcon, HourglassIcon, CheckCircleIcon, RefreshIcon } from '../../../components/icons/FigmaIcons'
+import { XMarkIcon, HourglassIcon, CheckCircleIcon } from '../../../components/icons/FigmaIcons'
 import type { RequestStatus } from '../types/request'
 import { STATUS_LABELS } from '../types/request'
 
@@ -33,11 +33,6 @@ export const STATUS_CONFIG: Record<RequestStatus, StatusConfig> = {
     label: STATUS_LABELS.rejected,
     iconColor: '#F3554F',
     icon: XMarkIcon,
-  },
-  revised: {
-    label: STATUS_LABELS.revised,
-    iconColor: '#1E40AF',
-    icon: RefreshIcon,
   },
   cancelled: {
     label: STATUS_LABELS.cancelled,

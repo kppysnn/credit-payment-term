@@ -714,15 +714,11 @@ export const MOCK_REQUESTS: Request[] = [
       marginPercent: 26.79,
       maxCreditTerm: 30,
     },
-    // 'revised' is a reserved status (defined in RequestStatus/STATUS_LABELS/
-    // status.ts, filterable on the list page) that no current service
-    // transition actually produces -- resubmitRequest always lands back on
-    // 'pending' (see creditTermService.ts). This row exists so the status
-    // has *a* representative mock row instead of being permanently empty in
-    // every list/filter view; it models the same "rejected -> resubmitted"
-    // shape as req002, just landing on 'revised' instead of 'pending' to
-    // stand in for a second review round.
-    status: 'revised',
+    // Resubmitted after rejection -- same shape as req002, back to 'pending'
+    // (resubmitRequest always lands there, see creditTermService.ts; there's
+    // no separate "revised" status). version: 2 + the StatusBadge's version
+    // chip is what marks this row as a resubmission, not the status value.
+    status: 'pending',
     approvalResult: {
       approverEmail: 'approver@company.com',
       approverName: 'นายประยุทธ์ มั่นคง',
@@ -832,7 +828,7 @@ export const MOCK_REQUESTS: Request[] = [
         actorEmail: 'sales@company.com',
         actorName: 'สมหญิง รักงาน',
         fromStatus: 'rejected',
-        toStatus: 'revised',
+        toStatus: 'pending',
         comment: 'Negotiate ราคาทุน Hardware กับ vendor ใหม่แล้ว ลด cost ลง 40,000 บาท',
         createdAt: '2026-06-24T13:00:00.000Z',
       },

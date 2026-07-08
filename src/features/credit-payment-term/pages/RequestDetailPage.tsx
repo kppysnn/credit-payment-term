@@ -460,10 +460,7 @@ export function RequestDetailPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h1 style={{ margin: 0, fontSize: 22, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{req.requestNo}</h1>
-              <StatusBadge status={req.status} />
-              {req.version > 1 && (
-                <span style={{ fontSize: 12, padding: '2px 8px', background: 'rgba(0,64,129,0.08)', color: '#004081', borderRadius: 4, fontWeight: 600 }}>v{req.version}</span>
-              )}
+              <StatusBadge status={req.status} version={req.version} />
             </div>
             <p style={{ margin: '6px 0 0', color: '#586782', fontSize: 14 }}>
               {req.proposalNo} · {customerName} · {SALE_TYPE_LABELS[req.saleType]}
