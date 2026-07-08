@@ -192,6 +192,16 @@ export function RequestDetailPage() {
       {formatCurrency(value)}
     </span>
   )
+  // Label above, quotation number below (not both crammed onto one line) —
+  // "PRO-2026-001-1 Hardware" as a single string wraps into 2-3 cramped
+  // lines once the "รายการ" column narrows on mobile; stacked, each line is
+  // short enough to never wrap on its own regardless of column width.
+  const summaryItemCell = (quotationNo: string, label: string) => (
+    <td style={{ padding: cellPad }}>
+      <div style={{ color: '#586782' }}>{label}</div>
+      <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 11, color: '#586782', marginTop: 2 }}>{quotationNo}</div>
+    </td>
+  )
 
   // Whoever currently has decision authority on this request can leave
   // section-level notes; everyone else only sees what's already been written.
@@ -282,11 +292,16 @@ export function RequestDetailPage() {
   // Header padding matches every body row's padding exactly (12px 14px) — the
   // WorkX host's own table cells (Exzy_WorkX 851:2649) share one padding spec
   // between header and body, never a lighter header.
-  const tableHeaderCell: React.CSSProperties = { padding: '12px 14px', fontWeight: 400, color: '#004081', fontSize: 12.5 }
+  // Mobile gets tighter cell padding and a smaller table font — at the
+  // desktop spacing, a 3-column currency table (item name + two ฿ amounts)
+  // runs past a phone's viewport width and forces horizontal scrolling just
+  // to read the grand total, the one number that should never need it.
+  const cellPad = isMobile ? '10px 8px' : '12px 14px'
+  const tableHeaderCell: React.CSSProperties = { padding: cellPad, fontWeight: 400, color: '#004081', fontSize: isMobile ? 11.5 : 12.5 }
 
   const itemsTable = (items: QuotationItem[]) => (
     <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 12 : 13 }}>
         <thead>
           <tr>
             {['รายการ', 'ราคาทุน', 'ราคาขาย'].map(h => (
@@ -297,9 +312,9 @@ export function RequestDetailPage() {
         <tbody>
           {items.map(item => (
             <tr key={item.itemId} style={{ borderTop: '1px solid #F2F6F8' }}>
-              <td style={{ padding: '12px 14px' }}>{item.name}</td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(item.cost, '#586782', undefined, 400)}</td>
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(item.sellingPrice, '#004081', undefined, 400)}</td>
+              <td style={{ padding: cellPad }}>{item.name}</td>
+              <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(item.cost, '#586782', undefined, 400)}</td>
+              <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(item.sellingPrice, '#004081', undefined, 400)}</td>
             </tr>
           ))}
         </tbody>
@@ -344,7 +359,7 @@ export function RequestDetailPage() {
             values — without it the body's widest cell (the credit-term
             cell) silently overrides them and the header drifts out of
             alignment with the body. */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 12 : 13, tableLayout: 'fixed' }}>
           <thead>
             <tr>
               <th style={{ ...tableHeaderCell, textAlign: 'left', whiteSpace: 'nowrap', width: perRowCt ? '20%' : '33.34%' }}>งวดที่</th>
@@ -356,10 +371,10 @@ export function RequestDetailPage() {
           <tbody>
             {installments.map(inst => (
               <tr key={inst.installmentNo} style={{ borderTop: '1px solid #F2F6F8' }}>
-                <td style={{ padding: '12px 14px' }}>{inst.installmentNo}</td>
-                <td style={{ padding: '12px 14px', color: '#505050', textAlign: 'center' }}>{inst.installmentPercent.toFixed(2)}%</td>
-                {perRowCt && <td style={{ padding: '12px 14px', color: '#505050', textAlign: 'center' }}>{formatCreditTerm(inst.creditTermDays)}</td>}
-                <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(inst.installmentAmount, '#004081', undefined, 400)}</td>
+                <td style={{ padding: cellPad }}>{inst.installmentNo}</td>
+                <td style={{ padding: cellPad, color: '#505050', textAlign: 'center' }}>{inst.installmentPercent.toFixed(2)}%</td>
+                {perRowCt && <td style={{ padding: cellPad, color: '#505050', textAlign: 'center' }}>{formatCreditTerm(inst.creditTermDays)}</td>}
+                <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(inst.installmentAmount, '#004081', undefined, 400)}</td>
               </tr>
             ))}
           </tbody>
@@ -501,11 +516,14 @@ export function RequestDetailPage() {
                   ยื่นอีกครั้ง
                 </Button>
               )}
+              {/* Shared width (fits "ไม่อนุมัติ", the longer of the two, plus a
+                  few px) so the pair reads as one balanced set instead of
+                  "ไม่อนุมัติ" being visibly wider than "อนุมัติ" next to it. */}
               {canApproveRequest(currentUser, req) && (
-                <Button size="sm" icon={<CheckCircleIcon size={15} color="currentColor" />} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>
+                <Button size="sm" icon={<CheckCircleIcon size={15} color="currentColor" />} style={{ minWidth: 90 }} onClick={() => setApproveOpen(true)}>อนุมัติ</Button>
               )}
               {canRejectRequest(currentUser, req) && (
-                <Button variant="danger" size="sm" icon={<XCircleIcon size={15} color="currentColor" />} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
+                <Button variant="danger" size="sm" icon={<XCircleIcon size={15} color="currentColor" />} style={{ minWidth: 90 }} onClick={() => setRejectOpen(true)}>ไม่อนุมัติ</Button>
               )}
             </div>
           </div>
@@ -594,7 +612,7 @@ export function RequestDetailPage() {
             {/* Overall total */}
             <Section title="สรุปยอดรวม">
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 12 : 13 }}>
                   <thead>
                     <tr>
                       <th style={{ ...tableHeaderCell, textAlign: 'left' }}>รายการ</th>
@@ -606,34 +624,25 @@ export function RequestDetailPage() {
                     {isLumpSum ? (
                       req.quotationItems.length > 0 && (
                         <tr style={{ borderTop: '1px solid #F2F6F8' }}>
-                          <td style={{ padding: '12px 14px' }}>
-                            <span style={{ fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{hardwareQuotationNo}</span>
-                            <span style={{ color: '#586782', marginLeft: 8 }}>รวมทุกรายการ</span>
-                          </td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#586782', undefined, 400)}</td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081', undefined, 500)}</td>
+                          {summaryItemCell(hardwareQuotationNo, 'รวมทุกรายการ')}
+                          <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#586782', undefined, 400)}</td>
+                          <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081', undefined, 500)}</td>
                         </tr>
                       )
                     ) : (
                       <>
                         {hardwareItems.length > 0 && (
                           <tr style={{ borderTop: '1px solid #F2F6F8' }}>
-                            <td style={{ padding: '12px 14px' }}>
-                              <span style={{ fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{hardwareQuotationNo}</span>
-                              <span style={{ color: '#586782', marginLeft: 8 }}>Hardware</span>
-                            </td>
-                            <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hardwareCost, '#586782', undefined, 400)}</td>
-                            <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hardwareSelling, '#004081', undefined, 500)}</td>
+                            {summaryItemCell(hardwareQuotationNo, 'Hardware')}
+                            <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(hardwareCost, '#586782', undefined, 400)}</td>
+                            <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(hardwareSelling, '#004081', undefined, 500)}</td>
                           </tr>
                         )}
                         {serviceItems.length > 0 && (
                           <tr style={{ borderTop: '1px solid #F2F6F8' }}>
-                            <td style={{ padding: '12px 14px' }}>
-                              <span style={{ fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{serviceQuotationNo}</span>
-                              <span style={{ color: '#586782', marginLeft: 8 }}>Software &amp; Installation</span>
-                            </td>
-                            <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#586782', undefined, 400)}</td>
-                            <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081', undefined, 500)}</td>
+                            {summaryItemCell(serviceQuotationNo, 'Software & Installation')}
+                            <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(serviceCost, '#586782', undefined, 400)}</td>
+                            <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081', undefined, 500)}</td>
                           </tr>
                         )}
                       </>
@@ -641,9 +650,9 @@ export function RequestDetailPage() {
                   </tbody>
                   <tfoot>
                     <tr style={{ borderTop: '1px solid #D0D6DF', background: '#F8F9FA' }}>
-                      <td style={{ padding: '14px', fontWeight: 600, fontSize: 14, color: '#586782' }}>รวมทั้งหมด</td>
-                      <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#586782', undefined, 500)}</td>
-                      <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081', 16, 700)}</td>
+                      <td style={{ padding: cellPad, fontWeight: 600, fontSize: isMobile ? 13 : 14, color: '#586782' }}>รวมทั้งหมด</td>
+                      <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(req.financial.totalCost, '#586782', undefined, 500)}</td>
+                      <td style={{ padding: cellPad, textAlign: 'right' }}>{summaryAmount(req.financial.totalSelling, '#004081', isMobile ? 14 : 16, 700)}</td>
                     </tr>
                   </tfoot>
                 </table>

@@ -214,8 +214,13 @@ export function RequestListPage() {
   const renderCard = (req: RequestListItem) => {
     const isSales = currentUser.role === 'sales'
     const isRejected = req.status === 'rejected'
+    const isCancelled = req.status === 'cancelled'
     const canEdit = isSales && (req.status === 'draft' || req.status === 'pending' || isRejected)
-    const kebabItems = buildKebabItems(req)
+    // Desktop table already gives cancelled rows their own dedicated button
+    // (not just the kebab) — the card view should read the same way instead
+    // of burying the one useful action on a dead-end row one tap deeper.
+    const canDuplicate = isSales && isCancelled
+    const kebabItems = buildKebabItems(req, { hideDuplicate: canDuplicate })
 
     return (
       <div
@@ -260,6 +265,16 @@ export function RequestListPage() {
                   แก้ไข
                 </Button>
               </Link>
+            )}
+            {canDuplicate && (
+              <Button
+                size="sm" icon={<AddCircleIcon size={14} />}
+                style={{ background: '#004081' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#004081' }}
+                onClick={e => { e.stopPropagation(); handleDuplicateClick(req.id) }}
+              >
+                ยื่นอีกครั้ง
+              </Button>
             )}
             <KebabMenu items={kebabItems} ariaLabel={`ตัวเลือกสำหรับ ${req.requestNo}`} />
           </div>

@@ -498,6 +498,18 @@ export function RequestFormStepper({
       {formatCurrency(value)}
     </span>
   )
+  // Tighter padding/font on mobile so a 3-column currency table (item name +
+  // two ฿ amounts) doesn't need horizontal scrolling to read the grand total.
+  const summaryCellPad = isMobile ? '10px 8px' : '12px 14px'
+  // Label above, quotation number below — a single "PRO-2026-001-1 Hardware"
+  // string wraps into 2-3 cramped lines once the "รายการ" column narrows on
+  // mobile; stacked, each line is short enough to never wrap on its own.
+  const summaryItemCell = (quotationNo: string, label: string) => (
+    <td style={{ padding: summaryCellPad }}>
+      <div style={{ color: '#586782' }}>{label}</div>
+      <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 11, color: '#586782', marginTop: 2 }}>{quotationNo}</div>
+    </td>
+  )
 
   // Sits between the cost/selling price table and Credit Term/จำนวนงวด —
   // which solution(s) this quotation block is actually selling. One instance
@@ -663,21 +675,29 @@ export function RequestFormStepper({
             </div>
           )
         }
+        // Same absolute-overlay pattern as the block-level Credit Term
+        // field's own custom input above (not flex siblings) — flex siblings
+        // shrank the visible input box to make room for "วัน" + the X
+        // button, so this row's control read narrower than the uniform
+        // dropdown it replaces (which fills the full column via selectStyle).
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ position: 'relative', width: '100%' }}>
             <Input type="number" min="0" value={days}
               onChange={e => updateInstRow(i, 'creditTermDays', e.target.value !== '' ? Number(e.target.value) : '')}
               placeholder="พิมพ์จำนวนวัน" error={errors[errKey]}
-              style={{ textAlign: 'right', flex: 1 }} />
-            <span style={{ color: '#586782', fontSize: 13, fontWeight: 400, flexShrink: 0 }}>วัน</span>
-            <button type="button"
-              onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', DEFAULT_CREDIT_TERM_PRESET) }}
-              style={{ width: 28, height: 38, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-              aria-label="เลือกจากรายการแทน">
-              <XMarkIcon size={16} />
-            </button>
+              className="no-spinner"
+              style={{ width: '100%', textAlign: 'right', paddingRight: 58 }} />
+            <div style={{ position: 'absolute', top: 0, right: 6, height: 38, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ color: '#586782', fontSize: 13, fontWeight: 400 }}>วัน</span>
+              <button type="button"
+                onClick={() => { setCustomCtRows(prev => ({ ...prev, [i]: false })); updateInstRow(i, 'creditTermDays', DEFAULT_CREDIT_TERM_PRESET) }}
+                style={{ width: 18, height: 18, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', color: '#586782', cursor: 'pointer', padding: 0 }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F2F6F8' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                aria-label="เลือกจากรายการแทน">
+                <XMarkIcon size={11} />
+              </button>
+            </div>
           </div>
         )
       }
@@ -1223,41 +1243,33 @@ export function RequestFormStepper({
       {/* ─── สรุปรวมทั้งหมด ─── */}
       <div id="section-summary">
       <Section title="สรุปรวมทั้งหมด">
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 12 : 13 }}>
           <thead>
             <tr>
-              <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>รายการ</th>
-              <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาทุน</th>
-              <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: 12.5 }}>ราคาขาย</th>
+              <th style={{ padding: summaryCellPad, textAlign: 'left', fontWeight: 400, color: '#004081', fontSize: isMobile ? 11.5 : 12.5 }}>รายการ</th>
+              <th style={{ padding: summaryCellPad, textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: isMobile ? 11.5 : 12.5 }}>ราคาทุน</th>
+              <th style={{ padding: summaryCellPad, textAlign: 'right', fontWeight: 400, color: '#004081', fontSize: isMobile ? 11.5 : 12.5 }}>ราคาขาย</th>
             </tr>
           </thead>
           <tbody>
             {isLumpSum ? (
               <tr style={{ borderTop: '1px solid #F2F6F8' }}>
-                <td style={{ padding: '12px 14px' }}>
-                  <span style={{ fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{hwQuotationNo}</span>
-                  <span style={{ color: '#586782', marginLeft: 8 }}>รวมทุกรายการ</span>
-                </td>
-                <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalCost, '#586782', undefined, 400)}</td>
-                <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081', undefined, 500)}</td>
+                {summaryItemCell(hwQuotationNo, 'รวมทุกรายการ')}
+                <td style={{ padding: summaryCellPad, textAlign: 'right' }}>{summaryAmount(totalCost, '#586782', undefined, 400)}</td>
+                <td style={{ padding: summaryCellPad, textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081', undefined, 500)}</td>
               </tr>
             ) : (
               <>
                 <tr style={{ borderTop: '1px solid #F2F6F8' }}>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{hwQuotationNo}</span>
-                    <span style={{ color: '#586782', marginLeft: 8 }}>Hardware</span>
-                  </td>
-                  <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hwCost, '#586782', undefined, 400)}</td>
-                  <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(hwSelling, '#004081', undefined, 500)}</td>
+                  {summaryItemCell(hwQuotationNo, 'Hardware')}
+                  <td style={{ padding: summaryCellPad, textAlign: 'right' }}>{summaryAmount(hwCost, '#586782', undefined, 400)}</td>
+                  <td style={{ padding: summaryCellPad, textAlign: 'right' }}>{summaryAmount(hwSelling, '#004081', undefined, 500)}</td>
                 </tr>
                 <tr style={{ borderTop: '1px solid #F2F6F8' }}>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ fontVariantNumeric: 'tabular-nums', color: '#586782' }}>{swQuotationNo}</span>
-                    <span style={{ color: '#586782', marginLeft: 8 }}>Software &amp; Installation</span>
-                  </td>
-                  <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceCost, '#586782', undefined, 400)}</td>
-                  <td style={{ padding: '12px 14px', textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081', undefined, 500)}</td>
+                  {summaryItemCell(swQuotationNo, 'Software & Installation')}
+                  <td style={{ padding: summaryCellPad, textAlign: 'right' }}>{summaryAmount(serviceCost, '#586782', undefined, 400)}</td>
+                  <td style={{ padding: summaryCellPad, textAlign: 'right' }}>{summaryAmount(serviceSelling, '#004081', undefined, 500)}</td>
                 </tr>
               </>
             )}
@@ -1268,12 +1280,13 @@ export function RequestFormStepper({
                 with the borderTop above it), instead of a second unattached
                 divider floating in the footer's own padding below it. */}
             <tr style={{ borderTop: '1px solid #D0D6DF', borderBottom: '1px solid #D0D6DF', background: '#F8F9FA' }}>
-              <td style={{ padding: '14px', fontWeight: 600, fontSize: 14, color: '#586782' }}>รวมทั้งหมด</td>
-              <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(totalCost, '#586782', undefined, 500)}</td>
-              <td style={{ padding: '14px', textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081', 16, 700)}</td>
+              <td style={{ padding: summaryCellPad, fontWeight: 600, fontSize: isMobile ? 13 : 14, color: '#586782' }}>รวมทั้งหมด</td>
+              <td style={{ padding: summaryCellPad, textAlign: 'right' }}>{summaryAmount(totalCost, '#586782', undefined, 500)}</td>
+              <td style={{ padding: summaryCellPad, textAlign: 'right' }}>{summaryAmount(totalSelling, '#004081', isMobile ? 14 : 16, 700)}</td>
             </tr>
           </tfoot>
         </table>
+        </div>
       </Section>
       </div>
 
