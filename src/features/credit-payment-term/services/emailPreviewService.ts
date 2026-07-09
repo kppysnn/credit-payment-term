@@ -22,24 +22,18 @@ import workxLogo from '../../../assets/navbar/workx-logo.png'
 
 const FONT = "'Poppins','Noto Sans Thai',Arial,sans-serif"
 
-// ---- Icon paths (exact SVGs — custom ones ported from components/icons/FigmaIcons.tsx, stock ones from Font Awesome 6 Solid) ----
-const ICON_FILE_LINES = 'M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-288-128 0c-17.7 0-32-14.3-32-32L224 0 64 0zM256 0l0 128 128 0L256 0zM112 256l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z'
-const ICON_CHECK = 'M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z'
-const ICON_XMARK = 'M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z'
-const ICON_TRIANGLE_EXCLAMATION = 'M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z'
-const ICON_CIRCLE_CHECK = 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z'
-const ICON_CIRCLE_XMARK = 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z'
-// Custom "check-circle-fill" (Figma 909:1364/1029:377) — used in the status
-// row to match StatusBadge.tsx's approved icon exactly (18x18 viewBox,
-// distinct from Font Awesome's circle-check used in the Alert success box).
-const ICON_CHECK_CIRCLE_CUSTOM = 'M18 9C18 13.9706 13.9706 18 9 18C4.02944 18 0 13.9706 0 9C0 4.02944 4.02944 0 9 0C13.9706 0 18 4.02944 18 9ZM13.5341 5.59088C13.2046 5.26137 12.6704 5.26137 12.3409 5.59088C12.3329 5.59884 12.3254 5.60726 12.3185 5.61612L8.41207 10.5938L6.05686 8.23863C5.72736 7.90912 5.19312 7.90912 4.86362 8.23863C4.53411 8.56813 4.53411 9.10236 4.86362 9.43187L7.84087 12.4091C8.17038 12.7386 8.70461 12.7386 9.03411 12.4091C9.04145 12.4018 9.04838 12.394 9.05486 12.3859L13.5461 6.77191C13.8636 6.44154 13.8596 5.91634 13.5341 5.59088Z'
-const ICON_HOURGLASS_STATUS ='M0.5 14C0.223858 14 0 13.7762 0 13.5C0 13.2239 0.223858 13 0.5 13H1.5V12C1.5 10.2099 2.54528 8.66493 4.05655 7.9403C4.34645 7.8013 4.5 7.56317 4.5 7.35083V6.64919C4.5 6.43685 4.34645 6.19872 4.05655 6.05972C2.54528 5.33509 1.5 3.7901 1.5 2V1H0.5C0.223858 1 0 0.776142 0 0.5C0 0.223858 0.223858 0 0.5 0L11.5 2.19345e-05C11.7761 2.57492e-05 12 0.223886 12 0.50003C12 0.776172 11.7761 1.00003 11.5 1.00002L10.5 1.00001V2C10.5 3.7901 9.45472 5.33509 7.94345 6.05972C7.65355 6.19872 7.5 6.43685 7.5 6.64919V7.35083C7.5 7.56317 7.65355 7.8013 7.94345 7.9403C9.45472 8.66493 10.5 10.2099 10.5 12V13H11.5C11.7761 13 12 13.2239 12 13.5C12 13.7762 11.7761 14 11.5 14H0.5ZM2.5 1.00002V2.00002C2.5 2.5367 2.62078 3.04531 2.83678 3.50004H9.16322C9.37922 3.04531 9.5 2.5367 9.5 2.00002V1.00002H2.5ZM5.5 7.35085C5.5 8.05108 5.02187 8.58648 4.4889 8.84203C3.31139 9.40663 2.5 10.6091 2.5 12C2.5 12 3.36574 10.7014 5.5 10.5208V7.35085ZM6.5 7.35085V10.5208C8.63426 10.7014 9.5 12 9.5 12C9.5 10.6091 8.68861 9.40663 7.5111 8.84203C6.97813 8.58648 6.5 8.05108 6.5 7.35085Z'
+// Icons are hosted PNGs (public/email-icons/*.png), not inline <svg> — Gmail
+// (web + mobile) strips <svg> tags from email HTML entirely, so every icon
+// in this file was silently disappearing for exactly the recipients this is
+// built for. Rasterized once via ImageMagick from the same paths as
+// components/icons/FigmaIcons.tsx / Font Awesome 6 Solid (see the repo's
+// scratch generator if these ever need regenerating at a different size).
+function iconImg(name: string, width: number, height: number): string {
+  return `<img src="${getBaseUrl()}/email-icons/${name}.png" width="${width}" height="${height}" alt="" style="display:block; border:0;">`
+}
 
-function mailSendIconSvg(size: number, color: string): string {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" style="display:block; margin:0 auto;">
-    <g transform="translate(8,10)"><path fill="${color}" d="M15.8076 10.8564C15.6455 11.1985 15.3901 11.488 15.0703 11.6904C14.7502 11.893 14.3788 12.0001 14 12H2C1.62117 12.0004 1.24994 11.8928 0.929688 11.6904C0.609694 11.4882 0.353707 11.1994 0.191406 10.8574L6.76074 6.83008L8 7.58594L9.23828 6.8291L15.8076 10.8564ZM5.80273 6.24316L0 9.80078V2.69727L5.80273 6.24316ZM12.2891 4.96387C13.1927 5.61504 14.3011 6 15.5 6C15.6686 6 15.8353 5.99044 16 5.97559V9.80078L10.1973 6.24414V6.24316L12.2891 4.96387ZM10.0234 9.05562e-09C10.0086 0.164711 10 0.331424 10 0.5C10 1.96139 10.5712 3.28846 11.501 4.27344L8 6.41406L0.0498047 1.55469C0.15065 1.11308 0.398785 0.718968 0.75293 0.436523C1.1072 0.154019 1.54688 -3.04899e-05 2 9.05562e-09H10.0234Z"/></g>
-    <g transform="translate(19,6)"><circle cx="4.5" cy="4.5" r="4.5" fill="${color}"/><g transform="translate(8,2) scale(-1,1)"><path fill="#fff" d="M0.471758 2.63102C0.528183 2.67938 0.603792 2.70645 0.682506 2.70645C0.76122 2.70645 0.83683 2.67938 0.893255 2.63102L1.94675 1.70256V4.73705C1.94623 4.77171 1.95358 4.80611 1.96839 4.83822C1.98319 4.87033 2.00515 4.8995 2.03296 4.924C2.06077 4.94851 2.09386 4.96786 2.1303 4.98091C2.16673 4.99396 2.20576 5.00044 2.24509 4.99998H2.77208C2.81141 5.00044 2.85044 4.99396 2.88687 4.98091C2.92331 4.96786 2.95641 4.94851 2.98422 4.924C3.01202 4.8995 3.03398 4.87033 3.04879 4.83822C3.06359 4.80611 3.07095 4.77171 3.07042 4.73705V1.69477L4.12392 2.62323C4.18034 2.6716 4.25595 2.69866 4.33467 2.69866C4.41338 2.69866 4.48899 2.6716 4.54542 2.62323L4.91441 2.29803C4.96929 2.2483 5 2.18167 5 2.1123C5 2.04293 4.96929 1.97629 4.91441 1.92656L2.89525 0.14705C2.84384 0.100581 2.78242 0.0636363 2.71459 0.0383867C2.64676 0.0131371 2.57388 9.21314e-05 2.50024 1.85852e-05C2.4265 -0.000555916 2.3534 0.0121944 2.28547 0.0374825C2.21753 0.0627707 2.15619 0.10006 2.10524 0.14705L0.0855895 1.92699C0.0307068 1.97672 0 2.04336 0 2.11273C0 2.1821 0.0307068 2.24874 0.0855895 2.29847L0.471758 2.63102Z"/></g></g>
-  </svg>`
+function mailSendIconSvg(size: number): string {
+  return iconImg('mailsend-navy', size, size)
 }
 
 // ---- Shared shell ----
@@ -306,7 +300,7 @@ function submittedStep(req: Request, iconSvg: string): TimelineStep | undefined 
 function createdStep(req: Request): TimelineStep | undefined {
   const entry = [...req.history].reverse().find(h => h.action === 'created')
   if (!entry) return undefined
-  return { label: APPROVAL_ACTION_LABELS.created, date: formatDateTime(entry.createdAt), color: '#586782', iconSvg: `<svg width="11" height="15" viewBox="0 0 384 512" style="display:block; margin:0 auto;"><path fill="#586782" d="${ICON_FILE_LINES}"/></svg>` }
+  return { label: APPROVAL_ACTION_LABELS.created, date: formatDateTime(entry.createdAt), color: '#586782', iconSvg: iconImg('filelines-gray', 11, 15) }
 }
 
 // ---- Shared data extraction ----
@@ -338,11 +332,11 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, mailSendIconSvg(14, '#004081')),
+    submittedStep(req, mailSendIconSvg(14)),
   ].filter(Boolean) as TimelineStep[]
 
   const body = [
-    headerRow(`<svg width="18" height="21" viewBox="0 0 12 14"><path fill="#FFCC00" d="${ICON_HOURGLASS_STATUS}"/></svg>`, 'ส่งคำขอสำเร็จ รอการอนุมัติ'),
+    headerRow(iconImg('hourglass-yellow', 18, 21), 'ส่งคำขอสำเร็จ รอการอนุมัติ'),
     bodyCopyRow('ระบบได้รับคำขออนุมัติ Credit &amp; Payment Term ของคุณเรียบร้อยแล้ว และได้แจ้งเตือนไปยังผู้อนุมัติให้ดำเนินการแล้ว คุณจะได้รับอีเมลอีกฉบับทันทีที่มีผลการพิจารณา'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอของคุณ') +
@@ -370,7 +364,7 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
 
   const resubmitBanner = isResubmit && rejectedEntry ? `<tr><td class="px-mobile" style="padding: 0 32px 20px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="banner-bg" style="background:#FFFBEB; border:1px solid #FCD34D; border-radius:4px;"><tr>
-      <td width="16" valign="top" style="padding:13px 0 12px 14px;"><svg width="16" height="16" viewBox="0 0 512 512" style="display:block;"><path fill="#92400E" d="${ICON_TRIANGLE_EXCLAMATION}"/></svg></td>
+      <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('triangle-exclamation-amber', 16, 16)}</td>
       <td valign="top" style="padding:12px 14px 12px 10px;">
         <div style="font-family:${FONT}; font-size:13px; font-weight:600; color:#92400E; margin-bottom:2px;">ส่งคำขออนุมัติอีกครั้ง (v${req.version}) หลังถูกไม่อนุมัติ</div>
         <div style="font-family:${FONT}; font-size:13px; font-weight:400; color:#92400E; line-height:1.65;"><strong>เหตุผลที่ถูกไม่อนุมัติ (${formatDateTime(rejectedEntry.createdAt)}):</strong> &ldquo;${rejectedEntry.comment ?? '—'}&rdquo;</div>
@@ -399,7 +393,7 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
   const versionBadge = req.version > 1 ? `<span class="text-brand chip-bg" style="display:inline-block; font-family:${FONT}; font-size:12px; font-weight:600; color:#004081; background:rgba(0,64,129,0.08); border-radius:4px; padding:2px 8px;">v${req.version}</span>` : undefined
 
   const body = [
-    headerRow(`<svg width="18" height="21" viewBox="0 0 12 14"><path fill="#FFCC00" d="${ICON_HOURGLASS_STATUS}"/></svg>`, 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
+    headerRow(iconImg('hourglass-yellow', 18, 21), 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
     resubmitBanner,
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
@@ -424,14 +418,14 @@ export function buildApprovedEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, mailSendIconSvg(14, '#004081')),
-    historyStep(req, 'approved', `<svg width="13" height="13" viewBox="0 0 448 512" style="display:block; margin:0 auto;"><path fill="#66C5C5" d="${ICON_CHECK}"/></svg>`, '#66C5C5'),
+    submittedStep(req, mailSendIconSvg(14)),
+    historyStep(req, 'approved', iconImg('check-teal', 13, 13), '#66C5C5'),
   ].filter(Boolean) as TimelineStep[]
 
   const hasNotes = req.approvalResult?.customerComment || req.approvalResult?.hardwareComment || req.approvalResult?.swComment
   const noteBox = hasNotes ? `<tr><td class="px-mobile" style="padding: 0 32px 8px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="note-bg" style="background:#F0FDF4; border:1px solid #86EFAC; border-radius:4px;"><tr>
-      <td width="16" valign="top" style="padding:13px 0 12px 14px;"><svg width="16" height="16" viewBox="0 0 512 512" style="display:block;"><path fill="#14532D" d="${ICON_CIRCLE_CHECK}"/></svg></td>
+      <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('circlecheck-green', 16, 16)}</td>
       <td valign="top" style="padding:12px 14px 12px 10px;">
         <div style="font-family:${FONT}; font-size:13px; font-weight:600; color:#14532D; margin-bottom:2px;">หมายเหตุจากผู้อนุมัติ</div>
         ${sectionCommentsHtml(req, '#14532D')}
@@ -440,7 +434,7 @@ export function buildApprovedEmail(req: Request): EmailContent {
   </td></tr>` : ''
 
   const body = [
-    headerRow(`<svg width="22" height="22" viewBox="0 0 18 18"><path fill="#66C5C5" d="${ICON_CHECK_CIRCLE_CUSTOM}"/></svg>`, 'คำขอของคุณได้รับการอนุมัติแล้ว'),
+    headerRow(iconImg('checkcircle-teal', 22, 22), 'คำขอของคุณได้รับการอนุมัติแล้ว'),
     bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณได้รับการอนุมัติเรียบร้อยแล้ว คุณสามารถแจ้งลูกค้าหรือดำเนินการเปิดออเดอร์ต่อได้ทันที'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอ') +
@@ -467,16 +461,16 @@ export function buildRejectedEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, mailSendIconSvg(13, '#004081')),
-    historyStep(req, 'rejected', `<svg width="12" height="16" viewBox="0 0 384 512" style="display:block; margin:0 auto;"><path fill="#F3554F" d="${ICON_XMARK}"/></svg>`, '#F3554F'),
+    submittedStep(req, mailSendIconSvg(13)),
+    historyStep(req, 'rejected', iconImg('xmark-red-solid', 12, 16), '#F3554F'),
   ].filter(Boolean) as TimelineStep[]
 
   const body = [
-    headerRow(`<svg width="20" height="20" viewBox="0 0 14 14"><g stroke="#F3554F" stroke-width="1.8" stroke-linecap="round"><line x1="1.5" y1="1.5" x2="12.5" y2="12.5"/><line x1="12.5" y1="1.5" x2="1.5" y2="12.5"/></g></svg>`, 'คำขอของคุณไม่ได้รับการอนุมัติ'),
+    headerRow(iconImg('xmark-red-bare', 20, 20), 'คำขอของคุณไม่ได้รับการอนุมัติ'),
     bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณไม่ได้รับการอนุมัติ กรุณาแก้ไขคำขอตามคำแนะนำด้านล่าง แล้วส่งขออนุมัติอีกครั้ง'),
     `<tr><td class="px-mobile" style="padding: 0 32px 20px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="alert-bg" style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:4px;"><tr>
-        <td width="16" valign="top" style="padding:13px 0 12px 14px;"><svg width="16" height="16" viewBox="0 0 512 512" style="display:block;"><path fill="#7F1D1D" d="${ICON_CIRCLE_XMARK}"/></svg></td>
+        <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('circlexmark-red', 16, 16)}</td>
         <td valign="top" style="padding:12px 14px 12px 10px;">
           <div style="font-family:${FONT}; font-size:13px; font-weight:600; color:#7F1D1D; margin-bottom:2px;">เหตุผลที่ไม่อนุมัติ</div>
           ${sectionCommentsHtml(req, '#7F1D1D')}
@@ -512,7 +506,7 @@ export function buildCancelledEmail(req: Request): EmailContent {
   const cancelledEntry = [...req.history].reverse().find(h => h.action === 'cancelled')
 
   const body = [
-    headerRow(`<svg width="20" height="20" viewBox="0 0 18 18"><path fill="#6B7280" fill-rule="evenodd" clip-rule="evenodd" d="M9 0C4.02944 0 0 4.02944 0 9C0 13.9706 4.02944 18 9 18C13.9706 18 18 13.9706 18 9C18 4.02944 13.9706 0 9 0ZM2 9C2 5.13401 5.13401 2 9 2C10.6584 2 12.1924 2.57001 13.3995 3.51472L3.51472 13.3995C2.57001 12.1924 2 10.6584 2 9ZM4.6005 14.4853C5.80761 15.43 7.34164 16 9 16C12.866 16 16 12.866 16 9C16 7.34164 15.43 5.80761 14.4853 4.6005L4.6005 14.4853Z"/></svg>`, 'คำขอนี้ถูกยกเลิกแล้ว'),
+    headerRow(iconImg('ban-gray', 20, 20), 'คำขอนี้ถูกยกเลิกแล้ว'),
     bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ที่คุณกำลังรอพิจารณาอยู่ถูกยกเลิกโดยผู้ส่งคำขอแล้ว ไม่จำเป็นต้องดำเนินการอนุมัติ/ไม่อนุมัติคำขอนี้อีกต่อไป'),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
