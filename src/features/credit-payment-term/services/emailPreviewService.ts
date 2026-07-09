@@ -32,11 +32,12 @@ function iconImg(name: string, width: number, height: number): string {
   return `<img src="${getBaseUrl()}/email-icons/${name}.png" width="${width}" height="${height}" alt="" style="display:block; border:0;">`
 }
 
-// mailsend-navy.png is cropped tight to the icon's actual ink (see
-// MailSendIcon in FigmaIcons.tsx) — it's wider than tall (20:16), so unlike
-// the other single-glyph icons here it can't be passed a single square size.
-function mailSendIconSvg(height: number): string {
-  return iconImg('mailsend-navy', Math.round(height * (20 / 16)), height)
+// Matches the FaPaperPlane icon used for the same "submitted"/"resubmitted"
+// steps in StatusTimeline.tsx — swapped in place of the earlier mail+badge
+// icon, which never sat well next to the other single-glyph timeline icons
+// no matter how it was cropped.
+function submittedIconSvg(size: number): string {
+  return iconImg('paperplane-navy', size, size)
 }
 
 // ---- Shared shell ----
@@ -343,7 +344,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, mailSendIconSvg(14)),
+    submittedStep(req, submittedIconSvg(14)),
   ].filter(Boolean) as TimelineStep[]
 
   const body = [
@@ -429,7 +430,7 @@ export function buildApprovedEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, mailSendIconSvg(14)),
+    submittedStep(req, submittedIconSvg(14)),
     historyStep(req, 'approved', iconImg('check-teal', 13, 13), '#66C5C5'),
   ].filter(Boolean) as TimelineStep[]
 
@@ -472,7 +473,7 @@ export function buildRejectedEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, mailSendIconSvg(13)),
+    submittedStep(req, submittedIconSvg(13)),
     historyStep(req, 'rejected', iconImg('xmark-red-solid', 12, 16), '#F3554F'),
   ].filter(Boolean) as TimelineStep[]
 
