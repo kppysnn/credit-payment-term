@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
 import { getRequestById, approveRequest, rejectRequest, cancelRequest, submitRequest } from '../services/creditTermService'
-import { previewSubmitConfirmationEmail, previewNewRequestApproverEmail, previewApprovedEmail, previewRejectedEmail } from '../services/emailPreviewService'
+import { previewSubmitConfirmationEmail, previewNewRequestApproverEmail, previewApprovedEmail, previewRejectedEmail, previewCancelledEmail } from '../services/emailPreviewService'
 import { exportPDF } from '../services/exportService'
 import type { Request, PaymentInstallment, QuotationItem } from '../types/request'
 import { SALE_TYPE_LABELS } from '../types/request'
@@ -448,8 +448,13 @@ export function RequestDetailPage() {
 
   async function handleCancel(reason: string) {
     if (!id) return
-    await cancelRequest(id, reason, currentUser)
+    // Only a request the approver was actively waiting on (pending) needs a
+    // heads-up that it's off the table — a cancelled draft/approved request
+    // has no one waiting on a decision. Capture status before it flips.
+    const wasPending = req?.status === 'pending'
+    const updated = await cancelRequest(id, reason, currentUser)
     setCancelOpen(false)
+    if (wasPending) previewCancelledEmail(updated)
     navigate('/requests')
   }
 

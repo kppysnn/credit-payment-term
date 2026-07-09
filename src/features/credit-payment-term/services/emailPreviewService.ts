@@ -18,6 +18,7 @@ import { CUSTOMER_TYPE_LABELS } from '../types/customer'
 import { APPROVAL_ACTION_LABELS } from '../types/approval'
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
+import workxLogo from '../../../assets/navbar/workx-logo.png'
 
 const FONT = "'Poppins','Noto Sans Thai',Arial,sans-serif"
 
@@ -25,8 +26,6 @@ const FONT = "'Poppins','Noto Sans Thai',Arial,sans-serif"
 const ICON_FILE_LINES = 'M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-288-128 0c-17.7 0-32-14.3-32-32L224 0 64 0zM256 0l0 128 128 0L256 0zM112 256l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z'
 const ICON_CHECK = 'M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z'
 const ICON_XMARK = 'M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z'
-const ICON_HOURGLASS = 'M0.5 14C0.223858 14 0 13.7762 0 13.5C0 13.2239 0.223858 13 0.5 13H1.5V12C1.5 10.2099 2.54528 8.66493 4.05655 7.9403C4.34645 7.8013 4.5 7.56317 4.5 7.35083V6.64919C4.5 6.43685 4.34645 6.19872 4.05655 6.05972C2.54528 5.33509 1.5 3.7901 1.5 2V1H0.5C0.223858 1 0 0.776142 0 0.5C0 0.223858 0.223858 0 0.5 0L11.5 2.19345e-05C11.7761 2.57492e-05 12 0.223886 12 0.50003C12 0.776172 11.7761 1.00003 11.5 1.00002L10.5 1.00001V2C10.5 3.7901 9.45472 5.33509 7.94345 6.05972C7.65355 6.19872 7.5 6.43685 7.5 6.64919V7.35083C7.5 7.56317 7.65355 7.8013 7.94345 7.9403C9.45472 8.66493 10.5 10.2099 10.5 12V13H11.5C11.7761 13 12 13.2239 12 13.5C12 13.7762 11.7761 14 11.5 14H0.5ZM2.5 1.00002V2.00002C2.5 2.5367 2.62078 3.04531 2.83678 3.50004H9.16322C9.37922 3.04531 9.5 2.5367 9.5 2.00002V1.00002H2.5ZM5.5 7.35085C5.5 8.05108 5.02187 8.58648 4.4889 8.84203C3.31139 9.40663 2.5 10.6091 2.5 12C2.5 12 3.36574 10.7014 5.5 10.5208V7.35085ZM6.5 7.35085V10.5208C8.63426 10.7014 9.5 12 9.5 12C9.5 10.6091 8.68861 9.40663 7.5111 8.84203C6.97813 8.58648 6.5 8.05108 6.5 7.35085Z'
-const ICON_REFRESH = 'M9 0C4.6311 0 0.990135 3.11333 0.172485 7.24218H2.67078C3.44055 4.46634 5.97904 2.42578 9 2.42578C10.816 2.42578 12.4571 3.16371 13.645 4.35498L10.7578 7.24218H18V0L15.3633 2.63672C13.7348 1.00772 11.4855 0 9 0ZM0 10.7578V18L2.63672 15.3633C4.26519 16.9923 6.51453 18 9 18C13.3689 18 17.0099 14.8867 17.8275 10.7578H15.3292C14.5595 13.5336 12.0209 15.5742 9 15.5742C7.18396 15.5742 5.54289 14.8363 4.35498 13.645L7.24218 10.7578H0Z'
 const ICON_TRIANGLE_EXCLAMATION = 'M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z'
 const ICON_CIRCLE_CHECK = 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z'
 const ICON_CIRCLE_XMARK = 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z'
@@ -75,6 +74,14 @@ const STYLE_BLOCK = `
   }
 `
 
+// A real send needs the subject as its own field — email clients never read
+// the HTML <title> tag as the Subject line, that's only useful for the
+// browser-tab-preview case. Every build*Email() below returns both.
+export interface EmailContent {
+  subject: string
+  html: string
+}
+
 function shell(title: string, preheader: string, bodyHtml: string): string {
   return `<!doctype html>
 <html lang="th" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -113,18 +120,16 @@ function shell(title: string, preheader: string, bodyHtml: string): string {
 </html>`
 }
 
-function titleRow(text: string): string {
-  return `<tr><td class="px-mobile" style="padding: 20px 32px 0;">
-    <h1 class="text-secondary" style="margin:0; font-family:${FONT}; font-size:20px; font-weight:500; color:#586782; line-height:1.3;">${text}</h1>
-  </td></tr>`
-}
-
-function statusRow(iconSvg: string, label: string, extra?: string): string {
-  return `<tr><td class="px-mobile" style="padding: 10px 32px 20px;">
+// Single merged heading: icon + status text as ONE row instead of a title
+// line followed by a separate "รออนุมัติ/อนุมัติแล้ว/ไม่อนุมัติ" status row —
+// the two used to say the same thing twice (e.g. "...รอการอนุมัติ" title +
+// "รออนุมัติ" status underneath).
+function headerRow(iconSvg: string, text: string, badgeHtml?: string): string {
+  return `<tr><td class="px-mobile" style="padding: 22px 32px 20px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-      <td style="vertical-align:middle;">${iconSvg}</td>
-      <td class="text-body" style="font-family:${FONT}; font-size:13px; font-weight:400; color:#505050; padding-left:6px; vertical-align:middle;">${label}</td>
-      ${extra ?? ''}
+      <td style="vertical-align:middle; padding-right:10px;">${iconSvg}</td>
+      <td style="vertical-align:middle;"><h1 class="text-secondary" style="margin:0; font-family:${FONT}; font-size:20px; font-weight:500; color:#586782; line-height:1.3;">${text}</h1></td>
+      ${badgeHtml ? `<td style="vertical-align:middle; padding-left:10px;">${badgeHtml}</td>` : ''}
     </tr></table>
   </td></tr>`
 }
@@ -153,15 +158,32 @@ function ctaRow(url: string, label: string, extraPaddingBottom = 32): string {
   </td></tr>`
 }
 
+// Centered, logo-led footer — matches how a real transactional footer reads
+// (brand mark first, then the automated/no-reply + "trouble with the
+// button" notices, copyright last and smallest). The raw URL used to be
+// printed out in full as visible text, which read fine as a functional
+// fallback but also made every preview visibly show "localhost:5173" — the
+// link itself is still there (and still correct: it's `window.location
+// .origin`, so it's the real domain once this runs somewhere real), just no
+// longer spelled out as literal text.
 function footerRow(url: string): string {
-  return `<tr><td class="footer-bg px-mobile" style="background:#F8F9FA; border-top:1px solid #D0D6DF; padding:20px 32px;">
-    <p class="text-muted" style="margin:0 0 10px; font-family:${FONT}; font-size:11px; color:#929EB4; line-height:1.65;">
-      หากปุ่มด้านบนกดไม่ได้ ให้คัดลอกลิงก์นี้ไปเปิดในเบราว์เซอร์:<br>
-      <a href="${url}" style="color:#004081; word-break:break-all;">${url}</a>
-    </p>
-    <p class="text-muted" style="margin:0; font-family:${FONT}; font-size:11px; color:#929EB4;">
-      อีเมลนี้ถูกส่งโดยระบบอัตโนมัติจาก Credit &amp; Payment Term กรุณาอย่าตอบกลับอีเมลฉบับนี้
-    </p>
+  const logoUrl = `${getBaseUrl()}${workxLogo}`
+  return `<tr><td class="footer-bg px-mobile" align="center" style="background:#F8F9FA; border-top:1px solid #D0D6DF; padding:28px 32px 24px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
+      <tr><td align="center" style="padding-bottom:14px;">
+        <img src="${logoUrl}" width="96" height="22" alt="WorkX" style="display:block; opacity:0.5; border:0;">
+      </td></tr>
+      <tr><td align="center" class="text-muted" style="font-family:${FONT}; font-size:12px; font-weight:600; color:#929EB4; padding-bottom:6px;">
+        Credit &amp; Payment Term
+      </td></tr>
+      <tr><td align="center" class="text-muted" style="font-family:${FONT}; font-size:11px; color:#929EB4; line-height:1.7; padding-bottom:12px;">
+        อีเมลนี้ถูกส่งโดยระบบอัตโนมัติ กรุณาอย่าตอบกลับอีเมลฉบับนี้<br>
+        หากปุ่มด้านบนกดไม่ได้ <a href="${url}" style="color:#004081;">เปิดลิงก์นี้แทน</a>
+      </td></tr>
+      <tr><td align="center" class="text-muted" style="font-family:${FONT}; font-size:10.5px; color:#929EB4;">
+        &copy; 2026 WorkX. All rights reserved.
+      </td></tr>
+    </table>
   </td></tr>`
 }
 
@@ -219,19 +241,21 @@ function solutionTagsHtml(req: Request): string {
 }
 
 // ---- Timeline ----
+// Always real, already-happened history entries only — no synthetic "future"
+// step (it read as an unclear dashed placeholder). Capped at 3 steps no
+// matter how many reject/resubmit rounds a request has been through:
+// created -> most recent submitted/resubmitted (carries a "(v3)" suffix when
+// version > 1, instead of adding a dot per round) -> terminal status, if any.
 interface TimelineStep {
   label: string
   date: string
   color: string
   iconSvg: string
-  dashed?: boolean
 }
 
 function timelineDotHtml(step: TimelineStep): string {
-  const bg = step.dashed ? '#FFFFFF' : `rgba(${hexToRgb(step.color)},0.09)`
-  const border = step.dashed ? '2px dashed #D0D6DF' : `2px solid ${step.color}`
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
-    <td width="28" height="28" align="center" valign="middle" style="width:28px; height:28px; border-radius:50%; background:${bg}; border:${border};">${step.iconSvg}</td>
+    <td width="28" height="28" align="center" valign="middle" style="width:28px; height:28px; border-radius:50%; background:rgba(${hexToRgb(step.color)},0.09); border:2px solid ${step.color};">${step.iconSvg}</td>
   </tr></table>`
 }
 function hexToRgb(hex: string): string {
@@ -240,18 +264,19 @@ function hexToRgb(hex: string): string {
 }
 
 function timelineHtml(steps: TimelineStep[]): string {
-  const colWidth = steps.length > 3 ? 62 : 78
+  const colWidth = steps.length <= 2 ? 120 : 90
   const dots = steps.map((step, i) => {
     const connector = i < steps.length - 1
-      ? `<td valign="middle" style="padding:0 2px;"><div class="timeline-line-muted" style="${steps[i + 1].dashed ? 'height:0; border-top:2px dashed #D0D6DF;' : 'height:2px; background:#D0D6DF;'} font-size:0; line-height:0;">&nbsp;</div></td>`
+      ? `<td valign="middle" style="padding:0 2px;"><div class="timeline-line-muted" style="height:2px; background:#D0D6DF; font-size:0; line-height:0;">&nbsp;</div></td>`
       : ''
     return `<td width="${colWidth}" align="center" valign="middle">${timelineDotHtml(step)}</td>${connector}`
   }).join('')
   const labels = steps.map((step, i) => {
     const sep = i < steps.length - 1 ? `<td>&nbsp;</td>` : ''
+    const labelColor = step.color === '#66C5C5' ? '#004081' : step.color
     return `<td width="${colWidth}" align="center" valign="top" style="padding-top:8px;">
-      <div class="${step.color === '#586782' || step.dashed ? 'text-secondary' : 'text-brand'}" style="font-family:${FONT}; font-size:${steps.length > 3 ? 11 : 11.5}px; font-weight:600; color:${step.dashed ? '#929EB4' : step.color === '#66C5C5' ? '#004081' : step.color};">${step.label}</div>
-      <div class="text-muted" style="font-family:${FONT}; font-size:${steps.length > 3 ? 10 : 10.5}px; color:#929EB4; margin-top:1px;">${step.date || '&nbsp;'}</div>
+      <div class="${step.color === '#586782' ? 'text-secondary' : 'text-brand'}" style="font-family:${FONT}; font-size:11.5px; font-weight:600; color:${labelColor};">${step.label}</div>
+      <div class="text-muted" style="font-family:${FONT}; font-size:10.5px; color:#929EB4; margin-top:1px;">${step.date}</div>
     </td>${sep}`
   }).join('')
   return `<tr><td class="px-mobile" style="padding: 4px 32px 24px;">
@@ -266,6 +291,22 @@ function historyStep(req: Request, action: string, iconSvg: string, color: strin
   const entry = [...req.history].reverse().find(h => h.action === action)
   if (!entry) return undefined
   return { label: APPROVAL_ACTION_LABELS[entry.action], date: formatDateTime(entry.createdAt), color, iconSvg }
+}
+
+// The one step that can repeat across rounds (submitted / resubmitted) —
+// always shows only the MOST RECENT occurrence, with a "(v{n})" suffix once
+// version > 1, so a request that's been rejected-and-resubmitted several
+// times still renders as a single dot, not one per round.
+function submittedStep(req: Request, iconSvg: string): TimelineStep | undefined {
+  const entry = [...req.history].reverse().find(h => h.action === 'submitted' || h.action === 'resubmitted')
+  if (!entry) return undefined
+  const label = APPROVAL_ACTION_LABELS[entry.action] + (req.version > 1 ? ` (v${req.version})` : '')
+  return { label, date: formatDateTime(entry.createdAt), color: '#004081', iconSvg }
+}
+function createdStep(req: Request): TimelineStep | undefined {
+  const entry = [...req.history].reverse().find(h => h.action === 'created')
+  if (!entry) return undefined
+  return { label: APPROVAL_ACTION_LABELS.created, date: formatDateTime(entry.createdAt), color: '#586782', iconSvg: `<svg width="11" height="15" viewBox="0 0 384 512" style="display:block; margin:0 auto;"><path fill="#586782" d="${ICON_FILE_LINES}"/></svg>` }
 }
 
 // ---- Shared data extraction ----
@@ -291,21 +332,17 @@ function sectionCommentsHtml(req: Request, color: string): string {
 }
 
 // ==================== Template 1: submit confirmation (sales) ====================
-export function buildSubmitConfirmationEmailHtml(req: Request): string {
+export function buildSubmitConfirmationEmail(req: Request): EmailContent {
   const url = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
-  const submitted = [...req.history].reverse().find(h => h.action === 'submitted' || h.action === 'resubmitted')
-  const created = [...req.history].reverse().find(h => h.action === 'created')
-  const steps: TimelineStep[] = [
-    created && { label: APPROVAL_ACTION_LABELS.created, date: formatDateTime(created.createdAt), color: '#586782', iconSvg: `<svg width="11" height="15" viewBox="0 0 384 512" style="display:block; margin:0 auto;"><path fill="#586782" d="${ICON_FILE_LINES}"/></svg>` },
-    submitted && { label: APPROVAL_ACTION_LABELS[submitted.action], date: formatDateTime(submitted.createdAt), color: '#004081', iconSvg: mailSendIconSvg(14, '#004081') },
-    { label: 'รอผลอนุมัติ', date: '', color: '#929EB4', dashed: true, iconSvg: `<svg width="10" height="12" viewBox="0 0 12 14" style="display:block; margin:0 auto;"><path fill="#929EB4" d="${ICON_HOURGLASS}"/></svg>` },
+  const steps = [
+    createdStep(req),
+    submittedStep(req, mailSendIconSvg(14, '#004081')),
   ].filter(Boolean) as TimelineStep[]
 
   const body = [
-    titleRow('ส่งคำขอสำเร็จ กำลังรอการอนุมัติ'),
-    statusRow(`<svg width="13" height="15" viewBox="0 0 12 14"><path fill="#FFCC00" d="${ICON_HOURGLASS_STATUS}"/></svg>`, 'รออนุมัติ'),
+    headerRow(`<svg width="18" height="21" viewBox="0 0 12 14"><path fill="#FFCC00" d="${ICON_HOURGLASS_STATUS}"/></svg>`, 'ส่งคำขอสำเร็จ รอการอนุมัติ'),
     bodyCopyRow('ระบบได้รับคำขออนุมัติ Credit &amp; Payment Term ของคุณเรียบร้อยแล้ว และได้แจ้งเตือนไปยังผู้อนุมัติให้ดำเนินการแล้ว คุณจะได้รับอีเมลอีกฉบับทันทีที่มีผลการพิจารณา'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอของคุณ') +
@@ -319,11 +356,12 @@ export function buildSubmitConfirmationEmailHtml(req: Request): string {
     footerRow(url),
   ].join('')
 
-  return shell(`ยืนยันการส่งคำขอ #${req.requestNo}`, `${customerName} · Request No. ${req.requestNo} · อยู่ระหว่างรอการอนุมัติ`, body)
+  const subject = `ยืนยันการส่งคำขอ #${req.requestNo}`
+  return { subject, html: shell(subject, `${customerName} · Request No. ${req.requestNo} · อยู่ระหว่างรอการอนุมัติ`, body) }
 }
 
 // ==================== Template 2: new request notify (approver) ====================
-export function buildNewRequestApproverEmailHtml(req: Request): string {
+export function buildNewRequestApproverEmail(req: Request): EmailContent {
   const url = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
@@ -358,13 +396,10 @@ export function buildNewRequestApproverEmailHtml(req: Request): string {
     </tr></table>
   ` + CARD_CLOSE
 
+  const versionBadge = req.version > 1 ? `<span class="text-brand chip-bg" style="display:inline-block; font-family:${FONT}; font-size:12px; font-weight:600; color:#004081; background:rgba(0,64,129,0.08); border-radius:4px; padding:2px 8px;">v${req.version}</span>` : undefined
+
   const body = [
-    titleRow('มีคำขออนุมัติ Credit Term รอดำเนินการ'),
-    statusRow(
-      `<svg width="13" height="15" viewBox="0 0 12 14"><path fill="#FFCC00" d="${ICON_HOURGLASS_STATUS}"/></svg>`,
-      'รออนุมัติ',
-      req.version > 1 ? `<td style="padding-left:10px; vertical-align:middle;"><span class="text-brand chip-bg" style="display:inline-block; font-family:${FONT}; font-size:12px; font-weight:600; color:#004081; background:rgba(0,64,129,0.08); border-radius:4px; padding:2px 8px;">v${req.version}</span></td>` : undefined
-    ),
+    headerRow(`<svg width="18" height="21" viewBox="0 0 12 14"><path fill="#FFCC00" d="${ICON_HOURGLASS_STATUS}"/></svg>`, 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
     resubmitBanner,
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
@@ -378,17 +413,18 @@ export function buildNewRequestApproverEmailHtml(req: Request): string {
     footerRow(url),
   ].join('')
 
-  return shell(`มีคำขออนุมัติ Credit Term ใหม่ #${req.requestNo}`, `${customerName} · Credit Term ${formatCreditTerm(getMaxCreditTerm(req))}${isResubmit ? ` · ส่งซ้ำครั้งที่ ${req.version}` : ''}`, body)
+  const subject = `มีคำขออนุมัติ Credit Term ใหม่ #${req.requestNo}`
+  return { subject, html: shell(subject, `${customerName} · Credit Term ${formatCreditTerm(getMaxCreditTerm(req))}${isResubmit ? ` · ส่งซ้ำครั้งที่ ${req.version}` : ''}`, body) }
 }
 
 // ==================== Template 3: approved (sales) ====================
-export function buildApprovedEmailHtml(req: Request): string {
+export function buildApprovedEmail(req: Request): EmailContent {
   const url = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
-    historyStep(req, 'created', `<svg width="11" height="15" viewBox="0 0 384 512" style="display:block; margin:0 auto;"><path fill="#586782" d="${ICON_FILE_LINES}"/></svg>`, '#586782'),
-    historyStep(req, 'submitted', mailSendIconSvg(14, '#004081'), '#004081') ?? historyStep(req, 'resubmitted', mailSendIconSvg(14, '#004081'), '#004081'),
+    createdStep(req),
+    submittedStep(req, mailSendIconSvg(14, '#004081')),
     historyStep(req, 'approved', `<svg width="13" height="13" viewBox="0 0 448 512" style="display:block; margin:0 auto;"><path fill="#66C5C5" d="${ICON_CHECK}"/></svg>`, '#66C5C5'),
   ].filter(Boolean) as TimelineStep[]
 
@@ -404,8 +440,7 @@ export function buildApprovedEmailHtml(req: Request): string {
   </td></tr>` : ''
 
   const body = [
-    titleRow('คำขอของคุณได้รับการอนุมัติแล้ว'),
-    statusRow(`<svg width="16" height="16" viewBox="0 0 18 18"><path fill="#66C5C5" d="${ICON_CHECK_CIRCLE_CUSTOM}"/></svg>`, 'อนุมัติแล้ว'),
+    headerRow(`<svg width="22" height="22" viewBox="0 0 18 18"><path fill="#66C5C5" d="${ICON_CHECK_CIRCLE_CUSTOM}"/></svg>`, 'คำขอของคุณได้รับการอนุมัติแล้ว'),
     bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณได้รับการอนุมัติเรียบร้อยแล้ว คุณสามารถแจ้งลูกค้าหรือดำเนินการเปิดออเดอร์ต่อได้ทันที'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอ') +
@@ -420,25 +455,24 @@ export function buildApprovedEmailHtml(req: Request): string {
     footerRow(url),
   ].join('')
 
-  return shell(`คำขอ #${req.requestNo} ได้รับการอนุมัติแล้ว`, `${customerName} · อนุมัติโดย ${req.approvalResult?.approverName ?? '—'} · Credit Term ${formatCreditTerm(getMaxCreditTerm(req))}`, body)
+  const subject = `คำขอ #${req.requestNo} ได้รับการอนุมัติแล้ว`
+  return { subject, html: shell(subject, `${customerName} · อนุมัติโดย ${req.approvalResult?.approverName ?? '—'} · Credit Term ${formatCreditTerm(getMaxCreditTerm(req))}`, body) }
 }
 
 // ==================== Template 4: rejected (sales) ====================
-export function buildRejectedEmailHtml(req: Request): string {
+export function buildRejectedEmail(req: Request): EmailContent {
   const editUrl = `${getBaseUrl()}/requests/${req.id}/edit`
   const detailUrl = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
-    historyStep(req, 'created', `<svg width="10" height="13" viewBox="0 0 384 512" style="display:block; margin:0 auto;"><path fill="#586782" d="${ICON_FILE_LINES}"/></svg>`, '#586782'),
-    historyStep(req, 'submitted', mailSendIconSvg(13, '#004081'), '#004081') ?? historyStep(req, 'resubmitted', mailSendIconSvg(13, '#004081'), '#004081'),
+    createdStep(req),
+    submittedStep(req, mailSendIconSvg(13, '#004081')),
     historyStep(req, 'rejected', `<svg width="12" height="16" viewBox="0 0 384 512" style="display:block; margin:0 auto;"><path fill="#F3554F" d="${ICON_XMARK}"/></svg>`, '#F3554F'),
-    { label: 'แก้ไข &amp; ส่งใหม่', date: '', color: '#929EB4', dashed: true, iconSvg: `<svg width="12" height="12" viewBox="0 0 18 18" style="display:block; margin:0 auto;"><path fill="#929EB4" d="${ICON_REFRESH}"/></svg>` },
   ].filter(Boolean) as TimelineStep[]
 
   const body = [
-    titleRow('คำขอของคุณไม่ได้รับการอนุมัติ'),
-    statusRow(`<svg width="14" height="14" viewBox="0 0 14 14"><g stroke="#F3554F" stroke-width="1.8" stroke-linecap="round"><line x1="1.5" y1="1.5" x2="12.5" y2="12.5"/><line x1="12.5" y1="1.5" x2="1.5" y2="12.5"/></g></svg>`, 'ไม่อนุมัติ'),
+    headerRow(`<svg width="20" height="20" viewBox="0 0 14 14"><g stroke="#F3554F" stroke-width="1.8" stroke-linecap="round"><line x1="1.5" y1="1.5" x2="12.5" y2="12.5"/><line x1="12.5" y1="1.5" x2="1.5" y2="12.5"/></g></svg>`, 'คำขอของคุณไม่ได้รับการอนุมัติ'),
     bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณไม่ได้รับการอนุมัติ กรุณาแก้ไขคำขอตามคำแนะนำด้านล่าง แล้วส่งขออนุมัติอีกครั้ง'),
     `<tr><td class="px-mobile" style="padding: 0 32px 20px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="alert-bg" style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:4px;"><tr>
@@ -462,7 +496,37 @@ export function buildRejectedEmailHtml(req: Request): string {
     footerRow(editUrl),
   ].join('')
 
-  return shell(`คำขอ #${req.requestNo} ไม่ได้รับการอนุมัติ`, `${customerName} · ไม่อนุมัติโดย ${req.approvalResult?.approverName ?? '—'}`, body)
+  const subject = `คำขอ #${req.requestNo} ไม่ได้รับการอนุมัติ`
+  return { subject, html: shell(subject, `${customerName} · ไม่อนุมัติโดย ${req.approvalResult?.approverName ?? '—'}`, body) }
+}
+
+// ==================== Template 5: cancelled while pending (approver) ====================
+// Only fired when a request gets cancelled WHILE it was 'pending' — the
+// approver was expecting to review it, so they need to know it's off the
+// table. Cancelling a draft or an already-approved request has no one
+// waiting on a decision, so those don't get an email (see caller).
+export function buildCancelledEmail(req: Request): EmailContent {
+  const url = `${getBaseUrl()}/requests/${req.id}`
+  const customerName = getCustomerName(req)
+  const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
+  const cancelledEntry = [...req.history].reverse().find(h => h.action === 'cancelled')
+
+  const body = [
+    headerRow(`<svg width="20" height="20" viewBox="0 0 18 18"><path fill="#6B7280" fill-rule="evenodd" clip-rule="evenodd" d="M9 0C4.02944 0 0 4.02944 0 9C0 13.9706 4.02944 18 9 18C13.9706 18 18 13.9706 18 9C18 4.02944 13.9706 0 9 0ZM2 9C2 5.13401 5.13401 2 9 2C10.6584 2 12.1924 2.57001 13.3995 3.51472L3.51472 13.3995C2.57001 12.1924 2 10.6584 2 9ZM4.6005 14.4853C5.80761 15.43 7.34164 16 9 16C12.866 16 16 12.866 16 9C16 7.34164 15.43 5.80761 14.4853 4.6005L4.6005 14.4853Z"/></svg>`, 'คำขอนี้ถูกยกเลิกแล้ว'),
+    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ที่คุณกำลังรอพิจารณาอยู่ถูกยกเลิกโดยผู้ส่งคำขอแล้ว ไม่จำเป็นต้องดำเนินการอนุมัติ/ไม่อนุมัติคำขอนี้อีกต่อไป'),
+    cardOpen('ข้อมูลคำขอ') +
+      referenceRow(req.requestNo, req.version, req.proposalNo) +
+      customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
+      fieldRow('ยกเลิกโดย', cancelledEntry?.actorName ?? req.salesName, { margin: false }) +
+      `<div style="margin:12px 0;">` + fieldRow('วันที่ยกเลิก', cancelledEntry ? formatDateTime(cancelledEntry.createdAt) : formatDateTime(req.updatedAt), { margin: false }) + `</div>` +
+      (cancelledEntry?.comment ? `<div style="font-family:${FONT}; font-size:14px; line-height:1.9;"><span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">เหตุผลที่ยกเลิก</span> <span class="text-secondary" style="font-weight:400; color:#586782;">${cancelledEntry.comment}</span></div>` : '') +
+    CARD_CLOSE,
+    ctaRow(url, 'ดูรายละเอียดคำขอ'),
+    footerRow(url),
+  ].join('')
+
+  const subject = `คำขอ #${req.requestNo} ถูกยกเลิกแล้ว`
+  return { subject, html: shell(subject, `${customerName} · ยกเลิกโดย ${cancelledEntry?.actorName ?? req.salesName}`, body) }
 }
 
 // ---- Open in new tab (mirrors exportService.ts's exportPDF window.open pattern) ----
@@ -476,7 +540,8 @@ function openHtmlInNewTab(html: string): void {
   win.document.close()
 }
 
-export function previewSubmitConfirmationEmail(req: Request): void { openHtmlInNewTab(buildSubmitConfirmationEmailHtml(req)) }
-export function previewNewRequestApproverEmail(req: Request): void { openHtmlInNewTab(buildNewRequestApproverEmailHtml(req)) }
-export function previewApprovedEmail(req: Request): void { openHtmlInNewTab(buildApprovedEmailHtml(req)) }
-export function previewRejectedEmail(req: Request): void { openHtmlInNewTab(buildRejectedEmailHtml(req)) }
+export function previewSubmitConfirmationEmail(req: Request): void { openHtmlInNewTab(buildSubmitConfirmationEmail(req).html) }
+export function previewNewRequestApproverEmail(req: Request): void { openHtmlInNewTab(buildNewRequestApproverEmail(req).html) }
+export function previewApprovedEmail(req: Request): void { openHtmlInNewTab(buildApprovedEmail(req).html) }
+export function previewRejectedEmail(req: Request): void { openHtmlInNewTab(buildRejectedEmail(req).html) }
+export function previewCancelledEmail(req: Request): void { openHtmlInNewTab(buildCancelledEmail(req).html) }

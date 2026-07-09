@@ -19,15 +19,17 @@
 | 2 | `draft` → `pending` (submit, incl. resubmit) | All users with role `approver` | `02-new-request-approver.html` |
 | 3 | `pending` → `approved` | Sales (`request.salesEmail`) | `03-approved-sale.html` |
 | 4 | `pending` → `rejected` | Sales (`request.salesEmail`) | `04-rejected-sale.html` |
+| 5 | `pending` → `cancelled` (cancelling any other status has no email — see below) | All users with role `approver` | Built by `buildCancelledEmailHtml()` in `emailPreviewService.ts` (no static `docs/emails/*.html` mockup yet) |
 
 **Explicitly out of scope for this round:**
 - Approver does **not** get a self-confirmation email after they approve/reject — they just acted in the web app and can see the result there.
 - "ขอข้อมูลเพิ่ม" (Clarify) has no corresponding `RequestStatus` or `ApprovalAction` in the codebase today (`request.ts`, `approval.ts` only define `draft | pending | approved | rejected | cancelled`). Until that status is added to the data model and `RejectModal`/`creditTermService`, a request that needs more info is just a `rejected` request with the ask spelled out in the section comment — it reuses template #4, no separate template.
 - Recipient is **broadcast to the whole `approver` role**, not a per-request assignee — the data model has no assignment field before a decision is made (`ApprovalResult.approverEmail` is only populated *after* someone acts).
+- Cancelling a `draft` or `approved` request doesn't email anyone — no one else was waiting on a decision for those. Only cancelling a `pending` request emails the approver role (they were expecting to review it). The caller (`RequestDetailPage.tsx`'s `handleCancel`) checks the request's status *before* calling `cancelRequest()`, since the status flips to `cancelled` by the time the promise resolves.
 
 ## 2. Data mapping
 
-All four templates are populated from a single `Request` object (`src/features/credit-payment-term/types/request.ts`). Field → email content mapping:
+All five templates are populated from a single `Request` object (`src/features/credit-payment-term/types/request.ts`). Field → email content mapping:
 
 | Field | Used in |
 |---|---|
@@ -99,7 +101,10 @@ docs/emails/
 ├── 01-submit-confirmation-sale.html   # → sales, on submit/resubmit
 ├── 02-new-request-approver.html       # → approver role, on submit/resubmit
 ├── 03-approved-sale.html              # → sales, on approve
-└── 04-rejected-sale.html              # → sales, on reject
+├── 04-rejected-sale.html              # → sales, on reject
+└── 05-cancelled-approver.html         # → approver role, on cancelling a pending request
 ```
 
 Each is a standalone `.html` file — open directly in a browser to preview, or paste the `<body>` contents into a transactional-email provider template (SendGrid/SES/Postmark, etc.).
+
+**These 5 files are generated directly from `emailPreviewService.ts`'s `build*Html()` functions** by `docs/emails/generate-mockups.ts` (run via `npx vite-node docs/emails/generate-mockups.ts` — needs `vite-node` specifically, not plain `tsx`/`node`, since the footer's WorkX logo is imported the same way the app does and only Vite's asset-import handling resolves that to a URL) — not hand-written separately. This is deliberate: earlier drafts of these mockups were edited by hand and drifted out of sync with the live-wired version (stale header/timeline markup, and a placeholder `https://cpt.wplus.example.com` domain that doesn't resolve, so the CTA buttons didn't actually go anywhere). Re-generate them from the real functions any time `emailPreviewService.ts` changes, rather than hand-editing the HTML in both places.
