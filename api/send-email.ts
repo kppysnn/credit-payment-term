@@ -13,6 +13,11 @@
  *   - .env.local (gitignored) for `npm run dev`
  *   - Vercel project → Settings → Environment Variables for the deployed app
  */
+/// <reference types="node" />
+// This file isn't included by tsconfig.app.json (src/**) or tsconfig.node.json
+// (vite.config.ts only), so Vercel's own function bundler type-checks it with
+// no ambient Node types unless told explicitly — hence the reference above
+// (without it, `process` fails as "Cannot find name 'process'").
 
 export interface SendEmailPayload {
   to: string

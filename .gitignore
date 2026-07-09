@@ -34,3 +34,4 @@ _figma/
 
 # macOS
 **/.DS_Store
+.env*
