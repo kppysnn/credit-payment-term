@@ -18,7 +18,16 @@ import { CUSTOMER_TYPE_LABELS } from '../types/customer'
 import { APPROVAL_ACTION_LABELS } from '../types/approval'
 import { formatCurrency } from '../utils/calculations'
 import { formatDateTime, formatCreditTerm } from '../utils/formatters'
-import workxLogo from '../../../assets/navbar/workx-logo.png'
+
+// Not a normal `import ... from '.../workx-logo.png'` (that's how AppShell.tsx
+// gets it) — a JS-imported asset resolves to a dev-only unbundled path like
+// /src/assets/... while running `npm run dev`, which only exists on the
+// machine running the dev server. Email HTML is read by a mail client on a
+// completely different machine, so it needs a URL that's identical and
+// actually reachable in both dev and prod — exactly what public/ gives you
+// (served verbatim, same path, in both). See public/workx-logo.png and the
+// same reasoning behind public/email-icons/*.png.
+const WORKX_LOGO_PATH = '/workx-logo.png'
 
 const FONT = "'Poppins','Noto Sans Thai',Arial,sans-serif"
 
@@ -82,7 +91,7 @@ export interface EmailContent {
 }
 
 function shell(title: string, preheader: string, bodyHtml: string): string {
-  const headerLogoUrl = `${getBaseUrl()}${workxLogo}`
+  const headerLogoUrl = `${getBaseUrl()}${WORKX_LOGO_PATH}`
   return `<!doctype html>
 <html lang="th" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -174,7 +183,7 @@ function ctaRow(url: string, label: string, extraPaddingBottom = 32): string {
 // .origin`, so it's the real domain once this runs somewhere real), just no
 // longer spelled out as literal text.
 function footerRow(url: string): string {
-  const logoUrl = `${getBaseUrl()}${workxLogo}`
+  const logoUrl = `${getBaseUrl()}${WORKX_LOGO_PATH}`
   return `<tr><td class="footer-bg px-mobile" align="center" style="background:#F8F9FA; border-top:1px solid #D0D6DF; padding:28px 32px 24px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
       <tr><td align="center" style="padding-bottom:14px;">
@@ -326,7 +335,16 @@ function getMaxCreditTerm(req: Request): number {
   const all: PaymentInstallment[] = [...req.installments, ...(req.swInstallments ?? [])]
   return all.reduce((m, i) => Math.max(m, i.creditTermDays), 0)
 }
+// window.location.origin is fine for the browser-preview-tab case (same
+// machine renders it immediately) but wrong for anything a mail client has
+// to fetch on its own — running this via `npm run dev`, every image/link in
+// a real-sent email would point at http://localhost:5173, unreachable from
+// literally any other device (exactly what made icons/logo vanish in
+// received mail). VITE_EMAIL_BASE_URL pins real sends to the deployed site
+// instead; unset, behavior is unchanged.
+const EMAIL_BASE_URL = import.meta.env.VITE_EMAIL_BASE_URL as string | undefined
 function getBaseUrl(): string {
+  if (EMAIL_BASE_URL) return EMAIL_BASE_URL
   return typeof window !== 'undefined' ? window.location.origin : ''
 }
 const SECTION_LABELS = { customerComment: 'ลูกค้า', hardwareComment: 'Hardware', swComment: 'Software &amp; Installation' } as const
