@@ -77,6 +77,7 @@ export interface EmailContent {
 }
 
 function shell(title: string, preheader: string, bodyHtml: string): string {
+  const headerLogoUrl = `${getBaseUrl()}${workxLogo}`
   return `<!doctype html>
 <html lang="th" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -102,7 +103,14 @@ function shell(title: string, preheader: string, bodyHtml: string): string {
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="email-container card-bg" style="width:600px; max-width:600px; background:#FFFFFF; border:1px solid #D0D6DF; border-radius:4px;">
           <tr>
             <td class="px-mobile header-cell" style="padding: 26px 32px 16px; border-bottom:1px solid #D0D6DF;">
-              <span class="text-secondary" style="font-family:${FONT}; font-size:14px; font-weight:600; color:#586782; letter-spacing:0.01em;">Credit &amp; Payment Term</span>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                <td style="vertical-align:middle; padding-right:10px;">
+                  <img src="${headerLogoUrl}" width="78" height="18" alt="WorkX" style="display:block; border:0;">
+                </td>
+                <td style="vertical-align:middle;">
+                  <span class="text-secondary" style="font-family:${FONT}; font-size:14px; font-weight:600; color:#586782; letter-spacing:0.01em;">Credit &amp; Payment Term</span>
+                </td>
+              </tr></table>
             </td>
           </tr>
           ${bodyHtml}
