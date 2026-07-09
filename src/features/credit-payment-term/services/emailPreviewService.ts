@@ -540,8 +540,51 @@ function openHtmlInNewTab(html: string): void {
   win.document.close()
 }
 
-export function previewSubmitConfirmationEmail(req: Request): void { openHtmlInNewTab(buildSubmitConfirmationEmail(req).html) }
-export function previewNewRequestApproverEmail(req: Request): void { openHtmlInNewTab(buildNewRequestApproverEmail(req).html) }
-export function previewApprovedEmail(req: Request): void { openHtmlInNewTab(buildApprovedEmail(req).html) }
-export function previewRejectedEmail(req: Request): void { openHtmlInNewTab(buildRejectedEmail(req).html) }
-export function previewCancelledEmail(req: Request): void { openHtmlInNewTab(buildCancelledEmail(req).html) }
+// ---- Real send, via api/send-email.ts, opt-in only ----
+// No RESEND_API_KEY anywhere near this file — that lives server-side (see
+// api/send-email.ts). This just calls the endpoint. Recipients in the mock
+// data (sales@company.com, approver@company.com) aren't real inboxes, so
+// this only fires when VITE_TEST_EMAIL_RECIPIENT is explicitly set (.env.local
+// for `npm run dev`, Vercel project env vars for the deployed app) — with it
+// unset, behavior is unchanged: preview-tab only, nothing sent anywhere.
+const TEST_EMAIL_RECIPIENT = import.meta.env.VITE_TEST_EMAIL_RECIPIENT as string | undefined
+
+async function sendReal(subject: string, html: string): Promise<void> {
+  if (!TEST_EMAIL_RECIPIENT) return
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: TEST_EMAIL_RECIPIENT, subject, html }),
+    })
+    if (!res.ok) console.warn('[emailPreviewService] real send failed:', await res.json().catch(() => res.statusText))
+  } catch (e) {
+    console.warn('[emailPreviewService] real send skipped (no /api available):', e)
+  }
+}
+
+export function previewSubmitConfirmationEmail(req: Request): void {
+  const { subject, html } = buildSubmitConfirmationEmail(req)
+  openHtmlInNewTab(html)
+  sendReal(subject, html)
+}
+export function previewNewRequestApproverEmail(req: Request): void {
+  const { subject, html } = buildNewRequestApproverEmail(req)
+  openHtmlInNewTab(html)
+  sendReal(subject, html)
+}
+export function previewApprovedEmail(req: Request): void {
+  const { subject, html } = buildApprovedEmail(req)
+  openHtmlInNewTab(html)
+  sendReal(subject, html)
+}
+export function previewRejectedEmail(req: Request): void {
+  const { subject, html } = buildRejectedEmail(req)
+  openHtmlInNewTab(html)
+  sendReal(subject, html)
+}
+export function previewCancelledEmail(req: Request): void {
+  const { subject, html } = buildCancelledEmail(req)
+  openHtmlInNewTab(html)
+  sendReal(subject, html)
+}
