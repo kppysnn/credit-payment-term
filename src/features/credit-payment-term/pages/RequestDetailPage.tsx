@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
 import { getRequestById, approveRequest, rejectRequest, cancelRequest, submitRequest } from '../services/creditTermService'
+import { previewSubmitConfirmationEmail, previewNewRequestApproverEmail, previewApprovedEmail, previewRejectedEmail } from '../services/emailPreviewService'
 import { exportPDF } from '../services/exportService'
 import type { Request, PaymentInstallment, QuotationItem } from '../types/request'
 import { SALE_TYPE_LABELS } from '../types/request'
@@ -434,6 +435,7 @@ export function RequestDetailPage() {
     const updated = await approveRequest(id, { customerComment, hardwareComment, swComment }, currentUser)
     setReq(updated)
     setApproveOpen(false)
+    previewApprovedEmail(updated)
   }
 
   async function handleReject() {
@@ -441,6 +443,7 @@ export function RequestDetailPage() {
     const updated = await rejectRequest(id, { customerComment, hardwareComment, swComment }, currentUser)
     setReq(updated)
     setRejectOpen(false)
+    previewRejectedEmail(updated)
   }
 
   async function handleCancel(reason: string) {
@@ -456,6 +459,8 @@ export function RequestDetailPage() {
     const updated = await submitRequest(id, currentUser)
     setReq(updated)
     setSubmitLoading(false)
+    previewSubmitConfirmationEmail(updated)
+    previewNewRequestApproverEmail(updated)
   }
 
   return (

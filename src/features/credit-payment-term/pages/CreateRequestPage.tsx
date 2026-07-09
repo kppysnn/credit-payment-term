@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
 import { RequestFormStepper } from '../components/RequestFormStepper'
 import { createRequest, submitRequest } from '../services/creditTermService'
+import { previewSubmitConfirmationEmail, previewNewRequestApproverEmail } from '../services/emailPreviewService'
 import type { Request, QuotationItem, PaymentInstallment, SaleType } from '../types/request'
 import type { RequestCustomerInfo } from '../types/customer'
 import { calcGrossProfit, calcMarginPercent, calcInstallmentAmount } from '../utils/calculations'
@@ -130,7 +131,13 @@ export function CreateRequestPage() {
   async function handleSubmit(data: Record<string, unknown>) {
     const payload = buildRequestFromFormData(data, currentUser)
     const req = await createRequest(payload)
-    await submitRequest(req.id, currentUser)
+    const updated = await submitRequest(req.id, currentUser)
+    // No real mail service in this app — this opens the two "submit" emails
+    // (sales confirmation + approver notification) as real HTML in new tabs,
+    // generated from the live request, so the notification flow can be seen
+    // end-to-end without a backend. See emailPreviewService.ts.
+    previewSubmitConfirmationEmail(updated)
+    previewNewRequestApproverEmail(updated)
     navigate(`/requests/${req.id}`, { replace: true, state: { toast: 'ส่งคำขออนุมัติเรียบร้อยแล้ว' } })
   }
 

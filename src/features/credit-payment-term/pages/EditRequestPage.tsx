@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
 import { getRequestById, saveDraft, resubmitRequest, submitRequest, updatePendingRequest } from '../services/creditTermService'
+import { previewSubmitConfirmationEmail, previewNewRequestApproverEmail } from '../services/emailPreviewService'
 import type { Request, QuotationItem, PaymentInstallment, SaleType } from '../types/request'
 import type { RequestCustomerInfo } from '../types/customer'
 import { RequestFormStepper } from '../components/RequestFormStepper'
@@ -129,13 +130,17 @@ export function EditRequestPage() {
     const patch = buildPatch(data, currentUser)
     let toastMsg = 'ส่งคำขออนุมัติเรียบร้อยแล้ว'
     if (isResubmit) {
-      await resubmitRequest(id, patch, currentUser)
+      const updated = await resubmitRequest(id, patch, currentUser)
+      previewSubmitConfirmationEmail(updated)
+      previewNewRequestApproverEmail(updated)
     } else if (isPendingEdit) {
       await updatePendingRequest(id, patch, currentUser)
       toastMsg = 'บันทึกการแก้ไขเรียบร้อยแล้ว'
     } else {
       await saveDraft(id, patch, currentUser)
-      await submitRequest(id, currentUser)
+      const updated = await submitRequest(id, currentUser)
+      previewSubmitConfirmationEmail(updated)
+      previewNewRequestApproverEmail(updated)
     }
     navigate(`/requests/${id}`, { replace: true, state: { toast: toastMsg } })
   }
