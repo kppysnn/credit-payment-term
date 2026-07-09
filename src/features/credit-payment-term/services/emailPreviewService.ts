@@ -350,7 +350,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
 
   const body = [
     headerRow(iconImg('hourglass-yellow', 18, 21), 'ส่งคำขอสำเร็จ รอการอนุมัติ'),
-    bodyCopyRow('ระบบได้รับคำขออนุมัติ Credit &amp; Payment Term ของคุณเรียบร้อยแล้ว และได้แจ้งเตือนไปยังผู้อนุมัติให้ดำเนินการแล้ว คุณจะได้รับอีเมลอีกฉบับทันทีที่มีผลการพิจารณา'),
+    bodyCopyRow('ส่งคำขออนุมัติ Credit &amp; Payment Term เรียบร้อยแล้ว ระบบได้แจ้งผู้อนุมัติ และจะส่งอีเมลแจ้งผลให้คุณทราบอีกครั้ง'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอของคุณ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
@@ -379,8 +379,8 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="banner-bg" style="background:#FFFBEB; border:1px solid #FCD34D; border-radius:4px;"><tr>
       <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('triangle-exclamation-amber', 16, 16)}</td>
       <td valign="top" style="padding:12px 14px 12px 10px;">
-        <div style="font-family:${FONT}; font-size:13px; font-weight:600; color:#92400E; margin-bottom:2px;">ส่งคำขออนุมัติอีกครั้ง (v${req.version}) หลังถูกไม่อนุมัติ</div>
-        <div style="font-family:${FONT}; font-size:13px; font-weight:400; color:#92400E; line-height:1.65;"><strong>เหตุผลที่ถูกไม่อนุมัติ (${formatDateTime(rejectedEntry.createdAt)}):</strong> &ldquo;${rejectedEntry.comment ?? '—'}&rdquo;</div>
+        <div style="font-family:${FONT}; font-size:13px; font-weight:600; color:#92400E; margin-bottom:2px;">มีการส่งคำขออนุมัติใหม่ (v${req.version}) หลังจากคำขอเดิมถูกปฏิเสธเมื่อวันที่ ${formatDateTime(rejectedEntry.createdAt)}</div>
+        <div style="font-family:${FONT}; font-size:13px; font-weight:400; color:#92400E; line-height:1.65;"><strong>เหตุผลที่ถูกปฏิเสธครั้งก่อน:</strong> &ldquo;${rejectedEntry.comment ?? '—'}&rdquo;</div>
       </td>
     </tr></table>
   </td></tr>` : ''
@@ -448,7 +448,7 @@ export function buildApprovedEmail(req: Request): EmailContent {
 
   const body = [
     headerRow(iconImg('checkcircle-teal', 22, 22), 'คำขอของคุณได้รับการอนุมัติแล้ว'),
-    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณได้รับการอนุมัติเรียบร้อยแล้ว คุณสามารถแจ้งลูกค้าหรือดำเนินการเปิดออเดอร์ต่อได้ทันที'),
+    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณได้รับการอนุมัติเรียบร้อยแล้ว'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
@@ -520,7 +520,7 @@ export function buildCancelledEmail(req: Request): EmailContent {
 
   const body = [
     headerRow(iconImg('ban-gray', 20, 20), 'คำขอนี้ถูกยกเลิกแล้ว'),
-    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ที่คุณกำลังรอพิจารณาอยู่ถูกยกเลิกโดยผู้ส่งคำขอแล้ว ไม่จำเป็นต้องดำเนินการอนุมัติ/ไม่อนุมัติคำขอนี้อีกต่อไป'),
+    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ที่รอคุณพิจารณา ได้ถูกยกเลิกโดยผู้ส่งคำขอแล้ว คุณจึงไม่ต้องดำเนินการพิจารณารายการนี้'),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +

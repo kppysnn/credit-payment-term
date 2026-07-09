@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../../../app/UserContext'
 import { getRequests, getRequestById, deleteRequest, cancelRequest } from '../services/creditTermService'
+import { previewCancelledEmail } from '../services/emailPreviewService'
 import type { RequestListItem, RequestStatus } from '../types/request'
 import { STATUS_LABELS } from '../types/request'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
@@ -169,7 +170,13 @@ export function RequestListPage() {
 
   async function confirmCancel(reason: string) {
     if (!cancelTarget) return
-    await cancelRequest(cancelTarget.request.id, reason, currentUser)
+    // Same rule as RequestDetailPage's handleCancel: only a request the
+    // approver was actively waiting on (pending) needs a heads-up that it's
+    // off the table — a cancelled approved request has no one waiting on a
+    // decision.
+    const wasPending = cancelTarget.request.status === 'pending'
+    const updated = await cancelRequest(cancelTarget.request.id, reason, currentUser)
+    if (wasPending) previewCancelledEmail(updated)
     loadRequests()
   }
 
