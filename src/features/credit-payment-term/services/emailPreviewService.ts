@@ -32,8 +32,11 @@ function iconImg(name: string, width: number, height: number): string {
   return `<img src="${getBaseUrl()}/email-icons/${name}.png" width="${width}" height="${height}" alt="" style="display:block; border:0;">`
 }
 
-function mailSendIconSvg(size: number): string {
-  return iconImg('mailsend-navy', size, size)
+// mailsend-navy.png is cropped tight to the icon's actual ink (see
+// MailSendIcon in FigmaIcons.tsx) — it's wider than tall (20:16), so unlike
+// the other single-glyph icons here it can't be passed a single square size.
+function mailSendIconSvg(height: number): string {
+  return iconImg('mailsend-navy', Math.round(height * (20 / 16)), height)
 }
 
 // ---- Shared shell ----

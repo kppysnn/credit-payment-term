@@ -199,11 +199,16 @@ export function MenuIcon({ size = 18, color = 'currentColor', style }: IconProps
 
 /** Mail-send (envelope + badge arrow) — Figma's "icon_Mail_send" (937:1093),
  * composited from its 3 exact layers (envelope, badge circle, mirrored arrow)
- * at their original relative positions within the 32px icon box. */
+ * at their original relative positions within the 32px icon box. The layers
+ * only occupy an 8..28 x 6..22 region of that 32x32 box, so a 0 0 32 32
+ * viewBox rendered the glyph ~35% smaller than sibling icons at the same
+ * `size` (visibly undersized next to it in StatusTimeline, e.g. "ส่งขออนุมัติ")
+ * — viewBox is cropped tight to that region so `size` means the same thing
+ * here as it does for every other icon in this file. */
 export function MailSendIcon({ size = 15, color = 'currentColor', style }: IconProps) {
   const n = Number(size)
   return (
-    <svg width={n} height={n} viewBox="0 0 32 32" style={style}>
+    <svg width={n * (20 / 16)} height={n} viewBox="8 6 20 16" style={style}>
       <g transform="translate(8,10)">
         <path d="M15.8076 10.8564C15.6455 11.1985 15.3901 11.488 15.0703 11.6904C14.7502 11.893 14.3788 12.0001 14 12H2C1.62117 12.0004 1.24994 11.8928 0.929688 11.6904C0.609694 11.4882 0.353707 11.1994 0.191406 10.8574L6.76074 6.83008L8 7.58594L9.23828 6.8291L15.8076 10.8564ZM5.80273 6.24316L0 9.80078V2.69727L5.80273 6.24316ZM12.2891 4.96387C13.1927 5.61504 14.3011 6 15.5 6C15.6686 6 15.8353 5.99044 16 5.97559V9.80078L10.1973 6.24414V6.24316L12.2891 4.96387ZM10.0234 9.05562e-09C10.0086 0.164711 10 0.331424 10 0.5C10 1.96139 10.5712 3.28846 11.501 4.27344L8 6.41406L0.0498047 1.55469C0.15065 1.11308 0.398785 0.718968 0.75293 0.436523C1.1072 0.154019 1.54688 -3.04899e-05 2 9.05562e-09H10.0234Z" fill={color} />
       </g>
