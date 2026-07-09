@@ -196,3 +196,21 @@ export function MenuIcon({ size = 18, color = 'currentColor', style }: IconProps
     </svg>
   )
 }
+
+/** Paper-plane ("send") — Font Awesome 6 Solid's paper-plane glyph, used for
+ * the "submitted"/"resubmitted" timeline step. The raw glyph fills its 512x512
+ * viewBox edge-to-edge, but its ink isn't evenly distributed: measured pixel
+ * centroid sits at (306,265), not the geometric center (256,256), so centering
+ * it by bounding box (what flex/align-center does) reads as shifted toward the
+ * bottom-right, leaving a visible gap top-left — the classic "arrow/paper-plane
+ * glyphs need optical, not geometric, centering" problem. viewBox pads only the
+ * far side of each axis (no crop of the artwork) so bounding-box centering also
+ * centers the ink; same fix is baked into public/email-icons/paperplane-navy.png. */
+export function SendIcon({ size = 15, color = 'currentColor', style }: IconProps) {
+  const n = Number(size)
+  return (
+    <svg width={n * (612.8 / 530.24)} height={n} viewBox="0 0 612.8 530.24" style={style}>
+      <path fill={color} d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480l0-83.6c0-4 1.5-7.8 4.2-10.8L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z" />
+    </svg>
+  )
+}

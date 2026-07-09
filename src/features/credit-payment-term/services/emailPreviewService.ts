@@ -32,12 +32,13 @@ function iconImg(name: string, width: number, height: number): string {
   return `<img src="${getBaseUrl()}/email-icons/${name}.png" width="${width}" height="${height}" alt="" style="display:block; border:0;">`
 }
 
-// Matches the FaPaperPlane icon used for the same "submitted"/"resubmitted"
-// steps in StatusTimeline.tsx — swapped in place of the earlier mail+badge
-// icon, which never sat well next to the other single-glyph timeline icons
-// no matter how it was cropped.
-function submittedIconSvg(size: number): string {
-  return iconImg('paperplane-navy', size, size)
+// Matches SendIcon (components/icons/FigmaIcons.tsx) used for the same
+// "submitted"/"resubmitted" steps in StatusTimeline.tsx. paperplane-navy.png
+// is rendered from that icon's optically-centered canvas (612.8 x 530.24 —
+// padded right/bottom only so the glyph's ink, not just its bounding box,
+// sits centered in the circle), so it isn't square like the other icons here.
+function submittedIconSvg(height: number): string {
+  return iconImg('paperplane-navy', Math.round(height * (612.8 / 530.24)), height)
 }
 
 // ---- Shared shell ----

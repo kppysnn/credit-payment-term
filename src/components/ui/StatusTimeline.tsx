@@ -1,17 +1,17 @@
 import type { ApprovalHistoryEntry } from '../../features/credit-payment-term/types/approval'
 import { APPROVAL_ACTION_LABELS } from '../../features/credit-payment-term/types/approval'
 import { formatDateTime } from '../../features/credit-payment-term/utils/formatters'
-import { FaCheck, FaXmark, FaHourglass, FaFileLines, FaBan, FaPaperPlane } from 'react-icons/fa6'
-import { RefreshIcon } from '../icons/FigmaIcons'
+import { FaCheck, FaXmark, FaHourglass, FaFileLines, FaBan } from 'react-icons/fa6'
+import { RefreshIcon, SendIcon } from '../icons/FigmaIcons'
 
 const ACTION_ICONS: Record<string, React.ReactNode> = {
   created: <FaFileLines size={14} aria-hidden="true" />,
   draft_saved: <FaFileLines size={14} aria-hidden="true" />,
-  submitted: <FaPaperPlane size={13} aria-hidden="true" />,
+  submitted: <SendIcon size={13} />,
   approved: <FaCheck size={13} aria-hidden="true" />,
   rejected: <FaXmark size={14} aria-hidden="true" />,
   edited: <RefreshIcon size={15} />,
-  resubmitted: <FaPaperPlane size={13} aria-hidden="true" />,
+  resubmitted: <SendIcon size={13} />,
   cancelled: <FaBan size={13} aria-hidden="true" />,
 }
 
