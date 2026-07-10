@@ -61,6 +61,11 @@ function iconImg(name: string, width: number, height: number): string {
 function submittedIconSvg(height: number): string {
   return iconImg('paperplane-navy', Math.round(height * (612.8 / 530.24)), height)
 }
+// White cutout of the same optically-centered canvas, for when "submitted"/
+// "resubmitted" is the timeline's last (current) step — see TimelineStep.
+function submittedIconSvgWhite(height: number): string {
+  return iconImg('paperplane-white', Math.round(height * (612.8 / 530.24)), height)
+}
 
 // ---- Shared shell ----
 // @import here is redundant with the <link> tag in <head> on purpose — some
@@ -102,8 +107,8 @@ const STYLE_BLOCK = `
     .timeline-line-muted { border-color: #3A4661 !important; background: #3A4661 !important; }
     .banner-bg { background: #2A2107 !important; border-color: #92720C !important; }
     .banner-text { color: #FCD34D !important; }
-    .note-bg { background: #0F2A18 !important; border-color: #1D5C33 !important; }
-    .note-text { color: #86EFAC !important; }
+    .alert-bg { background: #2A1113 !important; border-color: #7A2A2A !important; }
+    .alert-text { color: #FCA5A5 !important; }
     .chip-bg { background: rgba(126,182,232,0.14) !important; }
   }
 `
@@ -341,9 +346,31 @@ interface TimelineStep {
   date: string
   color: string
   iconSvg: string
+  // Rendered on a solid-filled, larger dot for whichever step is last — see
+  // timelineDotHtml(). Needs its own white-on-color icon asset, not just a
+  // bigger copy of iconSvg: every existing icon PNG is baked-in-color to
+  // read against a *light-tint* dot background (the non-last treatment), so
+  // reusing one on a full-color fill would make the icon invisible (same
+  // hue as what's behind it).
+  iconLarge: string
 }
 
-function timelineDotHtml(step: TimelineStep): string {
+// The step matching "what this email is actually about" (the last dot —
+// submitted/approved/rejected/cancelled, whichever applies) used to render
+// exactly like the steps before it: same 28px size, same light 9%-tint fill,
+// same 2px ring. A recipient had to read the labels to know which dot was
+// the current outcome versus just earlier history — there was no way to
+// tell at a glance, unlike most step-trackers where the current/final state
+// reads as visually heavier before you read a single word. Filed as a
+// design gap (found in the live app's own StatusTimeline.tsx too, fixed
+// there in the same pass) rather than a bug: everything was internally
+// consistent, it just never asked "which one deserves more weight."
+function timelineDotHtml(step: TimelineStep, isLast: boolean): string {
+  if (isLast) {
+    return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
+      <td width="36" height="36" align="center" valign="middle" style="width:36px; height:36px; border-radius:50%; background:${step.color};">${step.iconLarge}</td>
+    </tr></table>`
+  }
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
     <td width="28" height="28" align="center" valign="middle" style="width:28px; height:28px; border-radius:50%; background:rgba(${hexToRgb(step.color)},0.09); border:2px solid ${step.color};">${step.iconSvg}</td>
   </tr></table>`
@@ -353,50 +380,79 @@ function hexToRgb(hex: string): string {
   return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`
 }
 
+// The dot color (step.color) is chosen for the ring/icon, where a fully
+// saturated brand hue reads fine against white at 28px. The SAME hex reused
+// as small (11.5px) label text is a different contrast problem — #F3554F
+// (rejected/cancelled) measures 3.37:1 there, under WCAG AA's 4.5:1 floor
+// (caught by /impeccable critique's browser-based contrast scan). Maps each
+// dot color to a readable text-safe variant instead of using it directly;
+// #66C5C5 already had this (teal ring, navy label) — extended the same
+// pattern to red. Returns the dark-mode class alongside the light-mode
+// color — the old code picked the class with a separate `=== '#586782'`
+// ternary that only knew "gray" vs "everything else is brand-blue," so a
+// red label got the navy `text-brand` dark override and silently rendered
+// light blue instead of red in dark mode. One function owns both now so
+// they can't drift apart again.
+function timelineLabelStyle(dotColor: string): { color: string; darkClass: string } {
+  if (dotColor === '#66C5C5') return { color: '#004081', darkClass: 'text-brand' }
+  if (dotColor === '#F3554F') return { color: '#7F1D1D', darkClass: 'alert-text' }
+  if (dotColor === '#586782') return { color: '#586782', darkClass: 'text-secondary' }
+  return { color: dotColor, darkClass: 'text-brand' }
+}
+
 function timelineHtml(steps: TimelineStep[]): string {
   const colWidth = steps.length <= 2 ? 120 : 90
+  // A 2-step timeline in a full-width table leaves most of the row as bare
+  // connector line (2 x 120px of content in a ~536px-wide card) — reads as
+  // an unbalanced, overly long line rather than a compact "journey so far."
+  // Capping the table itself to a narrower, centered width for that case
+  // keeps the same dot/line/label parts but in a proportion that doesn't
+  // look like it's missing a third step.
+  const tableWidth = steps.length <= 2 ? 300 : '100%'
+  const tableAlign = steps.length <= 2 ? ' align="center"' : ''
   const dots = steps.map((step, i) => {
+    const isLast = i === steps.length - 1
     const connector = i < steps.length - 1
       ? `<td valign="middle" style="padding:0 2px;"><div class="timeline-line-muted" style="height:2px; background:#D0D6DF; font-size:0; line-height:0;">&nbsp;</div></td>`
       : ''
-    return `<td width="${colWidth}" align="center" valign="middle">${timelineDotHtml(step)}</td>${connector}`
+    return `<td width="${colWidth}" align="center" valign="middle">${timelineDotHtml(step, isLast)}</td>${connector}`
   }).join('')
   const labels = steps.map((step, i) => {
     const sep = i < steps.length - 1 ? `<td>&nbsp;</td>` : ''
-    const labelColor = step.color === '#66C5C5' ? '#004081' : step.color
+    const { color: labelColor, darkClass } = timelineLabelStyle(step.color)
     return `<td width="${colWidth}" align="center" valign="top" style="padding-top:8px;">
-      <div class="${step.color === '#586782' ? 'text-secondary' : 'text-brand'}" style="font-family:${FONT}; font-size:11.5px; font-weight:600; color:${labelColor};">${step.label}</div>
+      <div class="${darkClass}" style="font-family:${FONT}; font-size:11.5px; font-weight:600; color:${labelColor};">${step.label}</div>
       <div class="text-secondary" style="font-family:${FONT}; font-size:10.5px; color:#586782; margin-top:1px;">${step.date}</div>
     </td>${sep}`
   }).join('')
   return `<tr><td class="px-mobile" style="padding: 4px 32px 24px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <table role="presentation" width="${tableWidth}" cellpadding="0" cellspacing="0" border="0"${tableAlign}>
       <tr>${dots}</tr>
       <tr>${labels}</tr>
     </table>
   </td></tr>`
 }
 
-function historyStep(req: Request, action: string, iconSvg: string, color: string): TimelineStep | undefined {
+function historyStep(req: Request, action: string, iconSvg: string, iconLarge: string, color: string): TimelineStep | undefined {
   const entry = [...req.history].reverse().find(h => h.action === action)
   if (!entry) return undefined
-  return { label: APPROVAL_ACTION_LABELS[entry.action], date: formatDateTime(entry.createdAt), color, iconSvg }
+  return { label: APPROVAL_ACTION_LABELS[entry.action], date: formatDateTime(entry.createdAt), color, iconSvg, iconLarge }
 }
 
 // The one step that can repeat across rounds (submitted / resubmitted) —
 // always shows only the MOST RECENT occurrence, with a "(v{n})" suffix once
 // version > 1, so a request that's been rejected-and-resubmitted several
 // times still renders as a single dot, not one per round.
-function submittedStep(req: Request, iconSvg: string): TimelineStep | undefined {
+function submittedStep(req: Request, iconSvg: string, iconLarge: string): TimelineStep | undefined {
   const entry = [...req.history].reverse().find(h => h.action === 'submitted' || h.action === 'resubmitted')
   if (!entry) return undefined
   const label = APPROVAL_ACTION_LABELS[entry.action] + (req.version > 1 ? ` (v${req.version})` : '')
-  return { label, date: formatDateTime(entry.createdAt), color: '#004081', iconSvg }
+  return { label, date: formatDateTime(entry.createdAt), color: '#004081', iconSvg, iconLarge }
 }
 function createdStep(req: Request): TimelineStep | undefined {
   const entry = [...req.history].reverse().find(h => h.action === 'created')
   if (!entry) return undefined
-  return { label: APPROVAL_ACTION_LABELS.created, date: formatDateTime(entry.createdAt), color: '#586782', iconSvg: iconImg('filelines-gray', 11, 15) }
+  return { label: APPROVAL_ACTION_LABELS.created, date: formatDateTime(entry.createdAt), color: '#586782', iconSvg: iconImg('filelines-gray', 11, 15), iconLarge: iconImg('filelines-white', 14, 19) }
 }
 
 // ---- Shared data extraction ----
@@ -422,33 +478,35 @@ function getBaseUrl(): string {
   return typeof window !== 'undefined' ? window.location.origin : ''
 }
 const SECTION_LABELS = { customerComment: 'ลูกค้า', hardwareComment: 'Hardware', swComment: 'Software &amp; Installation' } as const
-function sectionCommentsHtml(req: Request, color: string): string {
+function sectionCommentsHtml(req: Request, color: string, darkClass: string): string {
   const parts: string[] = []
   if (req.approvalResult?.customerComment) parts.push(`<strong>${SECTION_LABELS.customerComment}:</strong> &ldquo;${req.approvalResult.customerComment}&rdquo;`)
   if (req.approvalResult?.hardwareComment) parts.push(`<strong>${SECTION_LABELS.hardwareComment}:</strong> &ldquo;${req.approvalResult.hardwareComment}&rdquo;`)
   if (req.approvalResult?.swComment) parts.push(`<strong>${SECTION_LABELS.swComment}:</strong> &ldquo;${req.approvalResult.swComment}&rdquo;`)
-  return `<div class="note-text" style="font-family:${FONT}; font-size:13px; font-weight:400; color:${color}; line-height:1.65;">${parts.join('<br>')}</div>`
+  return `<div class="${darkClass}" style="font-family:${FONT}; font-size:13px; font-weight:400; color:${color}; line-height:1.65;">${parts.join('<br>')}</div>`
 }
 
 // Pulled out of the info card into its own callout so "ยกเลิกเพราะอะไร" reads
 // as the one thing worth noticing, not another line buried among reference
 // numbers and dates — same "small icon + label + boxed quote" shape as the
-// rejected/approved callouts above. Uses the same red as rejected (not a
-// separate gray "cancelled" hue) so the status marker actually reads as
-// attention-worthy at a glance instead of fading into the neutral box bg.
-// Uses `card-head-bg` (not `banner-bg`) for the dark-mode override — this box
-// is a neutral gray quote in light mode, but `banner-bg`'s dark variant is
-// tuned amber/olive for the *warning* banner below (§resubmitBanner), which
-// made this neutral box flip to a jarring amber-brown in dark mode even
-// though nothing here is a warning.
+// approved-note (green) and resubmit-warning (amber) callouts, and now the
+// same *rule* they already follow: icon, background, border, and text are
+// all one color family, not just the icon. An earlier version paired the
+// red `ban-red` icon with a neutral gray box (reusing `card-head-bg`) —
+// technically correct in dark mode, but visually read as a mismatch/mistake
+// next to the fully-red-toned reject callouts elsewhere, and buried the one
+// thing this box exists to highlight. Reuses the same error token trio
+// already documented in this codebase's Alert tokens (`#FEF2F2`/`#FCA5A5`/
+// `#7F1D1D`, see EMAIL_NOTIFICATIONS_SPEC.md §4) rather than inventing a
+// new red.
 function reasonBoxHtml(comment: string | undefined, label: string): string {
   if (!comment) return ''
   return `<tr><td class="px-mobile" style="padding: 0 32px 20px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card-head-bg" style="background:#F2F6F8; border:1px solid #D0D6DF; border-radius:4px;"><tr>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="alert-bg" style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:4px;"><tr>
       <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('ban-red', 16, 16)}</td>
       <td valign="top" style="padding:12px 14px 12px 10px;">
-        <div class="text-body" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#374151; margin-bottom:2px;">${label}</div>
-        <div class="text-body" style="font-family:${FONT}; font-size:13px; font-weight:400; color:#374151; line-height:1.65;">&ldquo;${comment}&rdquo;</div>
+        <div class="alert-text" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#7F1D1D; margin-bottom:2px;">${label}</div>
+        <div class="alert-text" style="font-family:${FONT}; font-size:13px; font-weight:400; color:#7F1D1D; line-height:1.65;">&ldquo;${comment}&rdquo;</div>
       </td>
     </tr></table>
   </td></tr>`
@@ -461,7 +519,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, submittedIconSvg(14)),
+    submittedStep(req, submittedIconSvg(14), submittedIconSvgWhite(18)),
   ].filter(Boolean) as TimelineStep[]
 
   const body = [
@@ -521,8 +579,20 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
 
   const versionBadge = req.version > 1 ? `<span class="text-brand chip-bg" style="display:inline-block; font-family:${FONT}; font-size:12px; font-weight:600; color:#004081; background:rgba(0,64,129,0.08); border-radius:4px; padding:2px 8px;">v${req.version}</span>` : undefined
 
+  // Same created->submitted timeline as the sales-facing submit-confirmation
+  // email (#1) — the approver sees the identical two-step history, just
+  // framed as "here's what happened" instead of "here's what you did." Its
+  // absence here (while #1/#3/#4 all have one) read as an inconsistency in
+  // /impeccable critique, not a deliberate choice — nothing in the visual
+  // design signaled "this template intentionally has no timeline."
+  const steps = [
+    createdStep(req),
+    submittedStep(req, submittedIconSvg(14), submittedIconSvgWhite(18)),
+  ].filter(Boolean) as TimelineStep[]
+
   const body = [
     headerRow(iconImg('hourglass-yellow', 21, 24), 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
+    timelineHtml(steps),
     resubmitBanner,
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
@@ -547,22 +617,31 @@ export function buildApprovedEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, submittedIconSvg(14)),
+    submittedStep(req, submittedIconSvg(14), submittedIconSvgWhite(18)),
     // check-teal.png's canvas is 140x160 (0.875 ratio), not square — a plain
     // 13x13 call stretches it to a 1:1 box, visibly skewing the checkmark
     // inside its otherwise-perfectly-round timeline dot border. 11x13 keeps
     // the source's real proportions (matches the same aspect-correction
     // pattern submittedIconSvg() already uses for paperplane-navy.png).
-    historyStep(req, 'approved', iconImg('check-teal', 11, 13), '#66C5C5'),
+    historyStep(req, 'approved', iconImg('check-teal', 11, 13), iconImg('check-white', 14, 17), '#66C5C5'),
   ].filter(Boolean) as TimelineStep[]
 
+  // Was a green "success" callout (note-bg/circlecheck-green) sitting right
+  // under a teal "approved" status icon — two different hues both reading
+  // as "this is good news" in one email. /impeccable critique flagged this
+  // as a real inconsistency, not an intentional two-tier signal (nothing in
+  // the email explains "teal = status, green = comment"). Reuses this
+  // template's own status color instead — the exact bg/border/text trio
+  // CLAUDE.md documents for Button.tsx's secondary variant (`#EBF9F9`/
+  // `#66C5C5`/`#004081`), so the whole email tells one color story instead
+  // of two, and still an existing WorkX token set, not a new color.
   const hasNotes = req.approvalResult?.customerComment || req.approvalResult?.hardwareComment || req.approvalResult?.swComment
   const noteBox = hasNotes ? `<tr><td class="px-mobile" style="padding: 0 32px 8px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="note-bg" style="background:#F0FDF4; border:1px solid #86EFAC; border-radius:4px;"><tr>
-      <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('circlecheck-green', 16, 16)}</td>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card-head-bg" style="background:#EBF9F9; border:1px solid #66C5C5; border-radius:4px;"><tr>
+      <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('checkcircle-teal', 16, 16)}</td>
       <td valign="top" style="padding:12px 14px 12px 10px;">
-        <div class="note-text" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#14532D; margin-bottom:2px;">หมายเหตุจากผู้อนุมัติ</div>
-        ${sectionCommentsHtml(req, '#14532D')}
+        <div class="text-brand" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#004081; margin-bottom:2px;">หมายเหตุจากผู้อนุมัติ</div>
+        ${sectionCommentsHtml(req, '#004081', 'text-brand')}
       </td>
     </tr></table>
   </td></tr>` : ''
@@ -587,26 +666,42 @@ export function buildApprovedEmail(req: Request): EmailContent {
 }
 
 // ==================== Template 4: rejected (sales) ====================
-// No inline rejection reason here on purpose — it used to sit in a red
-// callout box right under the header, which competed with the header for
-// attention instead of letting "ไม่ได้รับการอนุมัติ" register first. The
-// full reason is one tap away on the detail page, same as every other field
-// on this request; the email's job is just to say "this needs your
-// attention" as clearly as possible.
+// An earlier version omitted the rejection reason entirely — the theory was
+// that showing it here competed with the header for attention, and the full
+// reason was "one tap away" on the detail page anyway. In practice that made
+// this the one email in the set that tells the recipient to fix something
+// without saying what: the approved-note and cancellation-reason callouts
+// both show their "why" inline, so rejected doing the opposite read as
+// missing information, not a deliberate restraint (caught by /impeccable
+// critique — this is the one place Nielsen's "help users recover from
+// errors" heuristic actually matters and was the weakest score in the set).
+// Restored using the same red alert callout as the cancellation-reason box.
 export function buildRejectedEmail(req: Request): EmailContent {
   const detailUrl = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const steps = [
     createdStep(req),
-    submittedStep(req, submittedIconSvg(13)),
-    historyStep(req, 'rejected', iconImg('xmark-red-solid', 12, 16), '#F3554F'),
+    submittedStep(req, submittedIconSvg(13), submittedIconSvgWhite(17)),
+    historyStep(req, 'rejected', iconImg('xmark-red-solid', 12, 16), iconImg('xmark-white', 15, 21), '#F3554F'),
   ].filter(Boolean) as TimelineStep[]
+
+  const hasReasons = req.approvalResult?.customerComment || req.approvalResult?.hardwareComment || req.approvalResult?.swComment
+  const rejectBox = hasReasons ? `<tr><td class="px-mobile" style="padding: 0 32px 8px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="alert-bg" style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:4px;"><tr>
+      <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('xmark-red-solid', 12, 16)}</td>
+      <td valign="top" style="padding:12px 14px 12px 10px;">
+        <div class="alert-text" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#7F1D1D; margin-bottom:2px;">เหตุผลที่ไม่อนุมัติ</div>
+        ${sectionCommentsHtml(req, '#7F1D1D', 'alert-text')}
+      </td>
+    </tr></table>
+  </td></tr>` : ''
 
   const body = [
     headerRow(iconImg('xmark-red-solid', 17, 23), 'คำขอของคุณไม่ได้รับการอนุมัติ'),
     bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณไม่ได้รับการอนุมัติ กรุณาดูรายละเอียดคำขอเพื่อแก้ไขและส่งขออนุมัติอีกครั้ง'),
     timelineHtml(steps),
+    rejectBox,
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
@@ -643,8 +738,8 @@ export function buildCancelledEmail(req: Request): EmailContent {
 
   const steps = wasApproved ? [] : [
     createdStep(req),
-    submittedStep(req, submittedIconSvg(13)),
-    historyStep(req, 'cancelled', iconImg('ban-red', 13, 13), '#F3554F'),
+    submittedStep(req, submittedIconSvg(13), submittedIconSvgWhite(17)),
+    historyStep(req, 'cancelled', iconImg('ban-red', 13, 13), iconImg('ban-white', 17, 17), '#F3554F'),
   ].filter(Boolean) as TimelineStep[]
 
   const approvedRow = wasApproved

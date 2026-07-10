@@ -4,15 +4,23 @@ import { formatDateTime } from '../../features/credit-payment-term/utils/formatt
 import { FaCheck, FaXmark, FaHourglass, FaFileLines, FaBan } from 'react-icons/fa6'
 import { RefreshIcon, SendIcon } from '../icons/FigmaIcons'
 
-const ACTION_ICONS: Record<string, React.ReactNode> = {
-  created: <FaFileLines size={14} aria-hidden="true" />,
-  draft_saved: <FaFileLines size={14} aria-hidden="true" />,
-  submitted: <SendIcon size={13} />,
-  approved: <FaCheck size={13} aria-hidden="true" />,
-  rejected: <FaXmark size={14} aria-hidden="true" />,
-  edited: <RefreshIcon size={15} />,
-  resubmitted: <SendIcon size={13} />,
-  cancelled: <FaBan size={13} aria-hidden="true" />,
+// Function instead of a static JSX map so the current/last dot (bigger,
+// 36px vs 28px — see below) can request a proportionally bigger icon
+// instead of the same fixed size floating in more empty space.
+const ACTION_ICON_BASE_SIZE: Record<string, number> = {
+  created: 14, draft_saved: 14, submitted: 13, approved: 13,
+  rejected: 14, edited: 15, resubmitted: 13, cancelled: 13,
+}
+function actionIcon(action: string, size: number): React.ReactNode {
+  switch (action) {
+    case 'created': case 'draft_saved': return <FaFileLines size={size} aria-hidden="true" />
+    case 'submitted': case 'resubmitted': return <SendIcon size={size} />
+    case 'approved': return <FaCheck size={size} aria-hidden="true" />
+    case 'rejected': return <FaXmark size={size} aria-hidden="true" />
+    case 'edited': return <RefreshIcon size={size} />
+    case 'cancelled': return <FaBan size={size} aria-hidden="true" />
+    default: return <FaHourglass size={size} aria-hidden="true" />
+  }
 }
 
 // "approved" matches StatusBadge's teal exactly (#66C5C5, not green) — the
@@ -40,23 +48,29 @@ export function StatusTimeline({ history }: Props) {
         const isLast = idx === history.length - 1
         return (
           <div key={entry.historyId} style={{ display: 'flex', gap: 12 }}>
-            {/* Dot + line */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 28, flexShrink: 0 }}>
+            {/* Dot + line — the last entry (the current/final status, "now")
+               renders larger and solid-filled instead of the same small
+               tinted-ring treatment as every step before it. Previously
+               every dot got identical weight regardless of position, so
+               "what status is this actually at" only came from reading the
+               label text, not from the shape itself — the one thing a
+               status timeline should communicate before any text is read. */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 36, flexShrink: 0 }}>
               <div
                 style={{
-                  width: 28,
-                  height: 28,
+                  width: isLast ? 36 : 28,
+                  height: isLast ? 36 : 28,
                   borderRadius: '50%',
-                  background: color + '18',
-                  border: `2px solid ${color}`,
+                  background: isLast ? color : color + '18',
+                  border: isLast ? 'none' : `2px solid ${color}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color,
+                  color: isLast ? '#FFFFFF' : color,
                   flexShrink: 0,
                 }}
               >
-                {ACTION_ICONS[entry.action] ?? <FaHourglass size={13} aria-hidden="true" />}
+                {actionIcon(entry.action, isLast ? Math.round((ACTION_ICON_BASE_SIZE[entry.action] ?? 13) * 1.3) : (ACTION_ICON_BASE_SIZE[entry.action] ?? 13))}
               </div>
               {!isLast && (
                 <div style={{ width: 2, flex: 1, background: '#D0D6DF', minHeight: 20, margin: '3px 0' }} />
