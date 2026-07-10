@@ -46,9 +46,14 @@ const FONT = "'Poppins','Noto Sans Thai',-apple-system,BlinkMacSystemFont,'Segoe
 // Icons are hosted PNGs (public/email-icons/*.png), not inline <svg> — Gmail
 // (web + mobile) strips <svg> tags from email HTML entirely, so every icon
 // in this file was silently disappearing for exactly the recipients this is
-// built for. Rasterized once via ImageMagick from the same paths as
-// components/icons/FigmaIcons.tsx / Font Awesome 6 Solid (see the repo's
-// scratch generator if these ever need regenerating at a different size).
+// built for. Rasterized once via a real Chromium tab (Playwright) + ImageMagick
+// from the exact same source path data the live app renders for each of these
+// same semantic icons — StatusBadge.tsx's per-status icon (components/icons/
+// FigmaIcons.tsx: HourglassIcon/CheckCircleIcon/XMarkIcon, for pending/approved/
+// rejected) for header hero icons, and StatusTimeline.tsx's per-action icon
+// (react-icons/fa6: FaCheck/FaXmark/FaBan, plus FigmaIcons.tsx's SendIcon) for
+// timeline dots — never an independent approximation of either. (See the repo's
+// scratch generator if these ever need regenerating at a different size.)
 function iconImg(name: string, width: number, height: number): string {
   return `<img src="${getBaseUrl()}/email-icons/${name}.png" width="${width}" height="${height}" alt="" style="display:block; border:0;">`
 }
@@ -538,7 +543,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
   // through" fact isn't lost, it's just where it belongs: the subtitle
   // below, same as it already was.
   const body = [
-    headerRow(iconImg('hourglass-yellow', 39, 50), 'คำขอของคุณอยู่ระหว่างรอการอนุมัติ'),
+    headerRow(iconImg('hourglass-yellow', 44, 50), 'คำขอของคุณอยู่ระหว่างรอการอนุมัติ'),
     bodyCopyRow('ส่งคำขออนุมัติ Credit &amp; Payment Term เรียบร้อยแล้ว ระบบได้แจ้งผู้อนุมัติ และจะส่งอีเมลแจ้งผลให้คุณทราบอีกครั้ง'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอของคุณ') +
@@ -605,7 +610,7 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
   // subtitle explaining the ask serves that better than a journey ending in
   // a status the recipient hasn't decided yet.
   const body = [
-    headerRow(iconImg('hourglass-yellow', 39, 50), 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
+    headerRow(iconImg('hourglass-yellow', 44, 50), 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
     bodyCopyRow('มีคำขออนุมัติ Credit &amp; Payment Term ฉบับใหม่รอการพิจารณาจากคุณ กรุณาตรวจสอบรายละเอียดด้านล่างและดำเนินการอนุมัติหรือไม่อนุมัติ'),
     resubmitBanner,
     cardOpen('ข้อมูลคำขอ') +
