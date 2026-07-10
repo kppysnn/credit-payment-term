@@ -139,6 +139,6 @@ writeFileSync(join(DOCS, '01-submit-confirmation-sale.html'), buildSubmitConfirm
 writeFileSync(join(DOCS, '02-new-request-approver.html'), buildNewRequestApproverEmail(req002).html)
 writeFileSync(join(DOCS, '03-approved-sale.html'), buildApprovedEmail(req001).html)
 writeFileSync(join(DOCS, '04-rejected-sale.html'), buildRejectedEmail(req004).html)
-writeFileSync(join(DOCS, '05-cancelled-approver.html'), buildCancelledEmail(req007Cancelled).html)
+writeFileSync(join(DOCS, '05-cancelled-sale.html'), buildCancelledEmail(req007Cancelled).html)
 
 console.log('Wrote 5 files to', DOCS)

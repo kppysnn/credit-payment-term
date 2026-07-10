@@ -170,13 +170,13 @@ export function RequestListPage() {
 
   async function confirmCancel(reason: string) {
     if (!cancelTarget) return
-    // Same rule as RequestDetailPage's handleCancel: only a request the
-    // approver was actively waiting on (pending) needs a heads-up that it's
-    // off the table — a cancelled approved request has no one waiting on a
-    // decision.
-    const wasPending = cancelTarget.request.status === 'pending'
+    // Same rule as RequestDetailPage's handleCancel: sales gets the
+    // cancellation receipt whenever there was someone waiting on this request
+    // (pending or approved) — draft has no audience either way. The approver
+    // is never emailed about a cancellation; it's not their action to confirm.
+    const hadAudience = cancelTarget.request.status === 'pending' || cancelTarget.request.status === 'approved'
     const updated = await cancelRequest(cancelTarget.request.id, reason, currentUser)
-    if (wasPending) previewCancelledEmail(updated)
+    if (hadAudience) previewCancelledEmail(updated)
     loadRequests()
   }
 

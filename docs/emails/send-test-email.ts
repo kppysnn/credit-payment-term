@@ -50,7 +50,7 @@ const TEMPLATES: Record<string, () => { subject: string; html: string }> = {
   approver: () => buildNewRequestApproverEmail(req001),
   approved: () => buildApprovedEmail(req001),
   rejected: () => buildRejectedEmail({ ...req001, status: 'rejected', approvalResult: { approverEmail: 'approver@company.com', approverName: 'นายประยุทธ์ มั่นคง', rejectedAt: '2026-06-03T10:00:00.000Z', hardwareComment: 'Margin ต่ำเกินไป ขอปรับราคาใหม่' }, history: [...req001.history, { historyId: 'h099', requestId: 'req001', version: 1, action: 'rejected', actorEmail: 'approver@company.com', actorName: 'นายประยุทธ์ มั่นคง', fromStatus: 'pending', toStatus: 'rejected', comment: 'Hardware: Margin ต่ำเกินไป ขอปรับราคาใหม่', createdAt: '2026-06-03T10:00:00.000Z' }] }),
-  cancelled: () => buildCancelledEmail({ ...req001, status: 'cancelled', history: [...req001.history, { historyId: 'h098', requestId: 'req001', version: 1, action: 'cancelled', actorEmail: 'sales@company.com', actorName: 'สมหญิง รักงาน', fromStatus: 'pending', toStatus: 'cancelled', comment: 'ลูกค้ายกเลิกโครงการ', createdAt: '2026-06-03T10:00:00.000Z' }] }),
+  cancelled: () => buildCancelledEmail({ ...req001, status: 'cancelled', history: [...req001.history, { historyId: 'h098', requestId: 'req001', version: 1, action: 'cancelled', actorEmail: 'sales@company.com', actorName: 'สมหญิง รักงาน', fromStatus: 'approved', toStatus: 'cancelled', comment: 'ลูกค้ายกเลิกโครงการ', createdAt: '2026-06-03T10:00:00.000Z' }] }),
 }
 
 async function main() {

@@ -448,13 +448,15 @@ export function RequestDetailPage() {
 
   async function handleCancel(reason: string) {
     if (!id) return
-    // Only a request the approver was actively waiting on (pending) needs a
-    // heads-up that it's off the table — a cancelled draft/approved request
-    // has no one waiting on a decision. Capture status before it flips.
-    const wasPending = req?.status === 'pending'
+    // Sales gets the cancellation receipt whenever someone was actually
+    // waiting on this request — pending (approver) or approved (the
+    // arrangement itself). A cancelled draft has no audience either way.
+    // The approver is never emailed here; cancelling isn't their action to
+    // confirm. Capture status before it flips.
+    const hadAudience = req?.status === 'pending' || req?.status === 'approved'
     const updated = await cancelRequest(id, reason, currentUser)
     setCancelOpen(false)
-    if (wasPending) previewCancelledEmail(updated)
+    if (hadAudience) previewCancelledEmail(updated)
     navigate('/requests')
   }
 

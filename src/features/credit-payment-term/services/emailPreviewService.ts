@@ -29,7 +29,19 @@ import { formatDateTime, formatCreditTerm } from '../utils/formatters'
 // same reasoning behind public/email-icons/*.png.
 const WORKX_LOGO_PATH = '/workx-logo.png'
 
-const FONT = "'Poppins','Noto Sans Thai',Arial,sans-serif"
+// Gmail (web + app) strips every `@import`/`@font-face`/`<link>` to an
+// external stylesheet regardless of who's hosting the font or what OS/browser
+// opens it — confirmed by the same fallback rendering in both Chrome and
+// Safari against Gmail's web client, which rules out a browser-side font
+// quirk and points at Gmail's own HTML sanitizer instead. There is no way for
+// a sender to force a real custom font through that filter (industry-wide
+// email-client limitation, not something fixable from this codebase — same
+// reason every ESP's docs tell you to design for this fallback, not around
+// it). So the fallback stack is tuned to look deliberate rather than
+// defaulting straight to Arial: `-apple-system`/`BlinkMacSystemFont` render
+// San Francisco on Apple Mail/Gmail-on-macOS, `Segoe UI` covers Outlook/
+// Windows Mail, and Arial is the last-resort floor for anything else.
+const FONT = "'Poppins','Noto Sans Thai',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
 
 // Icons are hosted PNGs (public/email-icons/*.png), not inline <svg> — Gmail
 // (web + mobile) strips <svg> tags from email HTML entirely, so every icon
@@ -51,15 +63,29 @@ function submittedIconSvg(height: number): string {
 }
 
 // ---- Shared shell ----
+// @import here is redundant with the <link> tag in <head> on purpose — some
+// clients that ignore one respect the other, so both are included to
+// maximize how many actually load Poppins/Noto Sans Thai. Neither will
+// help in Gmail specifically (web or app): Gmail strips <link rel="stylesheet">
+// to external fonts and @font-face/@import alike, the same sanitization
+// that already forced icons to PNG and stripped inline <svg> elsewhere in
+// this file — it's not a bug here, it's Gmail's documented behavior across
+// every sender, not just this app. Everywhere else (Apple Mail, Outlook.com,
+// Yahoo, Windows/macOS Mail) this loads the real fonts. Where it's blocked,
+// `${FONT}`'s Arial fallback is what actually renders — sans-serif and
+// close enough in weight/spacing that the layout doesn't visibly break.
 const STYLE_BLOCK = `
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
   body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
   table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
   img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
   body { margin: 0; padding: 0; width: 100% !important; background: #F8F9FA; }
   @media screen and (max-width: 600px) {
     .email-container { width: 100% !important; }
-    .stack-col { display: block !important; width: 100% !important; padding-right: 0 !important; padding-left: 0 !important; }
+    .stack-col { display: block !important; width: 100% !important; text-align: left !important; padding-right: 0 !important; padding-left: 0 !important; }
     .stack-col + .stack-col { padding-top: 12px !important; }
+    .hide-mobile { display: none !important; }
+    .header-title { font-size: 13px !important; }
     .px-mobile { padding-left: 20px !important; padding-right: 20px !important; }
   }
   @media (prefers-color-scheme: dark) {
@@ -70,14 +96,14 @@ const STYLE_BLOCK = `
     .text-ink { color: #F1F5F9 !important; }
     .text-body { color: #CBD5E1 !important; }
     .text-secondary { color: #9AA8C7 !important; }
-    .text-muted { color: #7C8AA8 !important; }
     .text-brand { color: #7EB6E8 !important; }
     .footer-bg { background: #0B1220 !important; border-color: #28344A !important; }
     .header-cell { border-color: #28344A !important; }
     .timeline-line-muted { border-color: #3A4661 !important; background: #3A4661 !important; }
     .banner-bg { background: #2A2107 !important; border-color: #92720C !important; }
+    .banner-text { color: #FCD34D !important; }
     .note-bg { background: #0F2A18 !important; border-color: #1D5C33 !important; }
-    .alert-bg { background: #2A1113 !important; border-color: #7A2A2A !important; }
+    .note-text { color: #86EFAC !important; }
     .chip-bg { background: rgba(126,182,232,0.14) !important; }
   }
 `
@@ -116,13 +142,13 @@ function shell(title: string, preheader: string, bodyHtml: string): string {
       <td align="center" style="padding: 32px 16px;">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="email-container card-bg" style="width:600px; max-width:600px; background:#FFFFFF; border:1px solid #D0D6DF; border-radius:4px;">
           <tr>
-            <td class="px-mobile header-cell" style="padding: 26px 32px 16px; border-bottom:1px solid #D0D6DF;">
+            <td class="px-mobile header-cell" style="padding: 30px 32px 24px; border-bottom:1px solid #D0D6DF;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                <td style="vertical-align:middle; padding-right:10px;">
-                  <img src="${headerLogoUrl}" width="78" height="18" alt="WorkX" style="display:block; border:0;">
+                <td style="vertical-align:middle; padding-right:14px;">
+                  <img src="${headerLogoUrl}" width="104" height="24" alt="WorkX" style="display:block; border:0;">
                 </td>
-                <td style="vertical-align:middle;">
-                  <span class="text-secondary" style="font-family:${FONT}; font-size:14px; font-weight:600; color:#586782; letter-spacing:0.01em;">Credit &amp; Payment Term</span>
+                <td style="vertical-align:middle; padding-left:14px; border-left:1px solid #E2E8F0;">
+                  <span class="text-secondary header-title" style="font-family:${FONT}; font-size:15px; font-weight:600; color:#586782; letter-spacing:0.01em;">Credit &amp; Payment Term</span>
                 </td>
               </tr></table>
             </td>
@@ -140,11 +166,19 @@ function shell(title: string, preheader: string, bodyHtml: string): string {
 // line followed by a separate "รออนุมัติ/อนุมัติแล้ว/ไม่อนุมัติ" status row —
 // the two used to say the same thing twice (e.g. "...รอการอนุมัติ" title +
 // "รออนุมัติ" status underneath).
+//
+// Tried wrapping the icon in a big tinted circle here first — reads as
+// prominent in isolation, but sitting directly above a body paragraph and
+// then a timeline (which already has its own small circular icon-dots)
+// put two different scales of the same "circle + icon" motif back to back,
+// which read as cluttered/redundant rather than polished. This version
+// keeps the icon bare and lets weight (700, dark ink) carry the emphasis
+// instead of size + a shape that competes with the timeline below it.
 function headerRow(iconSvg: string, text: string, badgeHtml?: string): string {
-  return `<tr><td class="px-mobile" style="padding: 22px 32px 20px;">
+  return `<tr><td class="px-mobile" style="padding: 24px 32px 18px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-      <td style="vertical-align:middle; padding-right:10px;">${iconSvg}</td>
-      <td style="vertical-align:middle;"><h1 class="text-secondary" style="margin:0; font-family:${FONT}; font-size:20px; font-weight:500; color:#586782; line-height:1.3;">${text}</h1></td>
+      <td style="vertical-align:middle; padding-right:12px;">${iconSvg}</td>
+      <td style="vertical-align:middle;"><h1 class="text-ink" style="margin:0; font-family:${FONT}; font-size:21px; font-weight:700; color:#001122; line-height:1.35;">${text}</h1></td>
       ${badgeHtml ? `<td style="vertical-align:middle; padding-left:10px;">${badgeHtml}</td>` : ''}
     </tr></table>
   </td></tr>`
@@ -156,10 +190,23 @@ function bodyCopyRow(text: string): string {
   </td></tr>`
 }
 
+// Same 135deg sweep as CLAUDE.md's documented Button primary gradient, full
+// 0%->100% (a compressed 0-10% version was tried first to force navy behind
+// the label sooner — looked broken, like a triangular sticker in the corner
+// instead of a gradient, since squeezing 90% of a diagonal transition into a
+// 10% sliver of a ~159px-wide button leaves a hard, visible seam). Reverted
+// to a smooth full-width sweep and swapped the light end from `--color-teal`
+// (#66C5C5) to `--color-teal-dark` (#4AADAD) — both real WorkX tokens
+// (CLAUDE.md §3.1), just the darker of the two already-documented shades.
+// White label text against this is still ~3.1:1 at the very first character
+// (up from ~1.9:1) and clears 4.5:1 (WCAG AA) by the button's midpoint
+// onward — an improvement, not a full guarantee at the leading edge, but
+// the honest ceiling without inventing a color that isn't in the brand's
+// own token set or breaking the gradient's actual visual identity.
 function ctaRow(url: string, label: string, extraPaddingBottom = 32): string {
   return `<tr><td align="center" class="px-mobile" style="padding: 24px 32px ${extraPaddingBottom}px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-      <td align="center" bgcolor="#004081" style="border-radius:4px; background:linear-gradient(135deg, #66C5C5 0%, #004081 100%);">
+      <td align="center" bgcolor="#004081" style="border-radius:4px; background:linear-gradient(135deg, #4AADAD 0%, #004081 100%);">
         <!--[if mso]>
         <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${url}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="9%" stroke="f" fillcolor="#004081">
         <w:anchorlock/>
@@ -184,19 +231,19 @@ function ctaRow(url: string, label: string, extraPaddingBottom = 32): string {
 // longer spelled out as literal text.
 function footerRow(url: string): string {
   const logoUrl = `${getBaseUrl()}${WORKX_LOGO_PATH}`
-  return `<tr><td class="footer-bg px-mobile" align="center" style="background:#F8F9FA; border-top:1px solid #D0D6DF; padding:28px 32px 24px;">
+  return `<tr><td class="footer-bg px-mobile" align="center" style="background:#F8F9FA; padding:28px 32px 24px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
       <tr><td align="center" style="padding-bottom:14px;">
         <img src="${logoUrl}" width="96" height="22" alt="WorkX" style="display:block; opacity:0.5; border:0;">
       </td></tr>
-      <tr><td align="center" class="text-muted" style="font-family:${FONT}; font-size:12px; font-weight:600; color:#929EB4; padding-bottom:6px;">
+      <tr><td align="center" class="text-secondary" style="font-family:${FONT}; font-size:12px; font-weight:600; color:#586782; padding-bottom:6px;">
         Credit &amp; Payment Term
       </td></tr>
-      <tr><td align="center" class="text-muted" style="font-family:${FONT}; font-size:11px; color:#929EB4; line-height:1.7; padding-bottom:12px;">
+      <tr><td align="center" class="text-secondary" style="font-family:${FONT}; font-size:11px; color:#586782; line-height:1.7; padding-bottom:12px;">
         อีเมลนี้ถูกส่งโดยระบบอัตโนมัติ กรุณาอย่าตอบกลับอีเมลฉบับนี้<br>
         หากปุ่มด้านบนกดไม่ได้ <a href="${url}" style="color:#004081;">เปิดลิงก์นี้แทน</a>
       </td></tr>
-      <tr><td align="center" class="text-muted" style="font-family:${FONT}; font-size:10.5px; color:#929EB4;">
+      <tr><td align="center" class="text-secondary" style="font-family:${FONT}; font-size:10.5px; color:#586782;">
         &copy; 2026 WorkX. All rights reserved.
       </td></tr>
     </table>
@@ -206,7 +253,7 @@ function footerRow(url: string): string {
 function cardOpen(title: string): string {
   return `<tr><td class="px-mobile" style="padding: 0 32px 8px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card-bg" style="border:1px solid #D0D6DF; border-radius:4px;">
-      <tr><td class="card-head-bg" style="background:#F2F6F8; border-bottom:1px solid #D0D6DF; padding:14px 20px; font-family:${FONT}; font-size:14px; font-weight:500; color:#586782; letter-spacing:-0.01em;">${title}</td></tr>
+      <tr><td class="card-head-bg" style="background:#F2F6F8; padding:14px 20px;"><h2 class="text-secondary" style="margin:0; font-family:${FONT}; font-size:14px; font-weight:500; color:#586782; letter-spacing:-0.01em;">${title}</h2></td></tr>
       <tr><td style="padding:20px;">`
 }
 const CARD_CLOSE = `</td></tr></table></td></tr>`
@@ -221,13 +268,40 @@ function fieldRow(label: string, value: string, opts: { brand?: boolean; margin?
   </div>`
 }
 
-function referenceRow(requestNo: string, version: number, proposalNo: string): string {
-  const versionChip = version > 1 ? ` <span class="text-muted" style="color:#929EB4; font-weight:400;">(v${version})</span>` : ''
+// "who did it" + "when" is one fact, not two — every card used to spend two
+// stacked fieldRow lines on it (e.g. "อนุมัติโดย X" then "วันที่อนุมัติ Y"
+// directly underneath), which gave it the same visual weight as unrelated
+// single-fact rows like "ประเภทการขาย" and buried the one thing most
+// recipients actually open the email to find. Matches customerBlock's
+// established "label, primary value, muted secondary detail" shape.
+function actorDateRow(label: string, name: string, date: string): string {
   return `<div style="font-family:${FONT}; font-size:14px; line-height:1.9; margin-bottom:12px;">
-    <span style="white-space:nowrap;"><span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">Request No.</span> <span class="text-brand" style="font-weight:600; color:#004081; font-variant-numeric:tabular-nums;">${requestNo}</span>${versionChip}</span>
-    <span style="color:#D0D6DF; padding:0 10px;">|</span>
-    <span style="white-space:nowrap;"><span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">Proposal No.</span> <span class="text-brand" style="font-weight:600; color:#004081; font-variant-numeric:tabular-nums;">${proposalNo}</span></span>
+    <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">${label}</span>
+    <span class="text-secondary" style="font-weight:400; color:#586782;">${name}</span>
+    <span class="text-secondary" style="color:#586782; font-size:12px;"> · ${date}</span>
   </div>`
+}
+
+// The "|" divider used to sit in its own inline span between the two
+// nowrap phrases — fine on a 600px card, but at a 375px width the two
+// phrases together don't fit one line, so the browser wraps right after the
+// divider and leaves it orphaned alone at the end of a line. Restructured
+// as a two-cell table with `stack-col` (the same mobile stacking class
+// `.stack-col` already defines but nothing previously applied it to) so
+// each phrase gets the full card width and stacks cleanly below 600px; the
+// divider itself just hides on mobile (`hide-mobile`) since a stacked
+// layout doesn't need one.
+function referenceRow(requestNo: string, version: number, proposalNo: string): string {
+  const versionChip = version > 1 ? ` <span class="text-secondary" style="color:#586782; font-weight:400;">(v${version})</span>` : ''
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;"><tr>
+    <td class="stack-col" style="font-family:${FONT}; font-size:14px; line-height:1.9; white-space:nowrap;">
+      <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">Request No.</span> <span class="text-brand" style="font-weight:600; color:#004081; font-variant-numeric:tabular-nums;">${requestNo}</span>${versionChip}
+      <span class="hide-mobile" style="color:#D0D6DF; padding:0 10px;">|</span>
+    </td>
+    <td class="stack-col" style="font-family:${FONT}; font-size:14px; line-height:1.9; white-space:nowrap;">
+      <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">Proposal No.</span> <span class="text-brand" style="font-weight:600; color:#004081; font-variant-numeric:tabular-nums;">${proposalNo}</span>
+    </td>
+  </tr></table>`
 }
 
 function customerBlock(companyName: string, typeLabel: string, contactPerson: string | undefined, contactPhone: string | undefined): string {
@@ -237,12 +311,12 @@ function customerBlock(companyName: string, typeLabel: string, contactPerson: st
   return `<div style="font-family:${FONT}; font-size:14px; line-height:1.9; margin-bottom:12px;">
     <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">ลูกค้า</span>
     <span class="text-secondary" style="font-weight:400; color:#586782;">${companyName}</span>
-    <span class="text-muted" style="color:#929EB4; font-size:12px;">(${typeLabel})</span>${contactLine}
+    <span class="text-secondary" style="color:#586782; font-size:12px;">(${typeLabel})</span>${contactLine}
   </div>`
 }
 
 function solutionTagsHtml(req: Request): string {
-  const tag = (s: string) => `<span style="display:inline-block; padding:4px 8px; margin:0 6px 6px 0; background:#D9F0F0; border-radius:4px; font-family:${FONT}; font-size:12px; color:#004081; line-height:1.4;">${s}</span>`
+  const tag = (s: string) => `<span class="chip-bg text-brand" style="display:inline-block; padding:4px 8px; margin:0 6px 6px 0; background:#D9F0F0; border-radius:4px; font-family:${FONT}; font-size:12px; color:#004081; line-height:1.4;">${s}</span>`
   const group = (label: string, tags: string[] | undefined, marginBottom: boolean) =>
     tags && tags.length > 0
       ? `<div${marginBottom ? ' style="margin-bottom:10px;"' : ''}>
@@ -292,7 +366,7 @@ function timelineHtml(steps: TimelineStep[]): string {
     const labelColor = step.color === '#66C5C5' ? '#004081' : step.color
     return `<td width="${colWidth}" align="center" valign="top" style="padding-top:8px;">
       <div class="${step.color === '#586782' ? 'text-secondary' : 'text-brand'}" style="font-family:${FONT}; font-size:11.5px; font-weight:600; color:${labelColor};">${step.label}</div>
-      <div class="text-muted" style="font-family:${FONT}; font-size:10.5px; color:#929EB4; margin-top:1px;">${step.date}</div>
+      <div class="text-secondary" style="font-family:${FONT}; font-size:10.5px; color:#586782; margin-top:1px;">${step.date}</div>
     </td>${sep}`
   }).join('')
   return `<tr><td class="px-mobile" style="padding: 4px 32px 24px;">
@@ -353,7 +427,31 @@ function sectionCommentsHtml(req: Request, color: string): string {
   if (req.approvalResult?.customerComment) parts.push(`<strong>${SECTION_LABELS.customerComment}:</strong> &ldquo;${req.approvalResult.customerComment}&rdquo;`)
   if (req.approvalResult?.hardwareComment) parts.push(`<strong>${SECTION_LABELS.hardwareComment}:</strong> &ldquo;${req.approvalResult.hardwareComment}&rdquo;`)
   if (req.approvalResult?.swComment) parts.push(`<strong>${SECTION_LABELS.swComment}:</strong> &ldquo;${req.approvalResult.swComment}&rdquo;`)
-  return `<div style="font-family:${FONT}; font-size:13px; font-weight:400; color:${color}; line-height:1.65;">${parts.join('<br>')}</div>`
+  return `<div class="note-text" style="font-family:${FONT}; font-size:13px; font-weight:400; color:${color}; line-height:1.65;">${parts.join('<br>')}</div>`
+}
+
+// Pulled out of the info card into its own callout so "ยกเลิกเพราะอะไร" reads
+// as the one thing worth noticing, not another line buried among reference
+// numbers and dates — same "small icon + label + boxed quote" shape as the
+// rejected/approved callouts above. Uses the same red as rejected (not a
+// separate gray "cancelled" hue) so the status marker actually reads as
+// attention-worthy at a glance instead of fading into the neutral box bg.
+// Uses `card-head-bg` (not `banner-bg`) for the dark-mode override — this box
+// is a neutral gray quote in light mode, but `banner-bg`'s dark variant is
+// tuned amber/olive for the *warning* banner below (§resubmitBanner), which
+// made this neutral box flip to a jarring amber-brown in dark mode even
+// though nothing here is a warning.
+function reasonBoxHtml(comment: string | undefined, label: string): string {
+  if (!comment) return ''
+  return `<tr><td class="px-mobile" style="padding: 0 32px 20px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card-head-bg" style="background:#F2F6F8; border:1px solid #D0D6DF; border-radius:4px;"><tr>
+      <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('ban-red', 16, 16)}</td>
+      <td valign="top" style="padding:12px 14px 12px 10px;">
+        <div class="text-body" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#374151; margin-bottom:2px;">${label}</div>
+        <div class="text-body" style="font-family:${FONT}; font-size:13px; font-weight:400; color:#374151; line-height:1.65;">&ldquo;${comment}&rdquo;</div>
+      </td>
+    </tr></table>
+  </td></tr>`
 }
 
 // ==================== Template 1: submit confirmation (sales) ====================
@@ -367,7 +465,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
   ].filter(Boolean) as TimelineStep[]
 
   const body = [
-    headerRow(iconImg('hourglass-yellow', 18, 21), 'ส่งคำขอสำเร็จ รอการอนุมัติ'),
+    headerRow(iconImg('hourglass-yellow', 21, 24), 'ส่งคำขอสำเร็จ รอการอนุมัติ'),
     bodyCopyRow('ส่งคำขออนุมัติ Credit &amp; Payment Term เรียบร้อยแล้ว ระบบได้แจ้งผู้อนุมัติ และจะส่งอีเมลแจ้งผลให้คุณทราบอีกครั้ง'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอของคุณ') +
@@ -381,7 +479,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
     footerRow(url),
   ].join('')
 
-  const subject = `ยืนยันการส่งคำขอ #${req.requestNo}`
+  const subject = `📤 [ส่งสำเร็จ] ยืนยันการส่งคำขอ #${req.requestNo}`
   return { subject, html: shell(subject, `${customerName} · Request No. ${req.requestNo} · อยู่ระหว่างรอการอนุมัติ`, body) }
 }
 
@@ -397,8 +495,8 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="banner-bg" style="background:#FFFBEB; border:1px solid #FCD34D; border-radius:4px;"><tr>
       <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('triangle-exclamation-amber', 16, 16)}</td>
       <td valign="top" style="padding:12px 14px 12px 10px;">
-        <div style="font-family:${FONT}; font-size:13px; font-weight:600; color:#92400E; margin-bottom:2px;">มีการส่งคำขออนุมัติใหม่ (v${req.version}) หลังจากคำขอเดิมถูกปฏิเสธเมื่อวันที่ ${formatDateTime(rejectedEntry.createdAt)}</div>
-        <div style="font-family:${FONT}; font-size:13px; font-weight:400; color:#92400E; line-height:1.65;"><strong>เหตุผลที่ถูกปฏิเสธครั้งก่อน:</strong> &ldquo;${rejectedEntry.comment ?? '—'}&rdquo;</div>
+        <div class="banner-text" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#92400E; margin-bottom:2px;">มีการส่งคำขออนุมัติใหม่ (v${req.version}) หลังจากคำขอเดิมถูกปฏิเสธเมื่อวันที่ ${formatDateTime(rejectedEntry.createdAt)}</div>
+        <div class="banner-text" style="font-family:${FONT}; font-size:13px; font-weight:400; color:#92400E; line-height:1.65;"><strong>เหตุผลที่ถูกปฏิเสธครั้งก่อน:</strong> &ldquo;${rejectedEntry.comment ?? '—'}&rdquo;</div>
       </td>
     </tr></table>
   </td></tr>` : ''
@@ -407,9 +505,9 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
   const financialCard = cardOpen('สรุปรายละเอียดคำขอ') + `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card-head-bg" style="background:#F2F6F8; border-radius:4px;"><tr><td style="padding:12px 14px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td class="text-secondary" style="font-family:${FONT}; font-size:13px; font-weight:400; color:#586782;">รวมทั้งหมด</td>
-        <td align="right">
-          <span class="text-secondary" style="font-family:${FONT}; font-size:12px; color:#586782;">ราคาทุน <span style="font-size:14px; font-weight:500; color:#586782; font-variant-numeric:tabular-nums;">${formatCurrency(req.financial.totalCost)}</span></span>
+        <td class="text-secondary stack-col" style="font-family:${FONT}; font-size:13px; font-weight:400; color:#586782;">รวมทั้งหมด</td>
+        <td class="stack-col" align="right">
+          <span class="text-secondary" style="font-family:${FONT}; font-size:12px; color:#586782;">ราคาทุน <span class="text-secondary" style="font-size:14px; font-weight:500; color:#586782; font-variant-numeric:tabular-nums;">${formatCurrency(req.financial.totalCost)}</span></span>
           <span style="display:inline-block; width:20px;">&nbsp;</span>
           <span class="text-secondary" style="font-family:${FONT}; font-size:12px; color:#586782;">ราคาขาย <span class="text-brand" style="font-size:14px; font-weight:600; color:#004081; font-variant-numeric:tabular-nums;">${formatCurrency(req.financial.totalSelling)}</span></span>
         </td>
@@ -424,13 +522,13 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
   const versionBadge = req.version > 1 ? `<span class="text-brand chip-bg" style="display:inline-block; font-family:${FONT}; font-size:12px; font-weight:600; color:#004081; background:rgba(0,64,129,0.08); border-radius:4px; padding:2px 8px;">v${req.version}</span>` : undefined
 
   const body = [
-    headerRow(iconImg('hourglass-yellow', 18, 21), 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
+    headerRow(iconImg('hourglass-yellow', 21, 24), 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
     resubmitBanner,
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
       fieldRow('ประเภทการขาย', SALE_TYPE_LABELS[req.saleType], { margin: false }) +
-      `<div style="margin:12px 0;">` + fieldRow('ผู้ส่ง', `${req.salesName} (${req.salesEmail})`, { margin: false }) + fieldRow('วันที่ส่งล่าสุด', formatDateTime(req.updatedAt), { margin: false }) + `</div>` +
+      actorDateRow('ผู้ส่ง', `${req.salesName} (${req.salesEmail})`, formatDateTime(req.updatedAt)) +
       solutionTagsHtml(req) +
     CARD_CLOSE,
     financialCard,
@@ -438,7 +536,7 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
     footerRow(url),
   ].join('')
 
-  const subject = `มีคำขออนุมัติ Credit Term ใหม่ #${req.requestNo}`
+  const subject = `⏳ [รออนุมัติ] มีคำขออนุมัติ Credit Term ใหม่ #${req.requestNo}`
   return { subject, html: shell(subject, `${customerName} · Credit Term ${formatCreditTerm(getMaxCreditTerm(req))}${isResubmit ? ` · ส่งซ้ำครั้งที่ ${req.version}` : ''}`, body) }
 }
 
@@ -450,7 +548,12 @@ export function buildApprovedEmail(req: Request): EmailContent {
   const steps = [
     createdStep(req),
     submittedStep(req, submittedIconSvg(14)),
-    historyStep(req, 'approved', iconImg('check-teal', 13, 13), '#66C5C5'),
+    // check-teal.png's canvas is 140x160 (0.875 ratio), not square — a plain
+    // 13x13 call stretches it to a 1:1 box, visibly skewing the checkmark
+    // inside its otherwise-perfectly-round timeline dot border. 11x13 keeps
+    // the source's real proportions (matches the same aspect-correction
+    // pattern submittedIconSvg() already uses for paperplane-navy.png).
+    historyStep(req, 'approved', iconImg('check-teal', 11, 13), '#66C5C5'),
   ].filter(Boolean) as TimelineStep[]
 
   const hasNotes = req.approvalResult?.customerComment || req.approvalResult?.hardwareComment || req.approvalResult?.swComment
@@ -458,21 +561,20 @@ export function buildApprovedEmail(req: Request): EmailContent {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="note-bg" style="background:#F0FDF4; border:1px solid #86EFAC; border-radius:4px;"><tr>
       <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('circlecheck-green', 16, 16)}</td>
       <td valign="top" style="padding:12px 14px 12px 10px;">
-        <div style="font-family:${FONT}; font-size:13px; font-weight:600; color:#14532D; margin-bottom:2px;">หมายเหตุจากผู้อนุมัติ</div>
+        <div class="note-text" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#14532D; margin-bottom:2px;">หมายเหตุจากผู้อนุมัติ</div>
         ${sectionCommentsHtml(req, '#14532D')}
       </td>
     </tr></table>
   </td></tr>` : ''
 
   const body = [
-    headerRow(iconImg('checkcircle-teal', 22, 22), 'คำขอของคุณได้รับการอนุมัติแล้ว'),
+    headerRow(iconImg('checkcircle-teal', 25, 25), 'คำขอของคุณได้รับการอนุมัติแล้ว'),
     bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณได้รับการอนุมัติเรียบร้อยแล้ว'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
-      fieldRow('อนุมัติโดย', req.approvalResult?.approverName ?? '—', { margin: false }) +
-      `<div style="margin:12px 0;">` + fieldRow('วันที่อนุมัติ', req.approvalResult?.approvedAt ? formatDateTime(req.approvalResult.approvedAt) : '—', { margin: false }) + `</div>` +
+      actorDateRow('อนุมัติโดย', req.approvalResult?.approverName ?? '—', req.approvalResult?.approvedAt ? formatDateTime(req.approvalResult.approvedAt) : '—') +
       solutionTagsHtml(req) +
     CARD_CLOSE,
     noteBox,
@@ -480,13 +582,18 @@ export function buildApprovedEmail(req: Request): EmailContent {
     footerRow(url),
   ].join('')
 
-  const subject = `คำขอ #${req.requestNo} ได้รับการอนุมัติแล้ว`
+  const subject = `✅ [อนุมัติแล้ว] คำขอ #${req.requestNo} ได้รับการอนุมัติแล้ว`
   return { subject, html: shell(subject, `${customerName} · อนุมัติโดย ${req.approvalResult?.approverName ?? '—'} · Credit Term ${formatCreditTerm(getMaxCreditTerm(req))}`, body) }
 }
 
 // ==================== Template 4: rejected (sales) ====================
+// No inline rejection reason here on purpose — it used to sit in a red
+// callout box right under the header, which competed with the header for
+// attention instead of letting "ไม่ได้รับการอนุมัติ" register first. The
+// full reason is one tap away on the detail page, same as every other field
+// on this request; the email's job is just to say "this needs your
+// attention" as clearly as possible.
 export function buildRejectedEmail(req: Request): EmailContent {
-  const editUrl = `${getBaseUrl()}/requests/${req.id}/edit`
   const detailUrl = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
@@ -497,61 +604,72 @@ export function buildRejectedEmail(req: Request): EmailContent {
   ].filter(Boolean) as TimelineStep[]
 
   const body = [
-    headerRow(iconImg('xmark-red-bare', 20, 20), 'คำขอของคุณไม่ได้รับการอนุมัติ'),
-    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณไม่ได้รับการอนุมัติ กรุณาแก้ไขคำขอตามคำแนะนำด้านล่าง แล้วส่งขออนุมัติอีกครั้ง'),
-    `<tr><td class="px-mobile" style="padding: 0 32px 20px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="alert-bg" style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:4px;"><tr>
-        <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('circlexmark-red', 16, 16)}</td>
-        <td valign="top" style="padding:12px 14px 12px 10px;">
-          <div style="font-family:${FONT}; font-size:13px; font-weight:600; color:#7F1D1D; margin-bottom:2px;">เหตุผลที่ไม่อนุมัติ</div>
-          ${sectionCommentsHtml(req, '#7F1D1D')}
-        </td>
-      </tr></table>
-    </td></tr>`,
+    headerRow(iconImg('xmark-red-solid', 17, 23), 'คำขอของคุณไม่ได้รับการอนุมัติ'),
+    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณไม่ได้รับการอนุมัติ กรุณาดูรายละเอียดคำขอเพื่อแก้ไขและส่งขออนุมัติอีกครั้ง'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
-      fieldRow('ไม่อนุมัติโดย', req.approvalResult?.approverName ?? '—', { margin: false }) +
-      `<div style="margin:12px 0;">` + fieldRow('วันที่ไม่อนุมัติ', req.approvalResult?.rejectedAt ? formatDateTime(req.approvalResult.rejectedAt) : '—', { margin: false }) + `</div>` +
+      actorDateRow('ไม่อนุมัติโดย', req.approvalResult?.approverName ?? '—', req.approvalResult?.rejectedAt ? formatDateTime(req.approvalResult.rejectedAt) : '—') +
       solutionTagsHtml(req) +
     CARD_CLOSE,
-    ctaRow(editUrl, 'แก้ไขคำขอ', 8),
-    `<tr><td align="center" class="px-mobile" style="padding: 0 32px 32px;"><a href="${detailUrl}" style="font-family:${FONT}; font-size:13px; font-weight:400; color:#004081; text-decoration:underline;">ดูรายละเอียดคำขอเต็มก่อนแก้ไข</a></td></tr>`,
-    footerRow(editUrl),
+    ctaRow(detailUrl, 'ดูรายละเอียดคำขอ'),
+    footerRow(detailUrl),
   ].join('')
 
-  const subject = `คำขอ #${req.requestNo} ไม่ได้รับการอนุมัติ`
+  const subject = `❌ [ไม่อนุมัติ] คำขอ #${req.requestNo} ไม่ได้รับการอนุมัติ`
   return { subject, html: shell(subject, `${customerName} · ไม่อนุมัติโดย ${req.approvalResult?.approverName ?? '—'}`, body) }
 }
 
-// ==================== Template 5: cancelled while pending (approver) ====================
-// Only fired when a request gets cancelled WHILE it was 'pending' — the
-// approver was expecting to review it, so they need to know it's off the
-// table. Cancelling a draft or an already-approved request has no one
-// waiting on a decision, so those don't get an email (see caller).
+// ==================== Template 5: cancellation confirmation (sales) ====================
+// Cancellation is only ever sales' own business — they're the one who took
+// the action, so they're the one who gets the receipt. The approver used to
+// get a separate "this is off the table" email when a request was cancelled
+// while still 'pending', but that read as noise to an audience who was never
+// going to act on it either way; dropped in favor of sales-only, matching
+// how the app never emails the approver a self-confirmation for their own
+// approve/reject actions either (see docs/EMAIL_NOTIFICATIONS_SPEC.md §1).
+// Content adapts to whether the request had ever been approved: an
+// already-approved arrangement going void gets an "อนุมัติโดย" row (nothing
+// was decided before this) and a 3-step timeline naming that never-approved
+// path — no "อนุมัติแล้ว" step to show, and no need to invent a 4th timeline
+// slot just to include one.
 export function buildCancelledEmail(req: Request): EmailContent {
   const url = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
   const cancelledEntry = [...req.history].reverse().find(h => h.action === 'cancelled')
+  const wasApproved = Boolean(req.approvalResult?.approvedAt)
+
+  const steps = wasApproved ? [] : [
+    createdStep(req),
+    submittedStep(req, submittedIconSvg(13)),
+    historyStep(req, 'cancelled', iconImg('ban-red', 13, 13), '#F3554F'),
+  ].filter(Boolean) as TimelineStep[]
+
+  const approvedRow = wasApproved
+    ? actorDateRow('อนุมัติโดย', req.approvalResult?.approverName ?? '—', req.approvalResult?.approvedAt ? formatDateTime(req.approvalResult.approvedAt) : '—')
+    : ''
 
   const body = [
-    headerRow(iconImg('ban-gray', 20, 20), 'คำขอนี้ถูกยกเลิกแล้ว'),
-    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ที่รอคุณพิจารณา ได้ถูกยกเลิกโดยผู้ส่งคำขอแล้ว คุณจึงไม่ต้องดำเนินการพิจารณารายการนี้'),
+    headerRow(iconImg('ban-red', 23, 23), 'ยกเลิกคำขอสำเร็จ'),
+    bodyCopyRow(wasApproved
+      ? 'คำขออนุมัติ Credit &amp; Payment Term ของคุณที่เคยได้รับการอนุมัติแล้ว ถูกยกเลิกเรียบร้อยแล้ว'
+      : 'คำขออนุมัติ Credit &amp; Payment Term ของคุณถูกยกเลิกเรียบร้อยแล้ว'),
+    wasApproved ? '' : timelineHtml(steps),
+    reasonBoxHtml(cancelledEntry?.comment, 'เหตุผลที่ยกเลิก'),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
-      fieldRow('ยกเลิกโดย', cancelledEntry?.actorName ?? req.salesName, { margin: false }) +
-      `<div style="margin:12px 0;">` + fieldRow('วันที่ยกเลิก', cancelledEntry ? formatDateTime(cancelledEntry.createdAt) : formatDateTime(req.updatedAt), { margin: false }) + `</div>` +
-      (cancelledEntry?.comment ? `<div style="font-family:${FONT}; font-size:14px; line-height:1.9;"><span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">เหตุผลที่ยกเลิก</span> <span class="text-secondary" style="font-weight:400; color:#586782;">${cancelledEntry.comment}</span></div>` : '') +
+      approvedRow +
+      actorDateRow('ยกเลิกโดย', cancelledEntry?.actorName ?? req.salesName, cancelledEntry ? formatDateTime(cancelledEntry.createdAt) : formatDateTime(req.updatedAt)) +
     CARD_CLOSE,
     ctaRow(url, 'ดูรายละเอียดคำขอ'),
     footerRow(url),
   ].join('')
 
-  const subject = `คำขอ #${req.requestNo} ถูกยกเลิกแล้ว`
-  return { subject, html: shell(subject, `${customerName} · ยกเลิกโดย ${cancelledEntry?.actorName ?? req.salesName}`, body) }
+  const subject = `🚫 [ยกเลิกแล้ว] ยืนยันการยกเลิกคำขอ #${req.requestNo}`
+  return { subject, html: shell(subject, `${customerName} · ${wasApproved ? 'คำขอที่เคยอนุมัติแล้วถูกยกเลิก' : 'ยกเลิกคำขอสำเร็จ'}`, body) }
 }
 
 // ---- Open in new tab (mirrors exportService.ts's exportPDF window.open pattern) ----
