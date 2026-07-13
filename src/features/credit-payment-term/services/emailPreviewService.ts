@@ -365,7 +365,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
     footerRow(url),
   ].join('')
 
-  const subject = `📤 [ส่งสำเร็จ] ยืนยันการส่งคำขอ #${req.requestNo}`
+  const subject = `📤 [ส่งสำเร็จ] Credit & Payment Term ยืนยันการส่งคำขอ #${req.requestNo}`
   return { subject, html: shell(subject, `${customerName} · Request No. ${req.requestNo} · อยู่ระหว่างรอการอนุมัติ`, body) }
 }
 
@@ -389,7 +389,7 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
     footerRow(url),
   ].join('')
 
-  const subject = `⏳ [รออนุมัติ] มีคำขออนุมัติ Credit Term ใหม่ #${req.requestNo}`
+  const subject = `⏳ [รออนุมัติ] Credit & Payment Term มีคำขออนุมัติใหม่ #${req.requestNo}`
   return { subject, html: shell(subject, `${customerName} · Credit Term ${formatCreditTerm(getMaxCreditTerm(req))}${isResubmit ? ` · ส่งซ้ำครั้งที่ ${req.version}` : ''}`, body) }
 }
 
@@ -411,7 +411,7 @@ export function buildApprovedEmail(req: Request): EmailContent {
     footerRow(url),
   ].join('')
 
-  const subject = `✅ [อนุมัติแล้ว] คำขอ #${req.requestNo} ได้รับการอนุมัติแล้ว`
+  const subject = `✅ [อนุมัติแล้ว] Credit & Payment Term คำขอ #${req.requestNo} ได้รับการอนุมัติแล้ว`
   return { subject, html: shell(subject, `${customerName} · อนุมัติโดย ${req.approvalResult?.approverName ?? '—'} · Credit Term ${formatCreditTerm(getMaxCreditTerm(req))}`, body) }
 }
 
@@ -433,7 +433,7 @@ export function buildRejectedEmail(req: Request): EmailContent {
     footerRow(detailUrl),
   ].join('')
 
-  const subject = `❌ [ไม่อนุมัติ] คำขอ #${req.requestNo} ไม่ได้รับการอนุมัติ`
+  const subject = `❌ [ไม่อนุมัติ] Credit & Payment Term คำขอ #${req.requestNo} ไม่ได้รับการอนุมัติ`
   return { subject, html: shell(subject, `${customerName} · ไม่อนุมัติโดย ${req.approvalResult?.approverName ?? '—'}`, body) }
 }
 
@@ -476,7 +476,7 @@ export function buildCancelledEmail(req: Request): EmailContent {
     footerRow(url),
   ].join('')
 
-  const subject = `🚫 [ยกเลิกแล้ว] ยืนยันการยกเลิกคำขอ #${req.requestNo}`
+  const subject = `🚫 [ยกเลิกแล้ว] Credit & Payment Term ยืนยันการยกเลิกคำขอ #${req.requestNo}`
   return { subject, html: shell(subject, `${customerName} · ${wasApproved ? 'คำขอที่เคยอนุมัติแล้วถูกยกเลิก' : 'คำขอนี้ถูกยกเลิกแล้ว'}`, body) }
 }
 
