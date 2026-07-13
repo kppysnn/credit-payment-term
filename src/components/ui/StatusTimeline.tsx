@@ -61,12 +61,12 @@ export function StatusTimeline({ history }: Props) {
                   width: isLast ? 36 : 28,
                   height: isLast ? 36 : 28,
                   borderRadius: '50%',
-                  background: isLast ? color : color + '18',
-                  border: isLast ? 'none' : `2px solid ${color}`,
+                  background: color,
+                  border: 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: isLast ? '#FFFFFF' : color,
+                  color: '#FFFFFF',
                   flexShrink: 0,
                 }}
               >
