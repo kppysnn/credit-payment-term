@@ -8,9 +8,14 @@
 // or committed anywhere):
 //   RESEND_API_KEY=re_your_key_here npx vite-node docs/emails/send-test-email.ts <template> <to-email>
 //
-// <template> is one of: submit | approver | approved | rejected | cancelled
+// <template> is one of: submit | approver | approved | rejected | cancelled | all
+// ("all" sends every template in this one process — vite-node's cold start
+// (dep externalization) is a fixed per-process cost regardless of how much
+// work runs after it, so 5 separate invocations pay that cost 5 times over;
+// looping inside one process pays it once.)
 // Example:
 //   RESEND_API_KEY=re_xxx npx vite-node docs/emails/send-test-email.ts approved kppysn@gmail.com
+//   RESEND_API_KEY=re_xxx npx vite-node docs/emails/send-test-email.ts all kppysn@gmail.com
 ;(globalThis as any).window = { location: { origin: 'https://example.com' } }
 
 import {
@@ -53,25 +58,8 @@ const TEMPLATES: Record<string, () => { subject: string; html: string }> = {
   cancelled: () => buildCancelledEmail({ ...req001, status: 'cancelled', history: [...req001.history, { historyId: 'h098', requestId: 'req001', version: 1, action: 'cancelled', actorEmail: 'sales@company.com', actorName: 'สมหญิง รักงาน', fromStatus: 'approved', toStatus: 'cancelled', comment: 'ลูกค้ายกเลิกโครงการ', createdAt: '2026-06-03T10:00:00.000Z' }] }),
 }
 
-async function main() {
-  const apiKey = process.env.RESEND_API_KEY
-  const [templateName, toEmail] = process.argv.slice(2)
-
-  if (!apiKey) {
-    console.error('Missing RESEND_API_KEY. Run as:\n  RESEND_API_KEY=re_xxx npx vite-node docs/emails/send-test-email.ts <template> <to-email>')
-    process.exit(1)
-  }
-  if (!templateName || !TEMPLATES[templateName]) {
-    console.error(`Unknown or missing template "${templateName}". Choose one of: ${Object.keys(TEMPLATES).join(', ')}`)
-    process.exit(1)
-  }
-  if (!toEmail) {
-    console.error('Missing recipient email. Usage: ... <template> <to-email>')
-    process.exit(1)
-  }
-
+async function send(apiKey: string, toEmail: string, templateName: string): Promise<void> {
   const { subject, html } = TEMPLATES[templateName]()
-
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -85,13 +73,35 @@ async function main() {
       html,
     }),
   })
-
   const data = await res.json()
   if (!res.ok) {
-    console.error('Resend API error:', res.status, data)
+    console.error(`[${templateName}] Resend API error:`, res.status, data)
+    return
+  }
+  console.log(`[${templateName}] Sent! Resend id:`, data.id)
+}
+
+async function main() {
+  const apiKey = process.env.RESEND_API_KEY
+  const [templateName, toEmail] = process.argv.slice(2)
+
+  if (!apiKey) {
+    console.error('Missing RESEND_API_KEY. Run as:\n  RESEND_API_KEY=re_xxx npx vite-node docs/emails/send-test-email.ts <template> <to-email>')
     process.exit(1)
   }
-  console.log('Sent! Resend id:', data.id)
+  if (!templateName || (templateName !== 'all' && !TEMPLATES[templateName])) {
+    console.error(`Unknown or missing template "${templateName}". Choose one of: ${Object.keys(TEMPLATES).join(', ')}, all`)
+    process.exit(1)
+  }
+  if (!toEmail) {
+    console.error('Missing recipient email. Usage: ... <template> <to-email>')
+    process.exit(1)
+  }
+
+  const names = templateName === 'all' ? Object.keys(TEMPLATES) : [templateName]
+  for (const name of names) {
+    await send(apiKey, toEmail, name)
+  }
 }
 
 main()
