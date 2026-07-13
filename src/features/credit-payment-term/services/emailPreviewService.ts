@@ -270,7 +270,7 @@ function actorDateRow(label: string, name: string, date: string): string {
   return `<div style="font-family:${FONT}; font-size:14px; line-height:1.9; margin-bottom:12px;">
     <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">${label}</span>
     <span class="text-secondary" style="font-weight:400; color:#586782;">${name}</span>
-    <span class="text-secondary" style="color:#586782; font-size:12px;"> · ${date}</span>
+    <span class="text-secondary" style="color:#586782; font-size:12px;"> · <span style="white-space:nowrap;">${date}</span></span>
   </div>`
 }
 
@@ -287,18 +287,19 @@ function referenceRow(requestNo: string, version: number, proposalNo: string): s
   const versionChip = version > 1 ? ` <span class="text-secondary" style="color:#586782; font-weight:400;">(v${version})</span>` : ''
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;"><tr>
     <td class="stack-col" style="font-family:${FONT}; font-size:14px; line-height:1.9; white-space:nowrap;">
-      <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">Request No.</span> <span class="text-brand" style="font-weight:600; color:#004081; font-variant-numeric:tabular-nums;">${requestNo}</span>${versionChip}
+      <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">Request No.</span> <span class="text-brand" style="font-weight:600; color:#004081; font-variant-numeric:tabular-nums; white-space:nowrap;">${requestNo}</span>${versionChip}
       <span class="hide-mobile" style="color:#D0D6DF; padding:0 10px;">|</span>
     </td>
     <td class="stack-col" style="font-family:${FONT}; font-size:14px; line-height:1.9; white-space:nowrap;">
-      <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">Proposal No.</span> <span class="text-brand" style="font-weight:600; color:#004081; font-variant-numeric:tabular-nums;">${proposalNo}</span>
+      <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">Proposal No.</span> <span class="text-brand" style="font-weight:600; color:#004081; font-variant-numeric:tabular-nums; white-space:nowrap;">${proposalNo}</span>
     </td>
   </tr></table>`
 }
 
 function customerBlock(companyName: string, typeLabel: string, contactPerson: string | undefined, contactPhone: string | undefined): string {
+  const contactValue = [contactPerson, contactPhone ? `<span style="white-space:nowrap;">${contactPhone}</span>` : undefined].filter(Boolean).join(' · ')
   const contactLine = contactPerson || contactPhone
-    ? `<br><span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">ผู้ติดต่อ</span> <span class="text-secondary" style="font-weight:400; color:#586782;">${[contactPerson, contactPhone].filter(Boolean).join(' · ')}</span>`
+    ? `<br><span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">ผู้ติดต่อ</span> <span class="text-secondary" style="font-weight:400; color:#586782;">${contactValue}</span>`
     : ''
   return `<div style="font-family:${FONT}; font-size:14px; line-height:1.9; margin-bottom:12px;">
     <span class="text-secondary" style="font-size:11px; font-weight:700; color:#586782; text-transform:uppercase; letter-spacing:0.06em;">ลูกค้า</span>
