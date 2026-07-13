@@ -76,7 +76,7 @@ const STYLE_BLOCK = `
   body { margin: 0; padding: 0; width: 100% !important; background: #F8F9FA; }
   @media screen and (max-width: 600px) {
     .email-container { width: 100% !important; }
-    .stack-col { display: block !important; width: 100% !important; text-align: left !important; padding-right: 0 !important; padding-left: 0 !important; }
+    .stack-col { display: block !important; width: 100% !important; text-align: left !important; padding-right: 0 !important; padding-left: 0 !important; white-space: normal !important; }
     .stack-col + .stack-col { padding-top: 12px !important; }
     .hide-mobile { display: none !important; }
     .header-title { font-size: 13px !important; }
@@ -155,42 +155,27 @@ function shell(title: string, preheader: string, bodyHtml: string): string {
 </html>`
 }
 
-// Sixth take, and a different shape from every earlier one. The previous
-// version (large bare icon + centered h1 + centered subtitle paragraph, as
-// three separate rows) spent nearly a third of the email's height announcing
-// a status that a compact bordered box can say just as clearly — and every
-// email in the set also had its own separate colored callout box further
-// down for the same kind of "here's the why" content (resubmit warning,
-// approval note, cancellation reason). Collapsed into one box: a small
-// status icon + label on the first line, the explanatory copy (folding in
-// any reason text that used to live in its own separate callout) on the
-// second. One thing to read, not three; matches the plain "status + request
-// info" the whole template set is being trimmed down to.
+// Seventh take. Dropped the description line entirely per explicit request
+// ("just icon + status, nothing else") — every email's box is now exactly
+// one line: icon, vertically centered against the label next to it. Any
+// data that line used to carry that isn't just restatable copy (the
+// cancellation comment) moved into the request-info card below as its own
+// field instead of disappearing — the box is for status alone now, but a
+// cancellation reason is still request info, not filler prose.
 type StatusTone = 'pending' | 'positive' | 'negative'
 const STATUS_TONE_STYLE: Record<StatusTone, { bgClass: string; textClass: string; bg: string; border: string; text: string }> = {
   pending: { bgClass: 'banner-bg', textClass: 'banner-text', bg: '#FFFBEB', border: '#FCD34D', text: '#92400E' },
   positive: { bgClass: 'card-head-bg', textClass: 'text-brand', bg: '#EBF9F9', border: '#66C5C5', text: '#004081' },
   negative: { bgClass: 'alert-bg', textClass: 'alert-text', bg: '#FEF2F2', border: '#FCA5A5', text: '#7F1D1D' },
 }
-// Icon sits in its own fixed-width column (valign top) instead of inline
-// before just the label — label and description are stacked together in the
-// column next to it, so the description's left edge lines up under the
-// label's instead of jutting out to the far left under the icon on wrap.
-// Text colors are each an existing token pair already used (and contrast-
-// checked) elsewhere in this file for the same tone — pending's `#92400E`/
-// positive's `#004081`/negative's `#7F1D1D`, all on their matching light
-// tint — not new colors invented for this box.
-function statusBox(tone: StatusTone, iconSvg: string, label: string, description: string): string {
+function statusBox(tone: StatusTone, iconSvg: string, label: string): string {
   const s = STATUS_TONE_STYLE[tone]
   return `<tr><td class="px-mobile" style="padding: 32px 32px 20px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="${s.bgClass}" style="background:${s.bg}; border:1px solid ${s.border}; border-radius:4px; overflow:hidden;"><tr>
-      <td style="padding:16px 18px;">
+      <td style="padding:14px 18px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-          <td width="24" valign="top" style="padding-right:10px;">${iconSvg}</td>
-          <td valign="top">
-            <div class="${s.textClass}" style="font-family:${FONT}; font-size:16px; font-weight:700; color:${s.text}; line-height:1.3;">${label}</div>
-            <div class="${s.textClass}" style="font-family:${FONT}; font-size:13px; font-weight:400; color:${s.text}; line-height:1.65; margin-top:6px;">${description}</div>
-          </td>
+          <td width="24" valign="middle" style="padding-right:10px;">${iconSvg}</td>
+          <td valign="middle" class="${s.textClass}" style="font-family:${FONT}; font-size:16px; font-weight:700; color:${s.text}; line-height:1.3;">${label}</td>
         </tr></table>
       </td>
     </tr></table>
@@ -367,8 +352,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
 
   const body = [
-    statusBox('pending', iconImg('hourglass-yellow', 21, 24), 'คำขอของคุณอยู่ระหว่างรอการอนุมัติ',
-      'ส่งคำขออนุมัติ Credit &amp; Payment Term เรียบร้อยแล้ว ระบบได้แจ้งผู้อนุมัติ <br>และจะส่งอีเมลแจ้งผลให้คุณทราบอีกครั้ง'),
+    statusBox('pending', iconImg('hourglass-yellow', 21, 24), 'คำขอของคุณอยู่ระหว่างรอการอนุมัติ'),
     cardOpen('ข้อมูลคำขอของคุณ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
@@ -392,8 +376,7 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
   const isResubmit = req.version > 1
 
   const body = [
-    statusBox('pending', iconImg('hourglass-yellow', 21, 24), 'มีคำขออนุมัติ Credit Term รอดำเนินการ',
-      'มีคำขออนุมัติ Credit &amp; Payment Term ฉบับใหม่รอการพิจารณาจากคุณ <br>กรุณาตรวจสอบรายละเอียดด้านล่างและดำเนินการอนุมัติหรือไม่อนุมัติ'),
+    statusBox('pending', iconImg('hourglass-yellow', 21, 24), 'มีคำขออนุมัติ Credit Term รอดำเนินการ'),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
@@ -416,8 +399,7 @@ export function buildApprovedEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
 
   const body = [
-    statusBox('positive', iconImg('check-teal', 24, 18), 'คำขอของคุณได้รับการอนุมัติแล้ว',
-      'คำขออนุมัติ Credit &amp; Payment Term ของคุณได้รับการอนุมัติเรียบร้อยแล้ว'),
+    statusBox('positive', iconImg('check-teal', 24, 18), 'คำขอของคุณได้รับการอนุมัติแล้ว'),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
@@ -439,8 +421,7 @@ export function buildRejectedEmail(req: Request): EmailContent {
   const typeLabel = CUSTOMER_TYPE_LABELS[req.customerInfo.type]
 
   const body = [
-    statusBox('negative', iconImg('xmark-red-solid', 24, 24), 'คำขอของคุณไม่ได้รับการอนุมัติ',
-      'คำขออนุมัติ Credit &amp; Payment Term ของคุณไม่ได้รับการอนุมัติ <br>กรุณาดูรายละเอียดคำขอเพื่อแก้ไขและส่งขออนุมัติอีกครั้ง'),
+    statusBox('negative', iconImg('xmark-red-solid', 24, 24), 'คำขอของคุณไม่ได้รับการอนุมัติ'),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
@@ -465,9 +446,10 @@ export function buildRejectedEmail(req: Request): EmailContent {
 // approve/reject actions either (see docs/EMAIL_NOTIFICATIONS_SPEC.md §1).
 // Content adapts to whether the request had ever been approved: an
 // already-approved arrangement going void gets an "อนุมัติโดย" row (nothing
-// was decided before this) and a 3-step timeline naming that never-approved
-// path — no "อนุมัติแล้ว" step to show, and no need to invent a 4th timeline
-// slot just to include one.
+// was decided before this). The status box itself is icon + label only now
+// (no description line anywhere in this template set) — the cancellation
+// comment is still real request data though, so it lives as its own field
+// in the info card rather than just disappearing with the description line.
 export function buildCancelledEmail(req: Request): EmailContent {
   const url = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
@@ -478,18 +460,16 @@ export function buildCancelledEmail(req: Request): EmailContent {
   const approvedRow = wasApproved
     ? actorDateRow('อนุมัติโดย', req.approvalResult?.approverName ?? '—', req.approvalResult?.approvedAt ? formatDateTime(req.approvalResult.approvedAt) : '—')
     : ''
-
-  const description = cancelledEntry?.comment
-    ? `คำขออนุมัติ Credit &amp; Payment Term ของคุณถูกยกเลิกเรียบร้อยแล้ว <br>เหตุผล: &ldquo;${cancelledEntry.comment}&rdquo;`
-    : 'คำขออนุมัติ Credit &amp; Payment Term ของคุณถูกยกเลิกเรียบร้อยแล้ว'
+  const reasonRow = cancelledEntry?.comment ? fieldRow('เหตุผลที่ยกเลิก', cancelledEntry.comment, { margin: false }) : ''
 
   const body = [
-    statusBox('negative', iconImg('ban-red', 24, 24), 'คำขอนี้ถูกยกเลิกแล้ว', description),
+    statusBox('negative', iconImg('ban-red', 24, 24), 'คำขอนี้ถูกยกเลิกแล้ว'),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
       approvedRow +
       actorDateRow('ยกเลิกโดย', cancelledEntry?.actorName ?? req.salesName, cancelledEntry ? formatDateTime(cancelledEntry.createdAt) : formatDateTime(req.updatedAt)) +
+      reasonRow +
     CARD_CLOSE,
     ctaRow(url, 'ดูรายละเอียดคำขอ'),
     footerRow(url),

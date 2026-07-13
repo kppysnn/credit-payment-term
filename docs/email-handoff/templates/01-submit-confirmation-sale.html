@@ -18,7 +18,7 @@
   body { margin: 0; padding: 0; width: 100% !important; background: #F8F9FA; }
   @media screen and (max-width: 600px) {
     .email-container { width: 100% !important; }
-    .stack-col { display: block !important; width: 100% !important; text-align: left !important; padding-right: 0 !important; padding-left: 0 !important; }
+    .stack-col { display: block !important; width: 100% !important; text-align: left !important; padding-right: 0 !important; padding-left: 0 !important; white-space: normal !important; }
     .stack-col + .stack-col { padding-top: 12px !important; }
     .hide-mobile { display: none !important; }
     .header-title { font-size: 13px !important; }
@@ -66,13 +66,10 @@
           </tr>
           <tr><td class="px-mobile" style="padding: 32px 32px 20px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="banner-bg" style="background:#FFFBEB; border:1px solid #FCD34D; border-radius:4px; overflow:hidden;"><tr>
-      <td style="padding:16px 18px;">
+      <td style="padding:14px 18px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-          <td width="24" valign="top" style="padding-right:10px;"><img src="{{APP_BASE_URL}}/email-icons/hourglass-yellow.png" width="21" height="24" alt="" style="display:block; border:0;"></td>
-          <td valign="top">
-            <div class="banner-text" style="font-family:'Poppins','Noto Sans Thai',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:16px; font-weight:700; color:#92400E; line-height:1.3;">คำขอของคุณอยู่ระหว่างรอการอนุมัติ</div>
-            <div class="banner-text" style="font-family:'Poppins','Noto Sans Thai',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:13px; font-weight:400; color:#92400E; line-height:1.65; margin-top:6px;">ส่งคำขออนุมัติ Credit &amp; Payment Term เรียบร้อยแล้ว ระบบได้แจ้งผู้อนุมัติ <br>และจะส่งอีเมลแจ้งผลให้คุณทราบอีกครั้ง</div>
-          </td>
+          <td width="24" valign="middle" style="padding-right:10px;"><img src="{{APP_BASE_URL}}/email-icons/hourglass-yellow.png" width="21" height="24" alt="" style="display:block; border:0;"></td>
+          <td valign="middle" class="banner-text" style="font-family:'Poppins','Noto Sans Thai',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:16px; font-weight:700; color:#92400E; line-height:1.3;">คำขอของคุณอยู่ระหว่างรอการอนุมัติ</td>
         </tr></table>
       </td>
     </tr></table>
