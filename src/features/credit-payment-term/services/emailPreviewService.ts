@@ -749,9 +749,7 @@ export function buildCancelledEmail(req: Request): EmailContent {
   // fourth different pattern.
   const body = [
     headerRow(iconImg('ban-red', 50, 50), 'คำขอนี้ถูกยกเลิกแล้ว'),
-    bodyCopyRow(wasApproved
-      ? 'คำขออนุมัติ Credit &amp; Payment Term ของคุณที่เคยได้รับการอนุมัติแล้ว ถูกยกเลิกเรียบร้อยแล้ว'
-      : 'คำขออนุมัติ Credit &amp; Payment Term ของคุณถูกยกเลิกเรียบร้อยแล้ว'),
+    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณถูกยกเลิกเรียบร้อยแล้ว'),
     wasApproved ? '' : timelineHtml(steps),
     reasonBoxHtml(cancelledEntry?.comment, 'เหตุผลที่ยกเลิก'),
     cardOpen('ข้อมูลคำขอ') +
