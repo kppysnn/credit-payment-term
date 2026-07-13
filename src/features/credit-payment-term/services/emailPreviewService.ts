@@ -184,14 +184,13 @@ function shell(title: string, preheader: string, bodyHtml: string): string {
 // carries its own weight through size and color alone, the same way the
 // centering + generous padding (40px top / 32px bottom) already does the
 // work a colored container used to be doing.
-function headerRow(iconSvg: string, text: string, badgeHtml?: string): string {
+function headerRow(iconSvg: string, text: string): string {
   return `<tr><td class="px-mobile" align="center" style="padding: 40px 32px 32px;">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
       <td align="center">${iconSvg}</td>
     </tr></table>
     <div style="height:18px; line-height:18px; font-size:0;">&nbsp;</div>
     <h1 class="text-ink" style="margin:0; text-align:center; font-family:${FONT}; font-size:23px; font-weight:700; color:#001122; line-height:1.35;">${text}</h1>
-    ${badgeHtml ? `<div style="height:10px; line-height:10px; font-size:0;">&nbsp;</div>${badgeHtml}` : ''}
   </td></tr>`
 }
 
@@ -204,9 +203,9 @@ function headerRow(iconSvg: string, text: string, badgeHtml?: string): string {
 // text or centered text with a deliberate width. `max-width` (not a fixed
 // `width`) so it still shrinks to fit the 335px mobile content area
 // instead of overflowing it.
-function bodyCopyRow(text: string): string {
+function bodyCopyRow(text: string, maxWidth = 420): string {
   return `<tr><td class="px-mobile" align="center" style="padding: 0 32px 20px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:420px;" align="center"><tr>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:${maxWidth}px;" align="center"><tr>
       <td align="center">
         <p class="text-body" style="margin:0; text-align:center; font-family:${FONT}; font-size:14px; font-weight:400; color:#505050; line-height:1.65;">${text}</p>
       </td>
@@ -276,7 +275,7 @@ function footerRow(url: string): string {
 
 function cardOpen(title: string): string {
   return `<tr><td class="px-mobile" style="padding: 0 32px 8px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card-bg" style="border:1px solid #D0D6DF; border-radius:4px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card-bg" style="border:1px solid #D0D6DF; border-radius:4px; overflow:hidden;">
       <tr><td class="card-head-bg" style="background:#F2F6F8; padding:14px 20px;"><h2 class="text-secondary" style="margin:0; font-family:${FONT}; font-size:14px; font-weight:500; color:#586782; letter-spacing:-0.01em;">${title}</h2></td></tr>
       <tr><td style="padding:20px;">`
 }
@@ -544,7 +543,7 @@ export function buildSubmitConfirmationEmail(req: Request): EmailContent {
   // below, same as it already was.
   const body = [
     headerRow(iconImg('hourglass-yellow', 44, 50), 'คำขอของคุณอยู่ระหว่างรอการอนุมัติ'),
-    bodyCopyRow('ส่งคำขออนุมัติ Credit &amp; Payment Term เรียบร้อยแล้ว ระบบได้แจ้งผู้อนุมัติ และจะส่งอีเมลแจ้งผลให้คุณทราบอีกครั้ง'),
+    bodyCopyRow('ส่งคำขออนุมัติ Credit &amp; Payment Term เรียบร้อยแล้ว <br>ระบบได้แจ้งผู้อนุมัติ และจะส่งอีเมลแจ้งผลให้คุณทราบอีกครั้ง'),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอของคุณ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
@@ -597,8 +596,6 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
     </tr></table>
   ` + CARD_CLOSE
 
-  const versionBadge = req.version > 1 ? `<span class="text-brand chip-bg" style="display:inline-block; font-family:${FONT}; font-size:12px; font-weight:600; color:#004081; background:rgba(0,64,129,0.08); border-radius:4px; padding:2px 8px;">v${req.version}</span>` : undefined
-
   // No timeline here on purpose (reversed from an earlier pass that added
   // one to match #1/#3/#4 for consistency's sake — wrong reasoning). The
   // created->submitted steps are the SALES rep's journey, not the
@@ -610,8 +607,8 @@ export function buildNewRequestApproverEmail(req: Request): EmailContent {
   // subtitle explaining the ask serves that better than a journey ending in
   // a status the recipient hasn't decided yet.
   const body = [
-    headerRow(iconImg('hourglass-yellow', 44, 50), 'มีคำขออนุมัติ Credit Term รอดำเนินการ', versionBadge),
-    bodyCopyRow('มีคำขออนุมัติ Credit &amp; Payment Term ฉบับใหม่รอการพิจารณาจากคุณ กรุณาตรวจสอบรายละเอียดด้านล่างและดำเนินการอนุมัติหรือไม่อนุมัติ'),
+    headerRow(iconImg('hourglass-yellow', 44, 50), 'มีคำขออนุมัติ Credit Term รอดำเนินการ'),
+    bodyCopyRow('มีคำขออนุมัติ Credit &amp; Payment Term ฉบับใหม่รอการพิจารณาจากคุณ <br>กรุณาตรวจสอบรายละเอียดด้านล่างและดำเนินการอนุมัติหรือไม่อนุมัติ'),
     resubmitBanner,
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
@@ -669,7 +666,7 @@ export function buildApprovedEmail(req: Request): EmailContent {
 
   const body = [
     headerRow(iconImg('check-teal', 66, 50), 'คำขอของคุณได้รับการอนุมัติแล้ว'),
-    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณได้รับการอนุมัติเรียบร้อยแล้ว'),
+    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณได้รับการอนุมัติเรียบร้อยแล้ว', 480),
     timelineHtml(steps),
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
@@ -687,16 +684,6 @@ export function buildApprovedEmail(req: Request): EmailContent {
 }
 
 // ==================== Template 4: rejected (sales) ====================
-// An earlier version omitted the rejection reason entirely — the theory was
-// that showing it here competed with the header for attention, and the full
-// reason was "one tap away" on the detail page anyway. In practice that made
-// this the one email in the set that tells the recipient to fix something
-// without saying what: the approved-note and cancellation-reason callouts
-// both show their "why" inline, so rejected doing the opposite read as
-// missing information, not a deliberate restraint (caught by /impeccable
-// critique — this is the one place Nielsen's "help users recover from
-// errors" heuristic actually matters and was the weakest score in the set).
-// Restored using the same red alert callout as the cancellation-reason box.
 export function buildRejectedEmail(req: Request): EmailContent {
   const detailUrl = `${getBaseUrl()}/requests/${req.id}`
   const customerName = getCustomerName(req)
@@ -707,22 +694,10 @@ export function buildRejectedEmail(req: Request): EmailContent {
     historyStep(req, 'rejected', iconImg('xmark-red-solid', 13, 13), '#F3554F'),
   ].filter(Boolean) as TimelineStep[]
 
-  const hasReasons = req.approvalResult?.customerComment || req.approvalResult?.hardwareComment || req.approvalResult?.swComment
-  const rejectBox = hasReasons ? `<tr><td class="px-mobile" style="padding: 0 32px 8px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="alert-bg" style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:4px;"><tr>
-      <td width="16" valign="top" style="padding:13px 0 12px 14px;">${iconImg('xmark-red-solid', 16, 16)}</td>
-      <td valign="top" style="padding:12px 14px 12px 10px;">
-        <div class="alert-text" style="font-family:${FONT}; font-size:13px; font-weight:600; color:#7F1D1D; margin-bottom:2px;">เหตุผลที่ไม่อนุมัติ</div>
-        ${sectionCommentsHtml(req, '#7F1D1D', 'alert-text')}
-      </td>
-    </tr></table>
-  </td></tr>` : ''
-
   const body = [
     headerRow(iconImg('xmark-red-solid', 50, 50), 'คำขอของคุณไม่ได้รับการอนุมัติ'),
-    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณไม่ได้รับการอนุมัติ กรุณาดูรายละเอียดคำขอเพื่อแก้ไขและส่งขออนุมัติอีกครั้ง'),
+    bodyCopyRow('คำขออนุมัติ Credit &amp; Payment Term ของคุณไม่ได้รับการอนุมัติ <br>กรุณาดูรายละเอียดคำขอเพื่อแก้ไขและส่งขออนุมัติอีกครั้ง'),
     timelineHtml(steps),
-    rejectBox,
     cardOpen('ข้อมูลคำขอ') +
       referenceRow(req.requestNo, req.version, req.proposalNo) +
       customerBlock(customerName, typeLabel, getContactPerson(req), getContactPhone(req)) +
